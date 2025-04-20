@@ -11,45 +11,53 @@ const path = require("path");
 module.exports = (client) => {
   client.handleCommands = async (commandsPath, clientId) => {
     const loadCommands = (dir) => {
-      const commandFiles = fs
-        .readdirSync(dir)
-        .filter((file) => file.endsWith(".js"));
-      for (const file of commandFiles) {
-        const command = require(path.join(__dirname, "../../../", dir, file));
-        if (!command.data) {
-          console.log(
-            chalk.red.bold(`Command: ${file} does not export a 'data' property`)
-          );
-          continue;
-        }
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
 
-        if (command.data instanceof SlashCommandBuilder) {
-          command.data.setDMPermission(true);
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
 
-          const commandJSON = command.data.toJSON();
-          commandJSON.integration_types = [0, 1]; 
-          commandJSON.contexts = [0, 1, 2]; 
+        if (entry.isDirectory()) {
+          loadCommands(fullPath);
+        } else if (entry.isFile() && entry.name.endsWith(".js")) {
+          const command = require(path.join(__dirname, "../../../", fullPath));
+          if (!command.data) {
+            console.log(
+              chalk.red.bold(
+                `Command: ${entry.name} does not export a 'data' property`
+              )
+            );
+            continue;
+          }
 
-          client.commands.set(command.data.name, command);
-          client.commandArray.push(commandJSON);
+          if (command.data instanceof SlashCommandBuilder) {
+            command.data.setDMPermission(true);
+            const commandJSON = command.data.toJSON();
+            commandJSON.integration_types = [0, 1];
+            commandJSON.contexts = [0, 1, 2];
 
-          console.log(
-            chalk.green.bold.underline(
-              `Command: ${command.data.name} is ready to deploy ✅`
-            )
-          );
-        } else if (command.data instanceof ContextMenuCommandBuilder) {
-          client.commands.set(command.data.name, command);
-          client.commandArray.push(command.data.toJSON());
-          console.log(
-            chalk.green.bold.underline(
-              `Command: ${command.data.name} is ready to deploy ✅`
-            )
-          );
-        } else {
-          console.log(
-            chalk.red.bold(`Command: ${file} does not have a valid 'data' type`)
-          );
+            client.commands.set(command.data.name, command);
+            client.commandArray.push(commandJSON);
+
+            console.log(
+              chalk.green.bold.underline(
+                `Command: ${command.data.name} is ready to deploy ✅`
+              )
+            );
+          } else if (command.data instanceof ContextMenuCommandBuilder) {
+            client.commands.set(command.data.name, command);
+            client.commandArray.push(command.data.toJSON());
+            console.log(
+              chalk.green.bold.underline(
+                `Command: ${command.data.name} is ready to deploy ✅`
+              )
+            );
+          } else {
+            console.log(
+              chalk.red.bold(
+                `Command: ${entry.name} does not have a valid 'data' type`
+              )
+            );
+          }
         }
       }
     };
