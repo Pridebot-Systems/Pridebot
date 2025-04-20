@@ -3,11 +3,17 @@ require("dotenv").config();
 const { discordstoken } = process.env;
 
 async function updateDiscordsCount(client) {
-  const currentGuildCount = client.guilds.cache.size;
+  if (client.cluster.id !== 0) return;
+
   try {
-    const response = await axios.post(
+    const results = await client.cluster.broadcastEval(
+      (c) => c.guilds.cache.size
+    );
+    const totalGuilds = results.reduce((a, b) => a + b, 0);
+
+    await axios.post(
       `https://discords.com/bots/api/bot/1101256478632972369/setservers`,
-      { server_count: currentGuildCount },
+      { server_count: totalGuilds },
       {
         headers: {
           Authorization: discordstoken,
