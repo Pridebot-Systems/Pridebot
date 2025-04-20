@@ -95,6 +95,8 @@ module.exports = (client) => {
       totalUserCount += guild.memberCount;
     });
 
+    const ping = client.ws.ping;
+
     try {
       const UserInstallCount = await getApproximateUserInstallCount(client);
       const usages = await CommandUsage.find({}).sort({ count: -1 });
@@ -130,6 +132,7 @@ module.exports = (client) => {
         totalGuildCount,
         totalUserContextCount,
         botuptime,
+        ping,
         vote: {
           votingtotal,
           topggtoal,
