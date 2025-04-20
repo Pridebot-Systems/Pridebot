@@ -22,7 +22,8 @@ module.exports = {
     const startTimestamp = Date.now();
     await interaction.deferReply();
 
-    const botping = Date.now() - startTimestamp;
+    const botLatency = Date.now() - startTimestamp;
+    const botping = Math.round(interaction.client.ws.ping);
 
     function formatUptime(seconds) {
       const timeUnits = {
@@ -102,7 +103,7 @@ module.exports = {
       const totalUsage = usages.reduce((acc, cmd) => acc + cmd.count, 0);
       const startTimeTimestamp = `<t:${client.botStartTime}:f>`;
 
-      const ping = `**Ping**: \`${botping}ms\` \n**API Latency**: \`${client.ws.ping}ms\``;
+      const ping = `**Ping**: \`${botping}ms\` \n**Bot Latency**: \`${botLatency}ms\``;
       const up = `\n**Uptime:** \`${formatUptime(
         process.uptime()
       )}\` \n**Start Time:** ${startTimeTimestamp}`;
