@@ -1,28 +1,30 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
-const commandLogging = require("../../config/logging/commandlog");
-const loadTranslations = require("../../config/commandfunctions/translation");
+const commandLogging = require("../../../config/logging/commandlog");
+const loadTranslations = require("../../../config/commandfunctions/translation");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("pridemonth")
+    .setName("gay")
     .setNameLocalizations({
-      de: "pridemonat",
-      "en-GB": "pridemonth",
-      fi: "pridekuukausi",
-      ru: "месяцгордости",
+      de: "schwul",
+      "en-GB": "gay",
+      "es-ES": "gay",
+      fi: "homo",
+      ru: "гей",
     })
-    .setDescription("Only a month? I'm gay all year!")
+    .setDescription("Imagine being gay, couldn't be me")
     .setDescriptionLocalizations({
-      de: "Nur einen Monat? Ich bin das ganze Jahr schwul!",
-      "en-GB": "Only a month? I'm gay all year!",
-      fi: "Vain kuukausi? Olen homo koko vuoden!",
-      ru: "Только месяц? Я гей круглый год!",
+      de: "Stell dir vor, du bist schwul, könnte ich nicht sein.",
+      "en-GB": "Imagine being gay, couldn't be me",
+      "es-ES": "Imagina ser gay, no podría ser yo",
+      fi: "Kuvittele olevasi homo, en voisi olla minä.",
+      ru: "Представь себе, что ты гей, это не про меня",
     }),
 
   async execute(interaction, client) {
     const interactionLocale = interaction.locale || "en-US";
     const category = "Pride";
-    const commandName = "pridemonth";
+    const commandName = "gay";
     let translations;
     try {
       translations = loadTranslations(interactionLocale, category, commandName);
@@ -35,21 +37,25 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle(`<:_:1108822823721521242> ${translations.title}`)
+      .setTitle(`<:_:1109676932251000923> ${translations.title}`)
       .setDescription(translations.description)
       .setColor(0xff00ae)
       .setFields(
         {
-          name: translations.what_is_pride_month.name,
-          value: translations.what_is_pride_month.value,
+          name: translations.what_is_gay.name,
+          value: translations.what_is_gay.value,
         },
         {
           name: translations.history.name,
           value: translations.history.value,
         },
         {
-          name: translations.pride_month_days.name,
-          value: translations.pride_month_days.value,
+          name: translations.flag.name,
+          value: translations.flag.value,
+        },
+        {
+          name: translations.days.name,
+          value: translations.days.value,
         }
       );
 

@@ -1,28 +1,34 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
-const commandLogging = require("../../config/logging/commandlog");
-const loadTranslations = require("../../config/commandfunctions/translation");
+const commandLogging = require("../../../config/logging/commandlog");
+const loadTranslations = require("../../../config/commandfunctions/translation");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("transgender")
+    .setName("bisexual")
     .setNameLocalizations({
-      de: "transgender",
-      "en-GB": "transgender",
-      fi: "transsukupuolinen",
-      ru: "трансгендеры",
+      de: "bisexualität",
+      el: "aμφιφυλόφιλη",
+      "en-GB": "bisexual",
+      "es-ES": "bisexual",
+      fi: "biseksuaali",
+      nl: "biseksueel",
+      ru: "бисексуал",
     })
-    .setDescription("Trans-formers roll out!!")
+    .setDescription("Why am I bi myself again ;-;")
     .setDescriptionLocalizations({
-      de: "Trans-formers, rollt aus!!",
-      "en-GB": "Trans-formers roll out!!",
-      fi: "Trans-formersit, rullatkaa ulos!!",
-      ru: "Тран-сформеры, выходите!!",
+      de: "Warum bin ich wieder bi alleine ;-;",
+      el: "Γιατί είμαι πάλι bi μόνος μου ;-;",
+      "en-GB": "Why am I bi myself again ;-;",
+      "es-ES": "Por qué soy bi yo mismo otra vez ;-;",
+      fi: "Miksi olen taas bi yksin ;-;",
+      nl: "Waarom ben ik weer bi mezelf ;-;",
+      ru: "Почему я снова би сам по себе ;-;",
     }),
 
   async execute(interaction, client) {
     const interactionLocale = interaction.locale || "en-US";
     const category = "Pride";
-    const commandName = "transgender";
+    const commandName = "bisexual";
     let translations;
     try {
       translations = loadTranslations(interactionLocale, category, commandName);
@@ -35,13 +41,13 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle(`<:_:1112201010509795348> ${translations.title}`)
+      .setTitle(`<:_:1108823482856382474> ${translations.title}`)
       .setDescription(translations.description)
       .setColor(0xff00ae)
       .setFields(
         {
-          name: translations.what_is_transgender.name,
-          value: translations.what_is_transgender.value,
+          name: translations.what_is_bisexuality.name,
+          value: translations.what_is_bisexuality.value,
         },
         {
           name: translations.history.name,
@@ -52,8 +58,8 @@ module.exports = {
           value: translations.flag.value,
         },
         {
-          name: translations.transgender_days.name,
-          value: translations.transgender_days.value,
+          name: translations.days.name,
+          value: translations.days.value,
         }
       );
 

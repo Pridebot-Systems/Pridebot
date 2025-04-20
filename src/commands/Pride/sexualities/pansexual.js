@@ -1,28 +1,28 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
-const commandLogging = require("../../config/logging/commandlog");
-const loadTranslations = require("../../config/commandfunctions/translation");
+const commandLogging = require("../../../config/logging/commandlog");
+const loadTranslations = require("../../../config/commandfunctions/translation");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("lesbian")
+    .setName("pansexual")
     .setNameLocalizations({
-      de: "lesbisch",
-      "en-GB": "lesbian",
-      fi: "lesbo",
-      ru: "лесбиянки",
+      de: "pansexuell",
+      "en-GB": "pansexual",
+      fi: "panseksuaali",
+      ru: "пансексуал"
     })
-    .setDescription("woman or 𝘸𝘰𝘮𝘢𝘯")
+    .setDescription("You like pots or pans more?")
     .setDescriptionLocalizations({
-      de: "frau oder 𝘧𝘳𝘢𝘶",
-      "en-GB": "woman or 𝘸𝘰𝘮𝘢𝘯",
-      fi: "nainen tai 𝘯𝘢𝘪𝘯𝘦𝘯",
-      ru: "женщина или женщина",
+      de: "Magst du Töpfe oder Pfannen mehr?",
+      "en-GB": "You like pots or pans more?",
+      fi: "Pidätkö enemmän kattiloista vai pannuista?",
+      ru: "Ты больше любишь горшки или сковородки?"
     }),
 
   async execute(interaction, client) {
     const interactionLocale = interaction.locale || "en-US";
     const category = "Pride";
-    const commandName = "lesbian";
+    const commandName = "pansexual";
     let translations;
     try {
       translations = loadTranslations(interactionLocale, category, commandName);
@@ -35,13 +35,13 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle(`<:_:1108868440363642930> ${translations.title}`)
+      .setTitle(`<:_:1108823338949812355> ${translations.title}`)
       .setDescription(translations.description)
       .setColor(0xff00ae)
       .setFields(
         {
-          name: translations.what_is_lesbian.name,
-          value: translations.what_is_lesbian.value,
+          name: translations.what_is_pansexual.name,
+          value: translations.what_is_pansexual.value,
         },
         {
           name: translations.history.name,
@@ -52,8 +52,8 @@ module.exports = {
           value: translations.flag.value,
         },
         {
-          name: translations.lesbian_days.name,
-          value: translations.lesbian_days.value,
+          name: translations.pansexual_days.name,
+          value: translations.pansexual_days.value,
         }
       );
 

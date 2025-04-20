@@ -1,28 +1,28 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
-const commandLogging = require("../../config/logging/commandlog");
-const loadTranslations = require("../../config/commandfunctions/translation");
+const commandLogging = require("../../../config/logging/commandlog");
+const loadTranslations = require("../../../config/commandfunctions/translation");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("pansexual")
+    .setName("pridemonth")
     .setNameLocalizations({
-      de: "pansexuell",
-      "en-GB": "pansexual",
-      fi: "panseksuaali",
-      ru: "пансексуал"
+      de: "pridemonat",
+      "en-GB": "pridemonth",
+      fi: "pridekuukausi",
+      ru: "месяцгордости",
     })
-    .setDescription("You like pots or pans more?")
+    .setDescription("Only a month? I'm gay all year!")
     .setDescriptionLocalizations({
-      de: "Magst du Töpfe oder Pfannen mehr?",
-      "en-GB": "You like pots or pans more?",
-      fi: "Pidätkö enemmän kattiloista vai pannuista?",
-      ru: "Ты больше любишь горшки или сковородки?"
+      de: "Nur einen Monat? Ich bin das ganze Jahr schwul!",
+      "en-GB": "Only a month? I'm gay all year!",
+      fi: "Vain kuukausi? Olen homo koko vuoden!",
+      ru: "Только месяц? Я гей круглый год!",
     }),
 
   async execute(interaction, client) {
     const interactionLocale = interaction.locale || "en-US";
     const category = "Pride";
-    const commandName = "pansexual";
+    const commandName = "pridemonth";
     let translations;
     try {
       translations = loadTranslations(interactionLocale, category, commandName);
@@ -35,25 +35,21 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle(`<:_:1108823338949812355> ${translations.title}`)
+      .setTitle(`<:_:1108822823721521242> ${translations.title}`)
       .setDescription(translations.description)
       .setColor(0xff00ae)
       .setFields(
         {
-          name: translations.what_is_pansexual.name,
-          value: translations.what_is_pansexual.value,
+          name: translations.what_is_pride_month.name,
+          value: translations.what_is_pride_month.value,
         },
         {
           name: translations.history.name,
           value: translations.history.value,
         },
         {
-          name: translations.flag.name,
-          value: translations.flag.value,
-        },
-        {
-          name: translations.pansexual_days.name,
-          value: translations.pansexual_days.value,
+          name: translations.pride_month_days.name,
+          value: translations.pride_month_days.value,
         }
       );
 

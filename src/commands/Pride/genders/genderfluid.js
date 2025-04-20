@@ -1,30 +1,30 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
-const commandLogging = require("../../config/logging/commandlog");
-const loadTranslations = require("../../config/commandfunctions/translation");
+const commandLogging = require("../../../config/logging/commandlog");
+const loadTranslations = require("../../../config/commandfunctions/translation");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("gay")
+    .setName("genderfluid")
     .setNameLocalizations({
-      de: "schwul",
-      "en-GB": "gay",
-      "es-ES": "gay",
-      fi: "homo",
-      ru: "гей",
+      de: "genderfluid",
+      "en-GB": "genderfluid",
+      "es-ES": "genderfluid",
+      fi: "genderfluid",
+      ru: "гендерфлюиде"
     })
-    .setDescription("Imagine being gay, couldn't be me")
+    .setDescription("Who stole my fluid!!!")
     .setDescriptionLocalizations({
-      de: "Stell dir vor, du bist schwul, könnte ich nicht sein.",
-      "en-GB": "Imagine being gay, couldn't be me",
-      "es-ES": "Imagina ser gay, no podría ser yo",
-      fi: "Kuvittele olevasi homo, en voisi olla minä.",
-      ru: "Представь себе, что ты гей, это не про меня",
+      de: "Wer hat meine Flüssigkeit gestohlen?",
+      "en-GB": "Who stole my fluid?",
+      "es-ES": "¿Quién robó mi fluido?",
+      fi: "Kuka varasti nesteeni!!!",
+      ru: "Кто украл мою жидкость!!!"
     }),
 
   async execute(interaction, client) {
     const interactionLocale = interaction.locale || "en-US";
     const category = "Pride";
-    const commandName = "gay";
+    const commandName = "genderfluid";
     let translations;
     try {
       translations = loadTranslations(interactionLocale, category, commandName);
@@ -37,13 +37,13 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle(`<:_:1109676932251000923> ${translations.title}`)
+      .setTitle(`<:_:1112196520477999226> ${translations.title}`)
       .setDescription(translations.description)
       .setColor(0xff00ae)
       .setFields(
         {
-          name: translations.what_is_gay.name,
-          value: translations.what_is_gay.value,
+          name: translations.what_is_genderfluid.name,
+          value: translations.what_is_genderfluid.value,
         },
         {
           name: translations.history.name,
