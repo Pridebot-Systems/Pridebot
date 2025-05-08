@@ -1,6 +1,5 @@
 require("dotenv").config();
 const pm2 = require("pm2");
-const os = require("os");
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const CommandUsage = require("../../../mongo/models/usageSchema");
 const Profile = require("../../../mongo/models/profileSchema");
@@ -12,6 +11,7 @@ const commandLogging = require("../../config/logging/commandlog");
 const {
   getApproximateUserInstallCount,
 } = require("../../config/botfunctions/user_install");
+const { getInfo } = require("discord-hybrid-sharding");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -77,8 +77,11 @@ module.exports = {
         client
       );
 
+      const shardCount = getInfo().TOTAL_SHARDS;
+      const clusterCount = getInfo().CLUSTER_COUNT;
+
       const pm2Stats = await getPm2Stats();
-      const memoryUsage = `${pm2Stats.memory} MB / 16 GB`;
+      const memoryUsage = `${pm2Stats.memory} MB`;
       const cpuUsage = `${pm2Stats.cpu}%`;
 
       let totalCommits = await getTotalCommits(
@@ -109,8 +112,9 @@ module.exports = {
       )}\` \n**Start Time:** ${startTimeTimestamp}`;
       const botstats = `**Servers:** \`${currentGuildCount}\` \n**Users:** \`${totalUserCount.toLocaleString()}\`\n**User Installs:** \`${approximateUserInstallCount}\``;
       const commandstats = `**Commands:** \`${CommandsCount}\` \n**Total Usage:** \`${totalUsage}\` \n**Profiles:** \`${profileAmount}\``;
-      const botversion = `**Dev:** \`${commitHundreds}.${commitTens}.${commitOnes}\` \n **Node.js:** \`${process.version}\` \n **Discord.js:** \`v14.16.1\``;
+      const botversion = `**Dev:** \`${commitHundreds}.${commitTens}.${commitOnes}\` \n **Node.js:** \`${process.version}\` \n **Discord.js:** \`v14.19.2\``;
       const clientstats = `**CPU:** \`${cpuUsage}\` \n**Memory:** \`${memoryUsage}\``;
+      const shardstats = `**Shards:** \`${shardCount}\` \n**Clusters:** \`${clusterCount}\``;
 
       const embed = new EmbedBuilder()
         .setDescription(
@@ -146,6 +150,11 @@ module.exports = {
           {
             name: "<:_:1108417509624926228> __Uptime__",
             value: up,
+            inline: true,
+          },
+          {
+            name: "<:_:1255012892206567476> __Shard/Cluster__",
+            value: shardstats,
             inline: true,
           }
         )
