@@ -85,7 +85,7 @@ module.exports = {
       const cpuUsage = `${pm2Stats.cpu}%`;
 
       let totalCommits = await getTotalCommits(
-        "Sdriver1",
+        "Pridebot-Systems",
         "Pridebot",
         process.env.githubToken
       );
