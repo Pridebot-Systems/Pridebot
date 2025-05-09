@@ -1,0 +1,75 @@
+{
+  "sexuality": [
+    { "name": "Asexual", "value": "Asexual" },
+    { "name": "Bisexual", "value": "Bisexual" },
+    { "name": "Demisexual", "value": "Demisexual" },
+    { "name": "Heterosexual", "value": "Heterosexual" },
+    { "name": "Homosexual/Gay", "value": "Gay" },
+    { "name": "Homosexual/Lesbian", "value": "Lesbian" },
+    { "name": "Omnisexual", "value": "Omnisexual" },
+    { "name": "Pansexual", "value": "Pansexual" },
+    { "name": "Polyamorous", "value": "Polyamorous" },
+    { "name": "Queer", "value": "Queer" },
+    { "name": "Unlabeled", "value": "Unlabeled" },
+    { "name": "Other", "value": "Other" }
+  ],
+  "romantic": [
+    { "name": "Aromantic", "value": "Aromantic" },
+    { "name": "Biromantic", "value": "Biromantic" },
+    { "name": "Demiromantic", "value": "Demiromantic" },
+    { "name": "Heteroromantic", "value": "Heteroromantic" },
+    { "name": "Homoromantic", "value": "Homoromantic" },
+    { "name": "Omniromantic", "value": "Omniromantic" },
+    { "name": "Panromantic", "value": "Panromantic" },
+    { "name": "Unlabeled", "value": "Unlabeled" },
+    { "name": "Other", "value": "Other" }
+  ],
+  "gender": [
+    { "name": "Agender", "value": "Agender" },
+    { "name": "Androgyne", "value": "Androgyne" },
+    { "name": "Bigender/Trigender", "value": "Bigender/Trigender" },
+    { "name": "Cis-male", "value": "Cis-male" },
+    { "name": "Cis-female", "value": "Cis-female" },
+    { "name": "Demi-boy", "value": "Demi-boy" },
+    { "name": "Demi-girl", "value": "Demi-girl" },
+    { "name": "Genderfaun", "value": "Genderfaun" },
+    { "name": "Genderfluid", "value": "Genderfluid" },
+    { "name": "Genderflux", "value": "Genderflux" },
+    { "name": "Genderqueer", "value": "Genderqueer" },
+    { "name": "Non-Binary", "value": "Non-Binary" },
+    { "name": "Pangender", "value": "Pangender" },
+    { "name": "Transgender", "value": "Transgender" },
+    { "name": "Xenogender", "value": "Xenogender" },
+    { "name": "Unlabeled", "value": "Unlabeled" },
+    { "name": "Other", "value": "Other" }
+  ],
+  "pronouns": [
+    { "name": "He/Him/His", "value": "He/Him/His" },
+    { "name": "She/Her/Hers", "value": "She/Her/Hers" },
+    { "name": "They/Them/Their", "value": "They/Them/Their" },
+    { "name": "It/Its", "value": "It/Its" },
+    { "name": "He/They", "value": "He/They" },
+    { "name": "She/They", "value": "She/They" },
+    { "name": "It/They", "value": "It/They" },
+    { "name": "Any Pronouns", "value": "Any Pronouns" },
+    { "name": "ey/em/eir", "value": "ey/em/eir" },
+    { "name": "fae/faer/faers", "value": "fae/faer/faers" },
+    { "name": "xe/xem/xyr", "value": "xe/xem/xyr" },
+    { "name": "ze/zir/zir", "value": "ze/zir/zir" },
+    { "name": "other neopronouns", "value": "other neopronouns" },
+    { "name": "None", "value": "None" },
+    { "name": "Other", "value": "Other" }
+  ],
+  "badges": [
+    {
+      "bot": "<:Ic_Pridebot_logo:1108228682184654908> ",
+      "discord": "<:Ic_Pridebot_discord:1108417509624926228> ",
+      "devs": "<:Ic_Pridebot_dev:1195877037034983515> ",
+      "oneyear": "<:Ic_Pridebot_1y:1233274651153797120> ",
+      "support": "<:Ic_Pridebot_support:1197399653109473301> ",
+      "vips": "<:Ic_Pridebot_verified:1197328938788204586> ",
+      "partner": "<:Ic_Pridebot_partner:1197394034310791272> ",
+      "donor": "<:Ic_Pridebot_donor:1235074804726628465> "
+    }
+  ]
+}

@@ -9,6 +9,8 @@ const {
 const Profile = require("../../../mongo/models/profileSchema");
 const IDLists = require("../../../mongo/models/idSchema");
 
+const { badgeMap } = require("./profilefunctions/profilehelper");
+
 module.exports = {
   data: new ContextMenuCommandBuilder()
     .setName("User Profile")
@@ -32,17 +34,7 @@ module.exports = {
       const idLists = await IDLists.findOne();
       let badgeStr = "";
       if (profile && profile.badgesVisible && idLists) {
-        const badgesMap = {
-          bot: "<:_:1108228682184654908> ",
-          discord: "<:_:1108417509624926228> ",
-          devs: "<:_:1195877037034983515> ",
-          oneyear: "<:_:1233274651153797120> ",
-          support: "<:_:1197399653109473301> ",
-          vips: "<:_:1197328938788204586> ",
-          partner: "<:_:1197394034310791272> ",
-          donor: "<:_:1235074804726628465> ",
-        };
-        for (const [key, value] of Object.entries(badgesMap)) {
+        for (const [key, value] of Object.entries(badgeMap)) {
           if (idLists[key] && idLists[key].includes(targetUser.id)) {
             badgeStr += value;
           }

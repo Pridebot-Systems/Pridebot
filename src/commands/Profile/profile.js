@@ -1,22 +1,18 @@
-const {
-  SlashCommandBuilder,
-  ActionRowBuilder,
-  EmbedBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  ComponentType,
-} = require("discord.js");
-const commandLogging = require("../../config/logging/commandlog");
-const profileLogging = require("../../config/logging/profilelogging");
-const chalk = require("chalk");
-
-const Profile = require("../../../mongo/models/profileSchema");
-const IDLists = require("../../../mongo/models/idSchema");
+const { SlashCommandBuilder } = require("discord.js");
 
 const {
-  containsDisallowedContent,
-} = require("../../config/detection/containDisallow");
-const { scanText } = require("../../config/detection/perspective");
+  sexualityChoices,
+  romanticChoices,
+  genderChoices,
+  pronounChoices,
+  stringOptionWithChoices,
+} = require("./profilefunctions/profilehelper");
+const {
+  handleEdit,
+  handleView,
+  handleUpdate,
+  handleSetup,
+} = require("./profilefunctions/profilehandlers");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -58,161 +54,45 @@ module.exports = {
             )
             .setRequired(false)
         )
-        .addStringOption((option) =>
-          option
-            .setName("sexuality")
-            .setDescription("Your sexual orientation")
-            .setRequired(false)
-            .addChoices(
-              { name: "Asexual", value: "Asexual" },
-              { name: "Bisexual", value: "Bisexual" },
-              { name: "Demisexual", value: "Demisexual" },
-              { name: "Heterosexual ", value: "Heterosexual" },
-              { name: "Homosexual/Gay", value: "Gay" },
-              { name: "Homosexual/Lesbian", value: "Lesbian" },
-              { name: "Omnisexual", value: "Omnisexual" },
-              { name: "Pansexual", value: "Pansexual" },
-              { name: "Polyamorous", value: "Polyamorous" },
-              { name: "Queer", value: "Queer" },
-              { name: "Unlabeled", value: "Unlabeled" },
-              { name: "Other", value: "Other" }
-            )
+        .addStringOption(
+          stringOptionWithChoices(
+            "sexuality",
+            "Your sexual orientation",
+            sexualityChoices
+          )
         )
-        .addStringOption((option) =>
-          option
-            .setName("romantic")
-            .setDescription("Your romantic orientation")
-            .setRequired(false)
-            .addChoices(
-              { name: "Aromantic", value: "Aromantic" },
-              { name: "Biromantic", value: "Biromantic" },
-              { name: "Demiromantic", value: "Demiromantic" },
-              { name: "Heteroromantic", value: "Heteroromantic" },
-              { name: "Homoromantic", value: "Homoromantic" },
-              { name: "Omniromantic", value: "Omniromantic" },
-              { name: "Panromantic", value: "Panromantic" },
-              { name: "Unlabeled", value: "Unlabeled" },
-              { name: "Other", value: "Other" }
-            )
+        .addStringOption(
+          stringOptionWithChoices(
+            "romantic",
+            "Your romantic orientation",
+            romanticChoices
+          )
         )
-        .addStringOption((option) =>
-          option
-            .setName("gender")
-            .setDescription("Your gender")
-            .setRequired(false)
-            .addChoices(
-              { name: "Agender", value: "Agender" },
-              { name: "Androgyne", value: "Androgyne" },
-              { name: "Bigender/Trigender", value: "Bigender/Trigender" },
-              { name: "Cis-male", value: "Cis-male" },
-              { name: "Cis-female", value: "Cis-female" },
-              { name: "Demi-boy", value: "Demi-boy" },
-              { name: "Demi-girl", value: "Demi-girl" },
-              { name: "Genderfaun", value: "Genderfaun" },
-              { name: "Genderfluid", value: "Genderfluid" },
-              { name: "Genderflux", value: "Genderflux" },
-              { name: "Genderqueer", value: "Genderqueer" },
-              { name: "Non-Binary", value: "Non-Binary" },
-              { name: "Pangender", value: "Pangender" },
-              { name: "Transgender", value: "Transgender" },
-              { name: "Xenogender", value: "Xenogender" },
-              { name: "Unlabeled", value: "Unlabeled" },
-              { name: "Other", value: "Other" }
-            )
+        .addStringOption(
+          stringOptionWithChoices("gender", "Your gender", genderChoices)
         )
-        .addStringOption((option) =>
-          option
-            .setName("pronouns")
-            .setDescription("Your pronouns")
-            .setRequired(false)
-            .addChoices(
-              { name: "He/Him/His", value: "He/Him/His" },
-              { name: "She/Her/Hers", value: "She/Her/Hers" },
-              { name: "They/Them/Their", value: "They/Them/Their" },
-              { name: "It/Its", value: "It/Its" },
-              { name: "He/They", value: "He/They" },
-              { name: "She/They", value: "She/They" },
-              { name: "It/They", value: "It/They" },
-              { name: "Any Pronouns", value: "Any Pronouns" },
-              { name: "ey/em/eir", value: "ey/em/eir" },
-              { name: "fae/faer/faers", value: "fae/faer/faers" },
-              { name: "xe/xem/xyr", value: "xe/xem/xyr" },
-              { name: "ze/zir/zir", value: "ze/zir/zir" },
-              { name: "other neopronouns", value: "other neopronouns" },
-              { name: "None", value: "None" },
-              { name: "Other", value: "Other" }
-            )
+        .addStringOption(
+          stringOptionWithChoices("pronouns", "Your pronouns", pronounChoices)
         )
-        .addStringOption((option) =>
-          option
-            .setName("other_sexuality")
-            .setDescription("Another sexual orientation")
-            .setRequired(false)
-            .addChoices(
-              { name: "Asexual", value: "Asexual" },
-              { name: "Bisexual", value: "Bisexual" },
-              { name: "Demisexual", value: "Demisexual" },
-              { name: "Heterosexual ", value: "Heterosexual" },
-              { name: "Homosexual/Gay", value: "Gay" },
-              { name: "Homosexual/Lesbian", value: "Lesbian" },
-              { name: "Omnisexual", value: "Omnisexual" },
-              { name: "Pansexual", value: "Pansexual" },
-              { name: "Polyamorous", value: "Polyamorous" },
-              { name: "Queer", value: "Queer" },
-              { name: "Unlabeled", value: "Unlabeled" },
-              { name: "Other", value: "Other" },
-              { name: "Clear", value: "clear" }
-            )
+        .addStringOption(
+          stringOptionWithChoices(
+            "other_sexuality",
+            "Another sexual orientation",
+            [...sexualityChoices, { name: "Clear", value: "clear" }]
+          )
         )
-        .addStringOption((option) =>
-          option
-            .setName("other_gender")
-            .setDescription("Another gender")
-            .setRequired(false)
-            .addChoices(
-              { name: "Agender", value: "Agender" },
-              { name: "Androgyne", value: "Androgyne" },
-              { name: "Bigender/Trigender", value: "Bigender/Trigender" },
-              { name: "Cis-male", value: "Cis-male" },
-              { name: "Cis-female", value: "Cis-female" },
-              { name: "Demi-boy", value: "Demi-boy" },
-              { name: "Demi-girl", value: "Demi-girl" },
-              { name: "Genderfaun", value: "Genderfaun" },
-              { name: "Genderfluid", value: "Genderfluid" },
-              { name: "Genderflux", value: "Genderflux" },
-              { name: "Genderqueer", value: "Genderqueer" },
-              { name: "Non-Binary", value: "Non-Binary" },
-              { name: "Pangender", value: "Pangender" },
-              { name: "Transgender", value: "Transgender" },
-              { name: "Xenogender", value: "Xenogender" },
-              { name: "Unlabeled", value: "Unlabeled" },
-              { name: "Other", value: "Other" },
-              { name: "Clear", value: "clear" }
-            )
+        .addStringOption(
+          stringOptionWithChoices("other_gender", "Another gender", [
+            ...genderChoices,
+            { name: "Clear", value: "clear" },
+          ])
         )
-        .addStringOption((option) =>
-          option
-            .setName("other_pronouns")
-            .setDescription("add another set of pronouns")
-            .setRequired(false)
-            .addChoices(
-              { name: "He/Him/His", value: "He/Him/His" },
-              { name: "She/Her/Hers", value: "She/Her/Hers" },
-              { name: "They/Them/Their", value: "They/Them/Their" },
-              { name: "It/Its", value: "It/Its" },
-              { name: "He/They", value: "He/They" },
-              { name: "She/They", value: "She/They" },
-              { name: "It/They", value: "It/They" },
-              { name: "Any Pronouns", value: "Any Pronouns" },
-              { name: "ey/em/eir", value: "ey/em/eir" },
-              { name: "fae/faer/faers", value: "fae/faer/faers" },
-              { name: "xe/xem/xyr", value: "xe/xem/xyr" },
-              { name: "ze/zir/zir", value: "ze/zir/zir" },
-              { name: "other neopronouns", value: "other neopronouns" },
-              { name: "None", value: "None" },
-              { name: "Other", value: "Other" },
-              { name: "Clear", value: "clear" }
-            )
+        .addStringOption(
+          stringOptionWithChoices(
+            "other_pronouns",
+            "add another set of pronouns",
+            [...pronounChoices, { name: "Clear", value: "clear" }]
+          )
         )
         .addStringOption((option) =>
           option
@@ -246,90 +126,32 @@ module.exports = {
             )
             .setRequired(true)
         )
-        .addStringOption((option) =>
-          option
-            .setName("sexuality")
-            .setDescription("Your sexual orientation")
-            .setRequired(true)
-            .addChoices(
-              { name: "Asexual", value: "Asexual" },
-              { name: "Bisexual", value: "Bisexual" },
-              { name: "Demisexual", value: "Demisexual" },
-              { name: "Heterosexual ", value: "Heterosexual" },
-              { name: "Homosexual/Gay", value: "Gay" },
-              { name: "Homosexual/Lesbian", value: "Lesbian" },
-              { name: "Omnisexual", value: "Omnisexual" },
-              { name: "Pansexual", value: "Pansexual" },
-              { name: "Polyamorous", value: "Polyamorous" },
-              { name: "Queer", value: "Queer" },
-              { name: "Unlabeled", value: "Unlabeled" },
-              { name: "Other", value: "Other" }
-            )
+        .addStringOption(
+          stringOptionWithChoices(
+            "sexuality",
+            "Your sexual orientation",
+            sexualityChoices,
+            true
+          )
         )
-        .addStringOption((option) =>
-          option
-            .setName("romantic")
-            .setDescription("Your romantic orientation")
-            .setRequired(true)
-            .addChoices(
-              { name: "Aromantic", value: "Aromantic" },
-              { name: "Biromantic", value: "Biromantic" },
-              { name: "Demiromantic", value: "Demiromantic" },
-              { name: "Heteroromantic", value: "Heteroromantic" },
-              { name: "Homoromantic", value: "Homoromantic" },
-              { name: "Omniromantic", value: "Omniromantic" },
-              { name: "Panromantic", value: "Panromantic" },
-              { name: "Unlabeled", value: "Unlabeled" },
-              { name: "Other", value: "Other" }
-            )
+        .addStringOption(
+          stringOptionWithChoices(
+            "romantic",
+            "Your romantic orientation",
+            romanticChoices,
+            true
+          )
         )
-        .addStringOption((option) =>
-          option
-            .setName("gender")
-            .setDescription("Your gender")
-            .setRequired(true)
-            .addChoices(
-              { name: "Agender", value: "Agender" },
-              { name: "Androgyne", value: "Androgyne" },
-              { name: "Bigender/Trigender", value: "Bigender/Trigender" },
-              { name: "Cis-male", value: "Cis-male" },
-              { name: "Cis-female", value: "Cis-female" },
-              { name: "Demi-boy", value: "Demi-boy" },
-              { name: "Demi-girl", value: "Demi-girl" },
-              { name: "Genderfaun", value: "Genderfaun" },
-              { name: "Genderfluid", value: "Genderfluid" },
-              { name: "Genderflux", value: "Genderflux" },
-              { name: "Genderqueer", value: "Genderqueer" },
-              { name: "Non-Binary", value: "Non-Binary" },
-              { name: "Pangender", value: "Pangender" },
-              { name: "Transgender", value: "Transgender" },
-              { name: "Xenogender", value: "Xenogender" },
-              { name: "Unlabeled", value: "Unlabeled" },
-              { name: "Other", value: "Other" }
-            )
+        .addStringOption(
+          stringOptionWithChoices("gender", "Your gender", genderChoices, true)
         )
-        .addStringOption((option) =>
-          option
-            .setName("pronouns")
-            .setDescription("Your pronouns")
-            .setRequired(true)
-            .addChoices(
-              { name: "He/Him/His", value: "He/Him/His" },
-              { name: "She/Her/Hers", value: "She/Her/Hers" },
-              { name: "They/Them/Their", value: "They/Them/Their" },
-              { name: "It/Its", value: "It/Its" },
-              { name: "He/They", value: "He/They" },
-              { name: "She/They", value: "She/They" },
-              { name: "It/They", value: "It/They" },
-              { name: "Any Pronouns", value: "Any Pronouns" },
-              { name: "ey/em/eir", value: "ey/em/eir" },
-              { name: "fae/faer/faers", value: "fae/faer/faers" },
-              { name: "xe/xem/xyr", value: "xe/xem/xyr" },
-              { name: "ze/zir/zir", value: "ze/zir/zir" },
-              { name: "other neopronouns", value: "other neopronouns" },
-              { name: "None", value: "None" },
-              { name: "Other", value: "Other" }
-            )
+        .addStringOption(
+          stringOptionWithChoices(
+            "pronouns",
+            "Your pronouns",
+            pronounChoices,
+            true
+          )
         )
         .addStringOption((option) =>
           option
@@ -362,642 +184,20 @@ module.exports = {
     const subcommand = interaction.options.getSubcommand();
     const username = interaction.user.username;
 
-    async function fetchProfileColor(userId) {
-      const profile = await Profile.findOne({ userId: userId });
-      return profile?.color || "#FF00EA";
-    }
-
-    function isValidPronounPageLink(link) {
-      const regex = /^https:\/\/(en\.)?pronouns\.page\/@[\w-]+$/;
-      return regex.test(link);
-    }
-
-    if (subcommand === "edit") {
-      const userId = interaction.user.id;
-      const colorInput = interaction.options.getString("color");
-      const badgeToggle = interaction.options.getBoolean("badgetoggle");
-      const originalProfile = await Profile.findOne({
-        userId: interaction.user.id,
-      });
-
-      const updates = {};
-
-      if (colorInput) {
-        const color = colorInput.startsWith("#")
-          ? colorInput
-          : `#${colorInput}`;
-
-        const isValidHex = /^#([0-9A-F]{3,6})$/i.test(color);
-        if (!isValidHex) {
-          return interaction.reply({
-            content: "Please enter a valid hex code for the color.",
-            ephemeral: true,
-          });
-        }
-
-        updates.color = color;
-      }
-
-      if (badgeToggle !== null) {
-        updates.badgesVisible = badgeToggle;
-      }
-
-      await Profile.findOneAndUpdate(
-        { userId },
-        { $set: updates },
-        { new: true, upsert: false }
-      );
-
-      let responseMessage = "Your profile has been updated successfully!";
-      if (colorInput && badgeToggle !== null) {
-        responseMessage += " Color and badge visibility have been updated.";
-      } else if (colorInput) {
-        responseMessage += " Color has been updated.";
-      } else if (badgeToggle !== null) {
-        responseMessage = badgeToggle
-          ? "Badges are now visible on your profile."
-          : "Badges are now hidden from your profile.";
-      }
-
-      const updatedProfile = await Profile.findOne({
-        userId: interaction.user.id,
-      });
-
-      await commandLogging(client, interaction);
-      await profileLogging(
-        client,
-        interaction,
-        "edited",
-        originalProfile,
-        updatedProfile
-      );
-      return interaction.reply({
-        content: responseMessage,
-        ephemeral: true,
-      });
-    } else if (subcommand === "view") {
-      const targetUser =
-        interaction.options.getUser("user") || interaction.user;
-      const embedColor = await fetchProfileColor(targetUser.id);
-      const profile = await Profile.findOne({ userId: targetUser.id });
-
-      if (!profile) {
+    switch (subcommand) {
+      case "edit":
+        return handleEdit(interaction, client);
+      case "view":
+        return handleView(interaction, client);
+      case "update":
+        return handleUpdate(interaction, client, username);
+      case "setup":
+        return handleSetup(interaction, client, username);
+      default:
         return interaction.reply({
-          content:
-            targetUser.id === interaction.user.id
-              ? "You have not set up a profile yet. Use </profile setup:1273988656839004283> to create one."
-              : "This user doesn't have a profile set up yet.",
+          content: "Unknown subcommand used.",
           ephemeral: true,
         });
-      }
-
-      const idLists = await IDLists.findOne();
-      let badgeStr = "";
-      if (profile && profile.badgesVisible && idLists) {
-        const badgesMap = {
-          bot: "<:_:1108228682184654908> ",
-          discord: "<:_:1108417509624926228> ",
-          devs: "<:_:1195877037034983515> ",
-          oneyear: "<:_:1233274651153797120> ",
-          support: "<:_:1197399653109473301> ",
-          vips: "<:_:1197328938788204586> ",
-          partner: "<:_:1197394034310791272> ",
-          donor: "<:_:1235074804726628465> ",
-        };
-        for (const [key, value] of Object.entries(badgesMap)) {
-          if (idLists[key] && idLists[key].includes(targetUser.id)) {
-            badgeStr += value;
-          }
-        }
-      }
-
-      const pronounsValue = profile.pronouns || "Not set";
-      const otherPronounsValue = profile.otherPronouns
-        ? `, ${profile.otherPronouns}`
-        : "";
-      const combinedPronouns =
-        pronounsValue.includes("Not set") && otherPronounsValue
-          ? otherPronounsValue.substring(2)
-          : pronounsValue + otherPronounsValue;
-
-      const sexualityValue = profile.sexuality || "Not set";
-      const otherSexualityValue = profile.otherSexuality
-        ? `, ${profile.otherSexuality}`
-        : "";
-      const combinedSexuality =
-        sexualityValue.includes("Not set") && otherSexualityValue
-          ? otherSexualityValue.substring(2)
-          : sexualityValue + otherSexualityValue;
-
-      const genderValue = profile.gender || "Not set";
-      const otherGenderValue = profile.otherGender
-        ? `, ${profile.otherGender}`
-        : "";
-      const combinedGender =
-        genderValue.includes("Not set") && otherGenderValue
-          ? otherGenderValue.substring(2)
-          : genderValue + otherGenderValue;
-
-      const profileFields = [
-        {
-          name: "Preferred Name",
-          value: profile.preferredName || "Not set",
-          inline: true,
-        },
-      ];
-      if (profile.age !== undefined && profile.age !== null) {
-        profileFields.push({
-          name: "Age",
-          value: profile.age === 0 ? "N/A" : profile.age.toString(),
-          inline: true,
-        });
-      }
-      if (profile.bio) {
-        profileFields.push({
-          name: "Bio",
-          value: profile.bio ? profile.bio.replace(/\\n/g, "\n") : "Not set",
-          inline: false,
-        });
-      }
-      profileFields.push(
-        {
-          name: "Sexual Orientation",
-          value: combinedSexuality,
-          inline: true,
-        },
-        {
-          name: "Romantic Orientation",
-          value: profile.romanticOrientation || "Not set",
-          inline: true,
-        },
-        { name: "Gender", value: combinedGender, inline: true },
-        { name: "Pronouns", value: combinedPronouns, inline: true }
-      );
-
-      const profileEmbed = new EmbedBuilder()
-        .setColor(`${embedColor}`)
-        .setTitle(`${targetUser.username}'s Profile ${badgeStr}`)
-        .addFields(profileFields)
-        .setThumbnail(targetUser.displayAvatarURL())
-        .setFooter({ text: "Profile Information" })
-        .setTimestamp();
-
-      if (profile.pronounpage) {
-        const row = new ActionRowBuilder().addComponents(
-          new ButtonBuilder()
-            .setLabel("Pronoun Page")
-            .setStyle(ButtonStyle.Link)
-            .setURL(profile.pronounpage)
-        );
-
-        await commandLogging(client, interaction);
-        return interaction.reply({ embeds: [profileEmbed], components: [row] });
-      } else {
-        await commandLogging(client, interaction);
-        return interaction.reply({ embeds: [profileEmbed] });
-      }
-    } else if (subcommand === "update") {
-      const preferredName = interaction.options.getString("preferredname");
-      const bio = interaction.options.getString("bio");
-      const age = interaction.options.getInteger("age");
-
-      const isValidAge = await ageCheck(interaction, age, subcommand);
-      if (!isValidAge) return;
-
-      const scoreupdate = await scanText(preferredName || bio);
-
-      if (preferredName) {
-        const result = await containsDisallowedContent(preferredName, username);
-        if (result) {
-          await sendFlagNotification(
-            interaction,
-            preferredName,
-            subcommand,
-            "Preferred Name"
-          );
-          return interaction.reply({
-            content: "The preferred name contains disallowed content.",
-            ephemeral: true,
-          });
-        }
-      }
-
-      if (bio) {
-        const result = await containsDisallowedContent(bio, username);
-        if (result) {
-          await sendFlagNotification(interaction, bio, subcommand, "Bio");
-          return interaction.reply({
-            content: "The bio contains disallowed content.",
-            ephemeral: true,
-          });
-        }
-      }
-
-      if (scoreupdate !== null) {
-        const { toxicity, insult } = scoreupdate;
-        if (toxicity > 0.65 || insult > 0.65) {
-          console.log(
-            chalk.yellowBright.bold(
-              `⚠️  ${username} has been flagged for toxic or insulting content \nToxicity: ${(
-                toxicity * 100
-              ).toFixed(2)}% \nInsult: ${(insult * 100).toFixed(
-                2
-              )}% \nContent: "${preferredName || bio}"`
-            )
-          );
-          await sendToxicNotification(
-            interaction,
-            toxicity,
-            insult,
-            preferredName,
-            bio,
-            subcommand
-          );
-          return interaction.reply({
-            content:
-              "Your message has been flagged for high toxicity or insult.",
-            ephemeral: true,
-          });
-        }
-      } else {
-        return interaction.reply({
-          content:
-            "There was an error analyzing your message. Please try again.",
-          ephemeral: true,
-        });
-      }
-
-      const updateData = {};
-      if (interaction.options.getString("preferredname"))
-        updateData.preferredName =
-          interaction.options.getString("preferredname");
-      if (interaction.options.getInteger("age") !== null)
-        updateData.age = interaction.options.getInteger("age");
-      if (interaction.options.getString("bio"))
-        updateData.bio = interaction.options.getString("bio");
-      if (interaction.options.getString("sexuality"))
-        updateData.sexuality = interaction.options.getString("sexuality");
-      if (interaction.options.getString("romantic"))
-        updateData.romanticOrientation =
-          interaction.options.getString("romantic");
-      if (interaction.options.getString("gender"))
-        updateData.gender = interaction.options.getString("gender");
-      if (interaction.options.getString("pronouns"))
-        updateData.pronouns = interaction.options.getString("pronouns");
-      if (interaction.options.getString("other_sexuality") === "clear") {
-        updateData.otherSexuality = "";
-      } else if (interaction.options.getString("other_sexuality")) {
-        updateData.otherSexuality =
-          interaction.options.getString("other_sexuality");
-      }
-      if (interaction.options.getString("other_gender") === "clear") {
-        updateData.otherGender = "";
-      } else if (interaction.options.getString("other_gender")) {
-        updateData.otherGender = interaction.options.getString("other_gender");
-      }
-      if (interaction.options.getString("other_pronouns") === "clear") {
-        updateData.otherPronouns = "";
-      } else if (interaction.options.getString("other_pronouns")) {
-        updateData.otherPronouns =
-          interaction.options.getString("other_pronouns");
-      }
-      if (interaction.options.getString("pronounpage")) {
-        const pronounpageLink = interaction.options.getString("pronounpage");
-        if (!isValidPronounPageLink(pronounpageLink)) {
-          return interaction.reply({
-            content: "Please provide a valid Pronoun Page link.",
-            ephemeral: true,
-          });
-        }
-        updateData.pronounpage = pronounpageLink;
-      }
-      const updatedFields = {};
-      for (const [key, value] of Object.entries(updateData)) {
-        if (value !== null) {
-          updatedFields[key] = value;
-        }
-      }
-
-      const originalProfile = await Profile.findOne({
-        userId: interaction.user.id,
-      });
-      const profile = await Profile.findOneAndUpdate(
-        { userId: interaction.user.id },
-        { $set: updatedFields },
-        { new: true, upsert: false }
-      );
-
-      if (!profile) {
-        return interaction.reply({
-          content:
-            "You have not set up a profile yet. Use </profile setup:1273988656839004283> to create one.",
-          ephemeral: true,
-        });
-      }
-
-      const updatedProfile = await Profile.findOne({
-        userId: interaction.user.id,
-      });
-      await commandLogging(client, interaction);
-      await profileLogging(
-        client,
-        interaction,
-        "edited",
-        originalProfile,
-        updatedProfile
-      );
-      return interaction.reply({
-        content:
-          "Your profile has been updated successfully! \nSee your new profile with </profile view:1197313708846743642>",
-        ephemeral: true,
-      });
-    } else if (subcommand === "setup") {
-      const existingProfile = await Profile.findOne({
-        userId: interaction.user.id,
-      });
-      const age = interaction.options.getInteger("age");
-
-      const isValidAge = await ageCheck(interaction, age, subcommand);
-      if (!isValidAge) return;
-
-      if (existingProfile) {
-        return interaction.reply({
-          content:
-            "Account already made, use </profile view:1273988656839004283> to see your profile",
-          ephemeral: true,
-        });
-      }
-
-      const profileData = {
-        userId: interaction.user.id,
-        preferredName: interaction.options.getString("preferredname") || "",
-        age: age,
-        bio: interaction.options.getString("bio") || "",
-        sexuality: interaction.options.getString("sexuality") || "",
-        romanticOrientation: interaction.options.getString("romantic") || "",
-        gender: interaction.options.getString("gender") || "",
-        pronouns: interaction.options.getString("pronouns") || "",
-        pronounpage: interaction.options.getString("pronounpage") || "",
-      };
-
-      const preferredName = interaction.options.getString("preferredname");
-      const bio = interaction.options.getString("bio");
-
-      const scoresetup = await scanText(preferredName || bio);
-
-      if (preferredName) {
-        const result = await containsDisallowedContent(preferredName, username);
-        if (result) {
-          await sendFlagNotification(
-            interaction,
-            preferredName,
-            subcommand,
-            "Preferred Name"
-          );
-          return interaction.reply({
-            content: "The preferred name contains disallowed content.",
-            ephemeral: true,
-          });
-        }
-      }
-
-      if (bio) {
-        const result = await containsDisallowedContent(bio, username);
-        if (result) {
-          await sendFlagNotification(interaction, bio, subcommand, "Bio");
-          return interaction.reply({
-            content: "The bio contains disallowed content.",
-            ephemeral: true,
-          });
-        }
-      }
-
-      if (scoresetup !== null) {
-        const { toxicity, insult } = scoresetup;
-        if (toxicity > 0.65 || insult > 0.65) {
-          console.log(
-            chalk.yellowBright.bold(
-              `⚠️  ${username} has been flagged for toxic or insulting content \nToxicity: ${(
-                toxicity * 100
-              ).toFixed(2)}% \nInsult: ${(insult * 100).toFixed(
-                2
-              )}% \nContent: "${preferredName || bio}"`
-            )
-          );
-          await sendToxicNotification(
-            interaction,
-            toxicity,
-            insult,
-            preferredName,
-            bio,
-            subcommand
-          );
-          return interaction.reply({
-            content:
-              "Your message has been flagged for high toxicity or insult.",
-            ephemeral: true,
-          });
-        }
-      } else {
-        return interaction.reply({
-          content:
-            "There was an error analyzing your message. Please try again.",
-          ephemeral: true,
-        });
-      }
-
-      if (interaction.options.getString("pronounpage")) {
-        const pronounpageLink = interaction.options.getString("pronounpage");
-        if (!isValidPronounPageLink(pronounpageLink)) {
-          return interaction.reply({
-            content: "Please provide a valid Pronoun Page link.",
-            ephemeral: true,
-          });
-        }
-        profileData.pronounpage = pronounpageLink;
-      }
-
-      const newProfile = await Profile.create(profileData);
-
-      const fieldsToAdd = [
-        {
-          name: "Preferred Name",
-          value: newProfile.preferredName || "Not set",
-          inline: true,
-        },
-        {
-          name: "Age",
-          value:
-            newProfile.age === 0
-              ? "N/A"
-              : newProfile.age
-              ? newProfile.age.toString()
-              : "Not set",
-          inline: true,
-        },
-        {
-          name: "Bio",
-          value: newProfile.bio
-            ? newProfile.bio.replace(/\\n/g, "\n")
-            : "Not set",
-          inline: true,
-        },
-        {
-          name: "Sexual Orientation",
-          value: newProfile.sexuality || "Not set",
-          inline: true,
-        },
-        {
-          name: "Romantic Orientation",
-          value: newProfile.romanticOrientation || "Not set",
-          inline: true,
-        },
-        {
-          name: "Gender",
-          value: newProfile.gender || "Not set",
-          inline: true,
-        },
-        {
-          name: "Pronouns",
-          value: newProfile.pronouns || "Not set",
-          inline: true,
-        },
-      ];
-
-      const profileEmbed = new EmbedBuilder()
-        .setColor("#FF00EA")
-        .setTitle(`${interaction.user.username} Profile Setup`)
-        .addFields(fieldsToAdd)
-        .setThumbnail(interaction.user.displayAvatarURL())
-        .setFooter({ text: "Profile Setup Complete" })
-        .setTimestamp();
-
-      await commandLogging(client, interaction);
-      const updatedProfile = await Profile.findOne({
-        userId: interaction.user.id,
-      });
-      await profileLogging(
-        client,
-        interaction,
-        "created",
-        null,
-        updatedProfile
-      );
-      return interaction.reply({
-        content:
-          "Your profile has been created successfully! \nSee your new profile with </profile view:1273988656839004283> \nTo update anything or add multiple pronoun, gender, sexuality or a bio, please use </profile update:1273988656839004283>",
-        embeds: [profileEmbed],
-        ephemeral: true,
-      });
-    } else {
-      return interaction.reply({
-        content: "Unknown subcommand used.",
-        ephemeral: true,
-      });
     }
   },
 };
-
-async function sendFlagNotification(
-  interaction,
-  flaggedContent,
-  subcommand,
-  contentType
-) {
-  const embed = new EmbedBuilder()
-    .setColor("#FF00EA")
-    .setTitle("<:_:1201388588949061642> Flagged Content Detected")
-    .addFields(
-      { name: "Username", value: interaction.user.tag, inline: true },
-      { name: "User ID", value: interaction.user.id, inline: true },
-      { name: "Command", value: subcommand, inline: true },
-      { name: "Content Type", value: contentType, inline: true },
-      { name: "Flagged Content", value: `||${flaggedContent}||`, inline: true }
-    )
-    .setTimestamp();
-
-  const alertChannel = await interaction.client.channels.fetch(
-    "1231591223337160715"
-  );
-  if (alertChannel) {
-    alertChannel.send({ embeds: [embed] });
-  }
-}
-
-async function sendToxicNotification(
-  interaction,
-  toxicity,
-  insult,
-  preferredName,
-  bio,
-  subcommand
-) {
-  const embed = new EmbedBuilder()
-    .setColor("#FF00EA")
-    .setTitle("<:_:1201388588949061642> Toxic/Insult Content Detected")
-    .addFields(
-      { name: "Username", value: interaction.user.tag, inline: true },
-      { name: "User ID", value: interaction.user.id, inline: true },
-      { name: "_ _", value: `_ _`, inline: true },
-      { name: "Command", value: subcommand, inline: true },
-      {
-        name: "Flagged Content",
-        value: `||${preferredName || bio}||`,
-        inline: true,
-      },
-      { name: "_ _", value: `_ _`, inline: true },
-      {
-        name: "Toxicity Score",
-        value: `Toxicity: ${(toxicity * 100).toFixed(2)}%`,
-        inline: true,
-      },
-      {
-        name: "Insult Score",
-        value: `Insult: ${(insult * 100).toFixed(2)}%`,
-        inline: true,
-      }
-    )
-    .setTimestamp();
-
-  const alertChannel = await interaction.client.channels.fetch(
-    "1231591223337160715"
-  );
-  if (alertChannel) {
-    alertChannel.send({ embeds: [embed] });
-  }
-}
-
-async function ageCheck(interaction, age, subcommand) {
-  if (age === 0) {
-    return true;
-  }
-
-  if (age !== null && (age < 13 || age > 99)) {
-    const embed = new EmbedBuilder()
-      .setColor("#FF0000")
-      .setTitle("🚨 Illegal Age Detected")
-      .addFields(
-        { name: "Username", value: interaction.user.tag, inline: true },
-        { name: "User ID", value: interaction.user.id, inline: true },
-        { name: "Command", value: subcommand, inline: true },
-        { name: "Age Provided", value: age.toString(), inline: true }
-      )
-      .setTimestamp();
-
-    const alertChannel = await interaction.client.channels.fetch(
-      "1231591223337160715"
-    );
-    if (alertChannel) {
-      await alertChannel.send({ embeds: [embed] });
-    }
-
-    await interaction.reply({
-      content:
-        "**🚨 Age Warning** You must be 13 years or older to use the discord platform under guidance of Discord TOS and Community Guidelines. The developers of this bot are not responsible for any misuse of this bot and have been alerted with age provided for moderation purposes.",
-      ephemeral: true,
-    });
-
-    return false;
-  }
-  return true;
-}
