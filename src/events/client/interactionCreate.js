@@ -1,6 +1,7 @@
 const CommandUsage = require("../../../mongo/models/usageSchema");
 const Blacklist = require("../../../mongo/models/blacklistSchema.js");
 const IDLists = require("../../../mongo/models/idSchema.js");
+const { handleModalSubmit } = require("../../commands/Profile/profilefunctions/profilehandlers.js");
 
 async function isBlacklisted(userId, guildId) {
   try {
@@ -89,6 +90,18 @@ module.exports = {
         } else {
           await interaction.reply({
             content: `Error occurred while executing this command \nIf the error continues, please join our [support server](https://pridebot.xyz/support) for help, Thank you!`,
+            ephemeral: true,
+          });
+        }
+      }
+    } else if (interaction.isModalSubmit()) {
+      if (interaction.customId === "customWebsiteModal") {
+        try {
+          return handleModalSubmit(interaction, client);
+        } catch (err) {
+          console.error("Error in modal submit:", err);
+          return interaction.reply({
+            content: "Something went wrong.",
             ephemeral: true,
           });
         }

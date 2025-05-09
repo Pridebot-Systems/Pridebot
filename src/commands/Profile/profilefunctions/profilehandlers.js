@@ -3,6 +3,9 @@ const {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
 } = require("discord.js");
 const commandLogging = require("../../../config/logging/commandlog");
 const profileLogging = require("../../../config/logging/profilelogging");
@@ -21,6 +24,7 @@ async function handleEdit(interaction, client) {
   const userId = interaction.user.id;
   const colorInput = interaction.options.getString("color");
   const badgeToggle = interaction.options.getBoolean("badgetoggle");
+  const premiumToggle = interaction.options.getBoolean("premiumtoggle");
 
   const originalProfile = await Profile.findOne({ userId });
   const updates = {};
@@ -37,6 +41,18 @@ async function handleEdit(interaction, client) {
   }
   if (badgeToggle !== null) {
     updates.badgesVisible = badgeToggle;
+  }
+
+  if (originalProfile.premiumMember == true) {
+    if (premiumToggle !== null) {
+      updates.premiumVisible = premiumToggle;
+    }
+  } else {
+    return interaction.reply({
+      content:
+        "You need to be a premium user to use this command. \nYou can get premium by donating to the bot at https://pridebot.xyz/premium",
+      ephemeral: true,
+    });
   }
 
   const updatedProfile = await Profile.findOneAndUpdate(
@@ -104,12 +120,18 @@ async function handleView(interaction, client) {
     value: profile.age === 0 ? "N/A" : String(profile.age || "Not set"),
     inline: true,
   });
+  if (profile.premiumMember && profile.premiumVisible) {
+    const since = profile.premiumSince ? new Date(profile.premiumSince) : null;
+    const days = since ? Math.floor((Date.now() - since) / 86400000) : 0;
+    fields.push({ name: "Premium", value: `${days} days`, inline: true });
+  }
   if (profile.bio)
     fields.push({
       name: "Bio",
       value: profile.bio.replace(/\\n/g, "\n"),
       inline: false,
     });
+
   fields.push(
     {
       name: "Sexual Orientation",
@@ -129,24 +151,77 @@ async function handleView(interaction, client) {
     .setColor(embedColor)
     .setTitle(`${targetUser.username}'s Profile ${badgeStr}`)
     .addFields(fields)
-    .setThumbnail(targetUser.displayAvatarURL())
+    .setThumbnail(profile.pfp || targetUser.displayAvatarURL())
     .setFooter({ text: "Profile Information" })
     .setTimestamp();
 
-  const components = [];
+  const row = new ActionRowBuilder();
   if (profile.pronounpage) {
-    components.push(
-      new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setLabel("Pronoun Page")
-          .setStyle(ButtonStyle.Link)
-          .setURL(profile.pronounpage)
-      )
+    row.addComponents(
+      new ButtonBuilder()
+        .setLabel("Pronoun Page")
+        .setStyle(ButtonStyle.Link)
+        .setURL(profile.pronounpage)
+    );
+  }
+
+  for (const site of profile.customWebsites || []) {
+    row.addComponents(
+      new ButtonBuilder()
+        .setLabel(site.label)
+        .setStyle(ButtonStyle.Link)
+        .setURL(site.url)
     );
   }
 
   await commandLogging(client, interaction);
-  return interaction.reply({ embeds: [embed], components });
+  return interaction.reply({ embeds: [embed], components: [row] });
+}
+
+async function handlePremium(interaction) {
+  let profile = await Profile.findOne({ userId: interaction.user.id });
+  if (!profile.premiumMember) {
+    profile.premiumMember = true;
+    profile.premiumSince = new Date();
+  }
+  await profile.save();
+
+  const lastSite = (profile.customWebsites || []).slice(-1)[0];
+  const labelPlaceholder = lastSite?.label || "e.g. My Blog";
+  const urlPlaceholder = lastSite?.url || "https://example.com";
+
+  const modal = new ModalBuilder()
+    .setCustomId("customWebsiteModal")
+    .setTitle("Premium Settings");
+
+  const labelInput = new TextInputBuilder()
+    .setCustomId("websiteLabel")
+    .setLabel("Button Label")
+    .setStyle(TextInputStyle.Short)
+    .setPlaceholder(labelPlaceholder)
+    .setRequired(true);
+
+  const urlInput = new TextInputBuilder()
+    .setCustomId("websiteUrl")
+    .setLabel("Website URL")
+    .setStyle(TextInputStyle.Short)
+    .setPlaceholder(urlPlaceholder)
+    .setRequired(true);
+
+  const avatarInput = new TextInputBuilder()
+    .setCustomId("avatarUrl")
+    .setLabel("New Avatar URL")
+    .setStyle(TextInputStyle.Short)
+    .setPlaceholder("https://...png/jpg")
+    .setRequired(false);
+
+  modal.addComponents(
+    new ActionRowBuilder().addComponents(labelInput),
+    new ActionRowBuilder().addComponents(urlInput),
+    new ActionRowBuilder().addComponents(avatarInput)
+  );
+
+  await interaction.showModal(modal);
 }
 
 async function handleUpdate(interaction, client) {
@@ -483,9 +558,50 @@ function collectSetupFields(interaction) {
   };
 }
 
+async function handleModalSubmit(interaction) {
+  if (interaction.customId !== "customWebsiteModal") return;
+  await interaction.deferReply({ ephemeral: true });
+  try {
+    const userId = interaction.user.id;
+    const label = interaction.fields.getTextInputValue("websiteLabel");
+    const url = interaction.fields.getTextInputValue("websiteUrl");
+    const avatar = interaction.fields.getTextInputValue("avatarUrl");
+
+    let profile = await Profile.findOne({ userId });
+
+    profile.customWebsites = profile.customWebsites || [];
+    profile.customWebsites.push({ label, url });
+
+    if (avatar) {
+      profile.customAvatars = profile.customAvatars || [];
+      profile.customAvatars.push({ label: "Custom Avatar", url: avatar });
+    }
+
+    await profile.save();
+    await commandLogging(interaction.client, interaction);
+    await profileLogging(
+      interaction.client,
+      interaction,
+      "premium_updated",
+      null,
+      profile
+    );
+
+    return interaction.editReply({ content: "Premium settings updated!" });
+  } catch (error) {
+    console.error("Modal submit error:", error);
+    return interaction.editReply({
+      content: "Failed to update premium settings.",
+      ephemeral: true,
+    });
+  }
+}
+
 module.exports = {
   handleEdit,
   handleView,
   handleUpdate,
   handleSetup,
+  handlePremium,
+  handleModalSubmit,
 };

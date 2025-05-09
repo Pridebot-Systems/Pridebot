@@ -1,5 +1,7 @@
 const { SlashCommandBuilder } = require("discord.js");
 
+const idLists = require("../../../mongo/models/idSchema");
+
 const {
   sexualityChoices,
   romanticChoices,
@@ -12,6 +14,7 @@ const {
   handleView,
   handleUpdate,
   handleSetup,
+  handlePremium,
 } = require("./profilefunctions/profilehandlers");
 
 module.exports = {
@@ -164,12 +167,6 @@ module.exports = {
       subcommand
         .setName("edit")
         .setDescription("Edit part of your profile")
-        .addBooleanOption((option) =>
-          option
-            .setName("badgetoggle")
-            .setDescription("Toggle badge visibility on your profile")
-            .setRequired(false)
-        )
         .addStringOption((option) =>
           option
             .setName("color")
@@ -178,11 +175,30 @@ module.exports = {
             )
             .setRequired(false)
         )
+        .addBooleanOption((option) =>
+          option
+            .setName("badgetoggle")
+            .setDescription("Toggle badge visibility on your profile")
+            .setRequired(false)
+        )
+        .addBooleanOption((option) =>
+          option
+            .setName("premiumtoggle")
+            .setDescription("*PREMIUM ONLY* Toggle premium days on your profile")
+            .setRequired(false)
+        )
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("premium")
+        .setDescription("Manage premium feature for your profile")
     ),
 
   async execute(interaction, client) {
     const subcommand = interaction.options.getSubcommand();
     const username = interaction.user.username;
+    const idListsData = await idLists.findOne();
+    const isPremiumUser = idListsData.donor.includes(interaction.user.id);
 
     switch (subcommand) {
       case "edit":
@@ -193,6 +209,16 @@ module.exports = {
         return handleUpdate(interaction, client, username);
       case "setup":
         return handleSetup(interaction, client, username);
+      case "premium":
+        if (!isPremiumUser) {
+          return interaction.reply({
+            content:
+              "You need to be a premium user to use this command. \nYou can get premium by donating to the bot at https://pridebot.xyz/premium",
+            ephemeral: true,
+          });
+        } else {
+          return handlePremium(interaction, client);
+        }
       default:
         return interaction.reply({
           content: "Unknown subcommand used.",
