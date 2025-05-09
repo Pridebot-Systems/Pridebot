@@ -175,7 +175,16 @@ async function handleView(interaction, client) {
   }
 
   await commandLogging(client, interaction);
-  return interaction.reply({ embeds: [embed], components: [row] });
+  if (row.components.length > 0) {
+    return interaction.reply({
+      embeds: [embed],
+      components: [row],
+    });
+  } else {
+    return interaction.reply({
+      embeds: [embed],
+    });
+  }
 }
 
 async function handlePremium(interaction) {
