@@ -1,7 +1,10 @@
 const CommandUsage = require("../../../mongo/models/usageSchema");
 const Blacklist = require("../../../mongo/models/blacklistSchema.js");
 const IDLists = require("../../../mongo/models/idSchema.js");
-const { handleModalSubmit } = require("../../commands/Profile/profilefunctions/profilehandlers.js");
+const {
+  handleModalSubmit,
+  handleRemoveWebsite,
+} = require("../../commands/Profile/profilefunctions/profilehandlers.js");
 
 async function isBlacklisted(userId, guildId) {
   try {
@@ -35,6 +38,7 @@ module.exports = {
       const command = commands.get(commandName);
       if (!command) return;
 
+      // owner-only guard
       if (command.owner === true) {
         if (interaction.user.id !== "691506668781174824") {
           await interaction.reply({
@@ -49,23 +53,16 @@ module.exports = {
       const guildId = interaction.guild ? interaction.guild.id : null;
       const { blacklisted, type } = await isBlacklisted(userId, guildId);
       if (blacklisted) {
-        if (type === "user") {
-          await interaction.reply({
-            content:
-              "You are blacklisted from using the bot. If you feel like this is a mistake, please contact <@691506668781174824> or join [support server](https:/pridebot.xyz/support).",
-            ephemeral: true,
-          });
-        } else if (type === "guild") {
-          await interaction.reply({
-            content:
-              "This guild is blacklisted from using the bot. If you feel like this is a mistake, please contact <@691506668781174824> or join [support server](https:/pridebot.xyz/support).",
-            ephemeral: true,
-          });
-        }
+        const msg =
+          type === "user"
+            ? "You are blacklisted from using the bot. Contact the owner for help."
+            : "This guild is blacklisted from using the bot. Contact the owner for help.";
+        await interaction.reply({ content: msg, ephemeral: true });
         return;
       }
 
       try {
+        // usage logging
         if (commandName !== "usage") {
           const usageData = await CommandUsage.findOneAndUpdate(
             { commandName: commandName },
@@ -85,11 +82,9 @@ module.exports = {
         await command.execute(interaction, client, { userId, guildId });
       } catch (error) {
         console.error(error);
-        if (interaction.replied || interaction.deferred) {
-          return;
-        } else {
+        if (!interaction.replied && !interaction.deferred) {
           await interaction.reply({
-            content: `Error occurred while executing this command \nIf the error continues, please join our [support server](https://pridebot.xyz/support) for help, Thank you!`,
+            content: `Error executing command. Join [support](https://pridebot.xyz/support) for help!`,
             ephemeral: true,
           });
         }
@@ -102,6 +97,18 @@ module.exports = {
           console.error("Error in modal submit:", err);
           return interaction.reply({
             content: "Something went wrong.",
+            ephemeral: true,
+          });
+        }
+      }
+    } else if (interaction.isStringSelectMenu()) {
+      if (interaction.customId === "removeWebsiteSelect") {
+        try {
+          return handleRemoveWebsite(interaction, client);
+        } catch (err) {
+          console.error("Error handling remove select:", err);
+          return interaction.reply({
+            content: "Failed to remove website.",
             ephemeral: true,
           });
         }

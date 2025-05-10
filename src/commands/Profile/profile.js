@@ -184,7 +184,17 @@ module.exports = {
         .addBooleanOption((option) =>
           option
             .setName("premiumtoggle")
-            .setDescription("*PREMIUM ONLY* Toggle premium days on your profile")
+            .setDescription(
+              "*PREMIUM ONLY* Toggle premium days on your profile"
+            )
+            .setRequired(false)
+        )
+        .addAttachmentOption((option) =>
+          option
+            .setName("premiumpicture")
+            .setDescription(
+              "*PREMIUM ONLY* Upload a custom pfp for your profile"
+            )
             .setRequired(false)
         )
     )
@@ -192,6 +202,16 @@ module.exports = {
       subcommand
         .setName("premium")
         .setDescription("Manage premium feature for your profile")
+        .addStringOption((option) =>
+          option
+            .setName("website")
+            .setDescription("Add/remove a website from your profile")
+            .addChoices(
+              { name: "add", value: "add" },
+              { name: "remove", value: "remove" }
+            )
+            .setRequired(false)
+        )
     ),
 
   async execute(interaction, client) {

@@ -4,6 +4,7 @@ const {
   ButtonBuilder,
   ButtonStyle,
   ModalBuilder,
+  StringSelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
 } = require("discord.js");
@@ -25,6 +26,7 @@ async function handleEdit(interaction, client) {
   const colorInput = interaction.options.getString("color");
   const badgeToggle = interaction.options.getBoolean("badgetoggle");
   const premiumToggle = interaction.options.getBoolean("premiumtoggle");
+  const attachment = interaction.options.getAttachment("premiumpicture");
 
   const originalProfile = await Profile.findOne({ userId });
   const updates = {};
@@ -46,6 +48,9 @@ async function handleEdit(interaction, client) {
   if (originalProfile.premiumMember == true) {
     if (premiumToggle !== null) {
       updates.premiumVisible = premiumToggle;
+    }
+    if (attachment) {
+      updates.pfp = attachment.url;
     }
   } else {
     return interaction.reply({
@@ -187,50 +192,62 @@ async function handleView(interaction, client) {
   }
 }
 
-async function handlePremium(interaction) {
-  let profile = await Profile.findOne({ userId: interaction.user.id });
-  if (!profile.premiumMember) {
-    profile.premiumMember = true;
-    profile.premiumSince = new Date();
-  }
+async function handlePremium(interaction, client) {
+  const action = interaction.options.getString("website");
+  const userId = interaction.user.id;
+  let profile = (await Profile.findOne({ userId })) || new Profile({ userId });
+  profile.premiumMember = true;
+  if (!profile.premiumSince) profile.premiumSince = new Date();
   await profile.save();
 
-  const lastSite = (profile.customWebsites || []).slice(-1)[0];
-  const labelPlaceholder = lastSite?.label || "e.g. My Blog";
-  const urlPlaceholder = lastSite?.url || "https://example.com";
+  if (action === "add") {
+    const lastSite = profile.customWebsites.slice(-1)[0] || {};
+    const labelPh = lastSite.label || "e.g. My Blog";
+    const urlPh = lastSite.url || "https://example.com";
+    const modal = new ModalBuilder()
+      .setCustomId("customWebsiteModal")
+      .setTitle("Add Custom Website");
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder()
+          .setCustomId("websiteLabel")
+          .setLabel("Button Label")
+          .setStyle(TextInputStyle.Short)
+          .setPlaceholder(labelPh)
+          .setRequired(true)
+      ),
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder()
+          .setCustomId("websiteUrl")
+          .setLabel("Website URL")
+          .setStyle(TextInputStyle.Short)
+          .setPlaceholder(urlPh)
+          .setRequired(true)
+      )
+    );
+    return interaction.showModal(modal);
+  }
 
-  const modal = new ModalBuilder()
-    .setCustomId("customWebsiteModal")
-    .setTitle("Premium Settings");
-
-  const labelInput = new TextInputBuilder()
-    .setCustomId("websiteLabel")
-    .setLabel("Button Label")
-    .setStyle(TextInputStyle.Short)
-    .setPlaceholder(labelPlaceholder)
-    .setRequired(true);
-
-  const urlInput = new TextInputBuilder()
-    .setCustomId("websiteUrl")
-    .setLabel("Website URL")
-    .setStyle(TextInputStyle.Short)
-    .setPlaceholder(urlPlaceholder)
-    .setRequired(true);
-
-  const avatarInput = new TextInputBuilder()
-    .setCustomId("avatarUrl")
-    .setLabel("New Avatar URL")
-    .setStyle(TextInputStyle.Short)
-    .setPlaceholder("https://...png/jpg")
-    .setRequired(false);
-
-  modal.addComponents(
-    new ActionRowBuilder().addComponents(labelInput),
-    new ActionRowBuilder().addComponents(urlInput),
-    new ActionRowBuilder().addComponents(avatarInput)
-  );
-
-  await interaction.showModal(modal);
+  if (action === "remove") {
+    const sites = profile.customWebsites || [];
+    if (sites.length === 0) {
+      return interaction.reply({
+        content: "No websites to remove.",
+        ephemeral: true,
+      });
+    }
+    const options = sites.map((ws) => ({ label: ws.label, value: ws.url }));
+    const menu = new StringSelectMenuBuilder()
+      .setCustomId("removeWebsiteSelect")
+      .setPlaceholder("Select a website to remove")
+      .addOptions(options);
+    const row = new ActionRowBuilder().addComponents(menu);
+    return interaction.reply({
+      content: "Choose a website to remove:",
+      components: [row],
+      ephemeral: true,
+    });
+  }
 }
 
 async function handleUpdate(interaction, client) {
@@ -567,43 +584,49 @@ function collectSetupFields(interaction) {
   };
 }
 
-async function handleModalSubmit(interaction) {
+async function handleModalSubmit(interaction, client) {
   if (interaction.customId !== "customWebsiteModal") return;
   await interaction.deferReply({ ephemeral: true });
-  try {
-    const userId = interaction.user.id;
-    const label = interaction.fields.getTextInputValue("websiteLabel");
-    const url = interaction.fields.getTextInputValue("websiteUrl");
-    const avatar = interaction.fields.getTextInputValue("avatarUrl");
-
-    let profile = await Profile.findOne({ userId });
-
-    profile.customWebsites = profile.customWebsites || [];
-    profile.customWebsites.push({ label, url });
-
-    if (avatar) {
-      profile.customAvatars = profile.customAvatars || [];
-      profile.customAvatars.push({ label: "Custom Avatar", url: avatar });
-    }
-
-    await profile.save();
-    await commandLogging(interaction.client, interaction);
-    await profileLogging(
-      interaction.client,
-      interaction,
-      "premium_updated",
-      null,
-      profile
-    );
-
-    return interaction.editReply({ content: "Premium settings updated!" });
-  } catch (error) {
-    console.error("Modal submit error:", error);
-    return interaction.editReply({
-      content: "Failed to update premium settings.",
-      ephemeral: true,
-    });
+  const userId = interaction.user.id;
+  const label = interaction.fields.getTextInputValue("websiteLabel");
+  const url = interaction.fields.getTextInputValue("websiteUrl");
+  const avatar = interaction.fields.getTextInputValue("avatarUrl");
+  const profile =
+    (await Profile.findOne({ userId })) || new Profile({ userId });
+  profile.premiumMember = true;
+  if (!profile.premiumSince) profile.premiumSince = new Date();
+  profile.customWebsites = profile.customWebsites || [];
+  profile.customWebsites.push({ label, url });
+  if (avatar) {
+    profile.customAvatars = profile.customAvatars || [];
+    profile.customAvatars.push({ label: "Custom Avatar", url: avatar });
   }
+  await profile.save();
+  await commandLogging(client, interaction);
+  await profileLogging(client, interaction, "edited", null, profile);
+  return interaction.editReply({
+    content: "Website/avatar added!",
+    ephemeral: true,
+  });
+}
+
+async function handleRemoveWebsite(interaction, client) {
+  if (interaction.customId !== "removeWebsiteSelect") return;
+  await interaction.deferUpdate();
+  const url = interaction.values[0];
+  const userId = interaction.user.id;
+  const profile = await Profile.findOne({ userId });
+  const original = profile.toObject();
+  profile.customWebsites = (profile.customWebsites || []).filter(
+    (ws) => ws.url !== url
+  );
+  await profile.save();
+  await commandLogging(client, interaction);
+  await profileLogging(client, interaction, "edited", original, profile);
+  return interaction.editReply({
+    content: `Removed website: ${url}`,
+    components: [],
+  });
 }
 
 module.exports = {
@@ -613,4 +636,5 @@ module.exports = {
   handleSetup,
   handlePremium,
   handleModalSubmit,
+  handleRemoveWebsite,
 };
