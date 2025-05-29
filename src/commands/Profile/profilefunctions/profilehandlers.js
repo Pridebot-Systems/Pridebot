@@ -590,7 +590,6 @@ async function handleModalSubmit(interaction, client) {
   const userId = interaction.user.id;
   const label = interaction.fields.getTextInputValue("websiteLabel");
   const url = interaction.fields.getTextInputValue("websiteUrl");
-  const avatar = interaction.fields.getTextInputValue("avatarUrl");
   const profile =
     (await Profile.findOne({ userId })) || new Profile({ userId });
   profile.premiumMember = true;
