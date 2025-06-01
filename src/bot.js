@@ -21,6 +21,7 @@ const eventHandlers = {
   handleGuildCreate: require("./events/client/guildCreate.js"),
   handleGuildDelete: require("./events/client/guildDelete.js"),
   sendRestartMessage: require("./events/server/restart.js"),
+  scheduleGiveawayMessage: require("./events/bot/giveaway_messages.js"),
 };
 
 const userprofile = require("./commands/Profile/userprofile.js");
@@ -71,6 +72,8 @@ module.exports = (client) => {
         initializeGoogleApi(client);
         initializeProfileApi(client);
         console.log("API initialization complete.");
+        eventHandlers.scheduleGiveawayMessage(client);
+        console.log("Giveaway message scheduled.");
       } catch (error) {
         console.error("Error during API initialization:", error);
       }
