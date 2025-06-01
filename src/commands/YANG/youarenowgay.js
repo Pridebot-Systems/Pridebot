@@ -76,12 +76,12 @@ You can donate at https://pridebot.xyz/premium to double your slots!`,
     interaction.client.users
       .resolve(targetId)
       ?.send(
-        `You’ve been gayed by <@${userId}>! You’re now level ${child.level}.`
+        `You’ve been gayed by <@${userId}>! You’re now level ${child.level}. Now that you have been gayed, you can use the \`/youarenowgay\` command on 2 more users to continue the chain!`
       )
       .catch(() => {});
 
     return interaction.reply({
-      content: `✅ <@${targetId}> has been gayed! You’ve used ${you.children.length}/${slotLimit} slots.`,
+      content: `✅ <@${targetId}> has been gayed! You’ve used ${you.children.length}/${slotLimit} slots. Make sure to tell them to use \`/youarenowgay\` on others to continue the chain!`,
       ephemeral: false,
     });
   },
