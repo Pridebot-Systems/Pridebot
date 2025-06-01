@@ -78,6 +78,10 @@ module.exports = {
           type: ActivityType.Playing,
           name: `with ${totalUsage} commands`,
         },
+        {
+          type: ActivityType.Playing,
+          name: `Happy Pride Month! 🌈`,
+        },
       ];
 
       await client.user.setPresence({
