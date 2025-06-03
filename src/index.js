@@ -50,11 +50,10 @@ initializeBot(client);
 
 process.on("unhandledRejection", async (reason) => {
   const error = reason instanceof Error ? reason : new Error(reason);
-  await errorlogging(client, error);
+  await errorlogging(client, error, { event: "unhandledRejection" });
 });
-
 process.on("uncaughtException", async (error) => {
-  await errorlogging(client, error);
+  await errorlogging(client, error, { event: "uncaughtException" });
 });
 
 console.log(getInfo());

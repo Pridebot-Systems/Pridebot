@@ -9,6 +9,7 @@ const {
 const {
   shouldShowGiveawayAd,
 } = require("../../config/commandfunctions/giveawayAdvert.js");
+const { errorlogging } = require("../../config/logging/errorlogs.js");
 
 async function isBlacklisted(userId, guildId) {
   try {
@@ -104,6 +105,19 @@ module.exports = {
         const channel = interaction.channel;
 
         console.error("❌ Error in command:", {
+          command: interaction.commandName,
+          guild: guild ? `${guild.name} (${guild.id})` : "DM or Unknown",
+          channel: channel
+            ? {
+                id: channel.id,
+                name: "name" in channel ? channel.name : "Unnamed/DM",
+                type: channel.type,
+              }
+            : "DM or Unknown",
+          user: `${interaction.user.tag} (${interaction.user.id})`,
+        });
+
+        await errorlogging(client, error, {
           command: interaction.commandName,
           guild: guild ? `${guild.name} (${guild.id})` : "DM or Unknown",
           channel: channel
