@@ -60,18 +60,12 @@ module.exports = (client) => {
     });
 
     const prismaGuild = client.guilds.cache.get("921403338069770280");
-    const obbyGuild = client.guilds.cache.get("1125796993688666203");
     let prismatotal = 0;
     let obbytotal = 0;
     if (prismaGuild) {
       prismatotal = prismaGuild.memberCount;
     } else {
       console.error("Guild with ID 921403338069770280 not found.");
-    }
-    if (obbyGuild) {
-      obbytotal = obbyGuild.memberCount;
-    } else {
-      console.error("Guild with ID 1125796993688666203not found.");
     }
 
     try {
