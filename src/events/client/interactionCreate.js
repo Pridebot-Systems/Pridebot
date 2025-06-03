@@ -90,7 +90,7 @@ module.exports = {
               "🎉 Pridebot X Pridecord 5× $10 Nitro Pridemonth Giveaway 🎉"
             )
             .setDescription(
-              "Join [Pridecord server](https://discord.gg/lgbtqia) now for a chance to win one of 5× $10 Nitro!\n" +
+              "Join [Pridecord server](https://discord.gg/UPCqG6weXt) now for a chance to win one of 5× $10 Nitro!\n" +
                 "Use </giveaway rules:1378536586701963395> for more info."
             )
             .setColor("#FF00AE")
