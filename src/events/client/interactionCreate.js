@@ -100,12 +100,39 @@ module.exports = {
           });
         }
       } catch (error) {
-        console.error(error);
+        const guild = interaction.guild;
+        const channel = interaction.channel;
+
+        console.error("❌ Error in command:", {
+          command: interaction.commandName,
+          guild: guild ? `${guild.name} (${guild.id})` : "DM or Unknown",
+          channel: channel
+            ? {
+                id: channel.id,
+                name: "name" in channel ? channel.name : "Unnamed/DM",
+                type: channel.type,
+              }
+            : "DM or Unknown",
+          user: `${interaction.user.tag} (${interaction.user.id})`,
+        });
+
+        if (error.code === 50013) {
+          console.warn(
+            `🚫 Missing permissions in /${interaction.commandName} — Guild: ${
+              guild?.name || "DM"
+            } (${guild?.id || "N/A"}), Channel: ${channel?.id || "N/A"}`
+          );
+        }
+
         if (!interaction.replied && !interaction.deferred) {
-          await interaction.reply({
-            content: `Error executing command. Join [support](https://pridebot.xyz/support) for help!`,
-            ephemeral: true,
-          });
+          try {
+            await interaction.reply({
+              content: `Error executing command. Join [support](https://pridebot.xyz/support) for help!`,
+              ephemeral: true,
+            });
+          } catch (e) {
+            console.error("💥 Failed to send fallback error message:", e);
+          }
         }
       }
     } else if (interaction.isModalSubmit()) {

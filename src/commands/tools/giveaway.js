@@ -25,6 +25,7 @@ module.exports = {
   async execute(interaction) {
     const subcommand = interaction.options.getSubcommand();
     const REQUIRED_ROLE = "1250607513821511720";
+    const PRIDECORD_GUILD_ID = "1077258761443483708";
     const HARDCODED_END = new Date("2025-06-30T11:59:59Z");
 
     let giveaway = await Giveaway.findOne();
@@ -53,7 +54,7 @@ module.exports = {
           {
             name: "Rules",
             value:
-              "**1.** Must be a member of the [Pridecord Discord server](https://discord.gg/lgbtqia) and must be level 5 or higher\n" +
+              "**1.** Must be a member of the [Pridecord Discord server](https://discord.gg/UPCqG6weXt) and must be level 5 or higher\n" +
               "**2.** You must meet **one** of the following:\n" +
               "   • Have interacted with Pridebot at least 25 times (e.g., command usage, profile creation/editing), **or**\n" +
               "   • Invite Pridebot to a server that you own/administer with **at least 25 members**, and that server must have been active for **at least 3 weeks** at the start of the giveaway.\n",
@@ -76,9 +77,19 @@ module.exports = {
     }
 
     if (subcommand === "enter") {
-      if (!interaction.member.roles.cache.has(REQUIRED_ROLE)) {
+      if (!interaction.guild || interaction.guild.id !== PRIDECORD_GUILD_ID) {
         return interaction.reply({
-          content: "❌ You need the required role to enter this giveaway.",
+          content:
+            "❌ You must run </giveaway enter:1378536586701963395> inside the Pridecord server (https://discord.gg/UPCqG6weXt) once you’re level 5.",
+          ephemeral: true,
+        });
+      }
+
+      const prideMember = interaction.member;
+      if (!prideMember.roles.cache.has(REQUIRED_ROLE)) {
+        return interaction.reply({
+          content:
+            "❌ You need to be level 5 or higher in Pridecord to enter this giveaway.",
           ephemeral: true,
         });
       }
@@ -117,7 +128,7 @@ module.exports = {
           {
             name: "Rules",
             value:
-              "**1.** Must be a member of the [Pridecord Discord server](https://discord.gg/lgbtqia) and be level 5+\n" +
+              "**1.** Must be a member of the [Pridecord Discord server](https://discord.gg/UPCqG6weXt) and be level 5+\n" +
               "**2.** To qualify, you must meet **one** of the following:\n" +
               "   • Have interacted with Pridebot at least 25 times (e.g., command usage, profile creation/editing), **or**\n" +
               "   • Invite Pridebot to a server that you own/administer with **at least 25 members**, and that server must have been active for **at least 3 weeks** at the start of the giveaway.\n",
