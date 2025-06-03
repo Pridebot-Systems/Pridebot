@@ -596,15 +596,11 @@ async function handleModalSubmit(interaction, client) {
   if (!profile.premiumSince) profile.premiumSince = new Date();
   profile.customWebsites = profile.customWebsites || [];
   profile.customWebsites.push({ label, url });
-  if (avatar) {
-    profile.customAvatars = profile.customAvatars || [];
-    profile.customAvatars.push({ label: "Custom Avatar", url: avatar });
-  }
   await profile.save();
   await commandLogging(client, interaction);
   await profileLogging(client, interaction, "edited", null, profile);
   return interaction.editReply({
-    content: "Website/avatar added!",
+    content: "Website added!",
     ephemeral: true,
   });
 }
