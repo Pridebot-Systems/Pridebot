@@ -89,4 +89,4 @@ const errorlogging = async (client, error, context = {}) => {
   await channel.send({ embeds: [embed] });
 };
 
-module.exports = errorlogging;
+module.exports = { errorlogging };
