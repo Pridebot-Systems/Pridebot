@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Pridebot, developed by [Sdriver1](https://github.com/Sdriver1), is a multi function LGBTQIA+ themed discord application set to make information and acceptance accessible to more users. Currently the bot is apart of 4.2k+ server reaching to 350k+ users. The bot been used over 525k+ times with features ranging from profile system where users can in organize way express there identities, avatar editors to rep your flag, educational for identities and supportive resources for mental health or coming out, and finally fun little minigames to mess with your friends. Thank you for using Pridebot ❤️
+Pridebot, developed by [Sdriver1](https://github.com/Sdriver1), is a multi function LGBTQIA+ themed discord application set to make information and acceptance accessible to more users. Currently the bot is apart of 5.3k+ server reaching to 520k+ users. The bot been used over 685+ times with features ranging from profile system where users can in organize way express there identities, avatar editors to rep your flag, educational for identities and supportive resources for mental health or coming out, and finally fun little minigames to mess with your friends. Thank you for using Pridebot ❤️
 
 ## Features
 
