@@ -38,6 +38,12 @@ async function deleteOldFiles(client, channelId) {
 
           fs.stat(filePath, (err, stats) => {
             if (err) {
+              if (err.code === "ENOENT") {
+                processedFiles++;
+                if (processedFiles === totalFiles) sendSummary();
+                return;
+              }
+
               console.error(`Error getting stats for file (${file}):`, err);
               encounteredError = true;
               return sendLog(
@@ -48,9 +54,11 @@ async function deleteOldFiles(client, channelId) {
             if (now - stats.mtimeMs > oneMonthInMs) {
               fs.unlink(filePath, (err) => {
                 if (err) {
-                  console.error(`Error deleting file (${file}):`, err);
-                  encounteredError = true;
-                  sendLog(`❌ Error deleting file (${file}): ${err.message}`);
+                  if (err.code !== "ENOENT") {
+                    console.error(`Error deleting file (${file}):`, err);
+                    encounteredError = true;
+                    sendLog(`❌ Error deleting file (${file}): ${err.message}`);
+                  }
                 } else {
                   deletedCount++;
                 }
