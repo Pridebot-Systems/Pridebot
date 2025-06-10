@@ -10,7 +10,7 @@ const path = require("path");
 
 const initializeBot = require("./bot");
 
-const errorlogging = require("./config/logging/errorlogs");
+const { errorlogging } = require("./config/logging/errorlogs");
 const { updateDiscordsCount } = require("./config/botfunctions/discordsguild");
 
 function logShutdownTime() {
@@ -29,9 +29,21 @@ process.on("SIGINT", () => {
   process.exit();
 });
 
+process.on("SIGTERM", () => {
+  console.log("Received SIGTERM, shutting down...");
+  logShutdownTime();
+  process.exit();
+});
+process.on("exit", (code) => {
+  console.log("Process exiting with code:", code);
+});
+process.on("beforeExit", (code) => {
+  console.log("⚠️ beforeExit called with code:", code);
+});
+
 const client = new Client({
   shards: getInfo().SHARD_LIST,
-  shardCount: getInfo().SHARD_LIST.length,
+  shardCount: getInfo().TOTAL_SHARDS,
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
@@ -49,16 +61,22 @@ client.botStartTime = Math.floor(Date.now() / 1000);
 initializeBot(client);
 
 process.on("unhandledRejection", async (reason) => {
+  console.error("[UNHANDLED REJECTION]", reason);
   const error = reason instanceof Error ? reason : new Error(reason);
   await errorlogging(client, error, { event: "unhandledRejection" });
 });
+
 process.on("uncaughtException", async (error) => {
+  console.error("[UNCAUGHT EXCEPTION]", error);
   await errorlogging(client, error, { event: "uncaughtException" });
 });
 
 console.log(getInfo());
+console.log("Shard:", getInfo().SHARD_LIST, "Count:", getInfo().TOTAL_SHARDS);
 client.cluster = new ClusterClient(client);
-client.login(token);
+client.login(token).catch((err) => {
+  console.error("❌ Login failed:", err);
+});
 
 connect(databaseToken)
   .then(() => console.log("Connected to MongoDB"))
@@ -71,5 +89,17 @@ const botlistme = new BotlistMeClient(botlisttoken, client);
 botlistme.on("posted", () => {});
 
 setInterval(async () => {
-  await updateDiscordsCount(client);
+  try {
+    await updateDiscordsCount(client);
+  } catch (err) {
+    console.error("updateDiscordsCount failed:", err);
+  }
 }, 15 * 60 * 1000);
+
+setInterval(() => {
+  console.log(
+    `[HEARTBEAT] Cluster ${
+      getInfo().CLUSTER
+    } is alive at ${new Date().toLocaleTimeString()}`
+  );
+}, 60_000);
