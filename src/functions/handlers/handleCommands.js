@@ -79,6 +79,36 @@ module.exports = (client) => {
       );
     } catch (error) {
       console.error(error);
+
+      if (error.code === 50035 && error.rawError?.errors) {
+        const errors = error.rawError.errors;
+        for (const [index, errInfo] of Object.entries(errors)) {
+          if (
+            errInfo?._errors?.some(
+              (e) => e.code === "APPLICATION_COMMANDS_DUPLICATE_NAME"
+            )
+          ) {
+            const duplicateIndex = parseInt(index, 10);
+            const duplicateCommand = client.commandArray[duplicateIndex];
+            console.log(
+              chalk.red.bold(
+                `Duplicate command name found at index ${duplicateIndex}: "${duplicateCommand.name}"`
+              )
+            );
+          }
+        }
+      }
+
+      const names = client.commandArray.map((c) => c.name);
+      const duplicates = names.filter(
+        (name, i, arr) => arr.indexOf(name) !== i && arr.indexOf(name) === i
+      );
+      if (duplicates.length > 0) {
+        console.log(
+          chalk.red.bold("Duplicate command names in your command array:"),
+          duplicates
+        );
+      }
     }
   };
 };
