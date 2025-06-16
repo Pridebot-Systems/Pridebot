@@ -1,4 +1,5 @@
 const { EmbedBuilder, DiscordAPIError } = require("discord.js");
+const {sendLog} = require("./sendlogs");
 
 const errorlogging = async (client, error, context = {}) => {
   const channel = client.channels.cache.get("1303936573586411540");
@@ -86,7 +87,7 @@ const errorlogging = async (client, error, context = {}) => {
     });
   }
 
-  await channel.send({ embeds: [embed] });
+  await sendLog(client, embed, "1303936573586411540");
 };
 
 module.exports = { errorlogging };

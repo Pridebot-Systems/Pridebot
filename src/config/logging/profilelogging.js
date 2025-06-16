@@ -1,4 +1,5 @@
 const { EmbedBuilder } = require("discord.js");
+const {sendLog} = require("./sendlogs");
 
 const profileLogging = async (
   client,
@@ -112,7 +113,7 @@ const profileLogging = async (
       embed.setImage(updatedProfile.customAvatars.slice(-1)[0].url);
     }
 
-    client.channels.cache.get("1284916147702988882")?.send({ embeds: [embed] });
+    await sendLog(client, embed, "1284916147702988882");
     return;
   }
 
@@ -193,7 +194,7 @@ const profileLogging = async (
       value: removedAvs.map((a) => a.url).join("\n"),
     });
 
-  client.channels.cache.get("1284916147702988882")?.send({ embeds: [embed] });
+  await sendLog(client, embed, "1284916147702988882");
 };
 
 module.exports = profileLogging;

@@ -1,8 +1,8 @@
 const { EmbedBuilder } = require("discord.js");
+const {sendLog} = require("./sendlogs");
 
 const darlogging = async (client, meterType, userName, meter, userId) => {
   const channelId = "1286437229920780371";
-  const channel = client.channels.cache.get(channelId);
 
   let specialMessage = "";
   let embedColor = 0xff00ae;
@@ -20,14 +20,13 @@ const darlogging = async (client, meterType, userName, meter, userId) => {
     .setColor(embedColor)
     .setTimestamp();
 
-  if (channel) {
-    if (specialMessage) {
-      await channel.send(specialMessage);
-    }
-    await channel.send({ embeds: [embed] });
-  } else {
-    console.error(`Channel with ID ${channelId} not found.`);
+  if (specialMessage) {
+    embed.addFields({
+      name: "Special Message",
+      value: specialMessage,
+    });
   }
+  await sendLog(client, embed, channelId);
 };
 
-module.exports = darlogging
+module.exports = darlogging;

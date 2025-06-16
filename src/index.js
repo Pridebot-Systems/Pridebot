@@ -57,6 +57,7 @@ const client = new Client({
 client.commands = new Map();
 client.commandArray = [];
 client.botStartTime = Math.floor(Date.now() / 1000);
+client.cluster = new ClusterClient(client);
 
 initializeBot(client);
 
@@ -76,6 +77,27 @@ console.log("Shard:", getInfo().SHARD_LIST, "Count:", getInfo().TOTAL_SHARDS);
 client.cluster = new ClusterClient(client);
 client.login(token).catch((err) => {
   console.error("❌ Login failed:", err);
+});
+
+client.cluster?.on("message", async (message) => {
+  if (message?.type === "log" && client.cluster.id === 0) {
+    const { message: logMsg, channelId, isEmbed } = message.payload;
+    let channel = client.channels.cache.get(channelId);
+    if (!channel) {
+      try {
+        channel = await client.channels.fetch(channelId);
+      } catch (e) {
+        console.error("[CLUSTER LOG] Channel fetch failed:", e);
+        return;
+      }
+    }
+    if (!channel) return;
+    if (isEmbed) {
+      await channel.send({ embeds: [EmbedBuilder.from(logMsg)] }).catch(console.error);
+    } else {
+      await channel.send({ content: logMsg }).catch(console.error);
+    }
+  }
 });
 
 connect(databaseToken)
