@@ -1,17 +1,12 @@
-require("dotenv").config();
-const pm2 = require("pm2");
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
-const CommandUsage = require("../../../mongo/models/usageSchema");
-const Profile = require("../../../mongo/models/profileSchema");
-const { getTotalCommits } = require("../../config/commandfunctions/commit");
-const {
-  getRegisteredCommandsCount,
-} = require("../../config/commandfunctions/registercommand");
+const pm2 = require("pm2");
+const fetch = require("node-fetch"); // Make sure node-fetch is installed!
+const { getInfo } = require("discord-hybrid-sharding");
 const commandLogging = require("../../config/logging/commandlog");
+const { getTotalCommits } = require("../../config/commandfunctions/commit");
 const {
   getApproximateUserInstallCount,
 } = require("../../config/botfunctions/user_install");
-const { getInfo } = require("discord-hybrid-sharding");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -23,7 +18,7 @@ module.exports = {
     await interaction.deferReply();
 
     const botLatency = Date.now() - startTimestamp;
-    const botping = Math.round(interaction.client.ws.ping);
+    const botping = Math.round(client.ws.ping);
 
     function formatUptime(seconds) {
       const timeUnits = {
@@ -46,15 +41,9 @@ module.exports = {
     async function getPm2Stats() {
       return new Promise((resolve, reject) => {
         pm2.connect((err) => {
-          if (err) {
-            reject(err);
-            return;
-          }
+          if (err) return reject(err);
           pm2.list((err, processList) => {
-            if (err) {
-              reject(err);
-              return;
-            }
+            if (err) return reject(err);
             pm2.disconnect();
             const botProcess = processList.find(
               (proc) => proc.name === "Pridebot"
@@ -73,12 +62,21 @@ module.exports = {
     }
 
     try {
-      const approximateUserInstallCount = await getApproximateUserInstallCount(
-        client
-      );
+      // === USE CACHED API FOR FAST STATS ===
+      const statsRes = await fetch("https://api.pridebot.xyz/stats");
+      if (!statsRes.ok) throw new Error("Failed to fetch API stats.");
+      const stats = await statsRes.json();
 
-      const shardCount = getInfo().TOTAL_SHARDS;
-      const clusterCount = getInfo().CLUSTER_COUNT;
+      const approximateUserInstallCount =
+        stats.UserInstallCount ??
+        (await getApproximateUserInstallCount(client));
+      const CommandsCount = stats.commandsCount ?? 0;
+      const profileAmount = stats.profileAmount ?? 0;
+      const totalUsage = stats.totalUsage ?? 0;
+      const currentGuildCount = stats.currentGuildCount ?? 0;
+      const totalUserCount = stats.totalUserCount ?? 0;
+
+      const startTimeTimestamp = `<t:${client.botStartTime}:f>`;
 
       const pm2Stats = await getPm2Stats();
       const memoryUsage = `${pm2Stats.memory} MB`;
@@ -94,25 +92,6 @@ module.exports = {
       let commitTens = totalCommits.toString().slice(-2, -1) || "0";
       let commitOnes = totalCommits.toString().slice(-1);
 
-      const results = await client.cluster.broadcastEval((c) => {
-        return {
-          guildCount: c.guilds.cache.size,
-          userCount: c.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0),
-        };
-      });
-
-      const currentGuildCount = results.reduce(
-        (acc, r) => acc + r.guildCount,
-        0
-      );
-      const totalUserCount = results.reduce((acc, r) => acc + r.userCount, 0);
-
-      const CommandsCount = (await getRegisteredCommandsCount(client)) + 2;
-      const profileAmount = await Profile.countDocuments();
-      const usages = await CommandUsage.find({}).sort({ count: -1 });
-      const totalUsage = usages.reduce((acc, cmd) => acc + cmd.count, 0);
-      const startTimeTimestamp = `<t:${client.botStartTime}:f>`;
-
       const ping = `**Ping**: \`${botping}ms\` \n**Bot Latency**: \`${botLatency}ms\``;
       const up = `\n**Uptime:** \`${formatUptime(
         process.uptime()
@@ -121,7 +100,9 @@ module.exports = {
       const commandstats = `**Commands:** \`${CommandsCount}\` \n**Total Usage:** \`${totalUsage}\` \n**Profiles:** \`${profileAmount}\``;
       const botversion = `**Dev:** \`${commitHundreds}.${commitTens}.${commitOnes}\` \n **Node.js:** \`${process.version}\` \n **Discord.js:** \`v14.19.2\``;
       const clientstats = `**CPU:** \`${cpuUsage}\` \n**Memory:** \`${memoryUsage}\``;
-      const shardstats = `**Shards:** \`${shardCount}\` \n**Clusters:** \`${clusterCount}\``;
+      const shardstats = `**Shards:** \`${
+        getInfo().TOTAL_SHARDS
+      }\` \n**Clusters:** \`${getInfo().CLUSTER_COUNT}\``;
 
       const embed = new EmbedBuilder()
         .setDescription(
