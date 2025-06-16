@@ -14,15 +14,17 @@ const updateChannelName = async (client) => {
 
     console.log("[STATS] Starting statsTracker update");
 
-    const results = await client.cluster.broadcastEval((c) => {
-      return {
-        guildCount: c.guilds.cache.size,
-        userCount: c.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0),
-      };
-    });
-
-    const guildsCount = results.reduce((acc, r) => acc + r.guildCount, 0);
-    const usersCount = results.reduce((acc, r) => acc + r.userCount, 0);
+    // Fetch stats and wait for them
+    let guilds = 0;
+    let users = 0;
+    try {
+      const res = await fetch("https://api.pridebot.xyz/stats");
+      const data = await res.json();
+      guilds = data.currentGuildCount;
+      users = data.totalUserCount;
+    } catch (err) {
+      console.error("Failed to fetch stats:", err);
+    }
 
     let totalUsage = 0;
     try {
@@ -57,8 +59,8 @@ const updateChannelName = async (client) => {
     }
 
     const channels = [
-      { id: "1152452882663227423", name: `Guilds: ${guildsCount}` },
-      { id: "1152452919719903313", name: `Users: ${usersCount}` },
+      { id: "1152452882663227423", name: `Guilds: ${guilds}` },
+      { id: "1152452919719903313", name: `Users: ${users}` },
       {
         id: "1152452950132805722",
         name: `# of Commands: ${registeredCommands}`,
