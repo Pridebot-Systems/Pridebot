@@ -19,6 +19,70 @@ const {
   getApproximateUserInstallCount,
 } = require("../config/botfunctions/user_install.js");
 
+// === NEW: STATS CACHE ===
+const statsCache = {
+  lastUpdated: null,
+  data: null,
+};
+
+async function updateStatsCache(client) {
+  try {
+    const results = await client.cluster.broadcastEval((c) => ({
+      guildCount: c.guilds.cache.size,
+      userCount: c.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0),
+    }));
+
+    const currentGuildCount = results.reduce((acc, r) => acc + r.guildCount, 0);
+    const totalUserCount = results.reduce((acc, r) => acc + r.userCount, 0);
+
+    const ping = client.ws.ping;
+    const UserInstallCount = await getApproximateUserInstallCount(client);
+    const usages = await CommandUsage.find({}).sort({ count: -1 });
+    const totalUsage = usages.reduce((acc, cmd) => acc + cmd.count, 0);
+    const totalGuildCount = usages.reduce(
+      (acc, cmd) => acc + cmd.guildCount,
+      0
+    );
+    const totalUserContextCount = usages.reduce(
+      (acc, cmd) => acc + cmd.userContextCount,
+      0
+    );
+    const profileAmount = await ProfileData.countDocuments();
+    const commandsCount = (await getRegisteredCommandsCount(client)) + 2;
+    const botuptime = client.botStartTime;
+    const voting = await Voting.findOne();
+    const votingtotal = voting.votingAmount.OverallTotal;
+    const topggtoal = voting.votingAmount.TopGGTotal;
+    const wumpustotal = voting.votingAmount.WumpusTotal;
+    const botlisttotal = voting.votingAmount.BotListTotal;
+
+    statsCache.data = {
+      totalUserCount,
+      currentGuildCount,
+      UserInstallCount,
+      profileAmount,
+      totalUsage,
+      commandsCount,
+      totalGuildCount,
+      totalUserContextCount,
+      botuptime,
+      ping,
+      vote: {
+        votingtotal,
+        topggtoal,
+        wumpustotal,
+        botlisttotal,
+      },
+    };
+    statsCache.lastUpdated = new Date();
+    console.log("[API] Stats cache updated at", statsCache.lastUpdated);
+  } catch (error) {
+    console.error("[API] Failed to update stats cache:", error);
+  }
+}
+
+// ==========================
+
 module.exports = (client) => {
   console.log(
     `Bot API initialization started by Cluster ${getInfo().CLUSTER}.`
@@ -550,4 +614,7 @@ module.exports = (client) => {
       response.sendStatus(200);
     }
   );
+
+  updateStatsCache(client);
+  setInterval(() => updateStatsCache(client), 2 * 60 * 1000); // every 5 mins
 };
