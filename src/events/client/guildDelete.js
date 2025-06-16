@@ -1,21 +1,22 @@
 const { EmbedBuilder } = require("discord.js");
+const { sendLog } = require("../../config/logging/sendlogs");
 
 module.exports = async (client, guild) => {
-  if (!guild.available) {
-    return;
-  }
+  if (!guild.available) return;
 
-  const channel = client.channels.cache.get("1112590962867310602");
   const name = guild.name || "undefined";
   const serverID = guild.id || "undefined";
   const memberCount = guild.memberCount || "undefined";
   const ownerID = guild.ownerId || "undefined";
-  const currentGuildCount = client.guilds.cache.size;
-  let totalUserCount = 0;
-
-  client.guilds.cache.forEach((guild) => {
-    totalUserCount += guild.memberCount;
+  const results = await client.cluster.broadcastEval((c) => {
+    return {
+      guildCount: c.guilds.cache.size,
+      userCount: c.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0),
+    };
   });
+
+  const currentGuildCount = results.reduce((acc, r) => acc + r.guildCount, 0);
+  const totalUserCount = results.reduce((acc, r) => acc + r.userCount, 0);
 
   const embed = new EmbedBuilder()
     .setColor("FF00EA")
@@ -37,9 +38,5 @@ module.exports = async (client, guild) => {
     .setTimestamp()
     .setFooter({ text: `${serverID}` });
 
-  if (channel) {
-    await channel.send({ embeds: [embed] });
-  } else {
-    console.error(`Channel with ID ${channelId} not found.`);
-  }
+  await sendLog(client, embed, "1112590962867310602");
 };

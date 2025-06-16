@@ -82,12 +82,15 @@ module.exports = (client) => {
   });
 
   app.get("/stats", cors(), async (req, res) => {
-    const currentGuildCount = client.guilds.cache.size;
-
-    let totalUserCount = 0;
-    client.guilds.cache.forEach((guild) => {
-      totalUserCount += guild.memberCount;
+    const results = await client.cluster.broadcastEval((c) => {
+      return {
+        guildCount: c.guilds.cache.size,
+        userCount: c.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0),
+      };
     });
+
+    const currentGuildCount = results.reduce((acc, r) => acc + r.guildCount, 0);
+    const totalUserCount = results.reduce((acc, r) => acc + r.userCount, 0);
 
     const ping = client.ws.ping;
 

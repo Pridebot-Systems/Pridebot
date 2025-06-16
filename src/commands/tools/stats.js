@@ -94,11 +94,18 @@ module.exports = {
       let commitTens = totalCommits.toString().slice(-2, -1) || "0";
       let commitOnes = totalCommits.toString().slice(-1);
 
-      const currentGuildCount = client.guilds.cache.size;
-      let totalUserCount = 0;
-      client.guilds.cache.forEach((guild) => {
-        totalUserCount += guild.memberCount;
+      const results = await client.cluster.broadcastEval((c) => {
+        return {
+          guildCount: c.guilds.cache.size,
+          userCount: c.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0),
+        };
       });
+
+      const currentGuildCount = results.reduce(
+        (acc, r) => acc + r.guildCount,
+        0
+      );
+      const totalUserCount = results.reduce((acc, r) => acc + r.userCount, 0);
 
       const CommandsCount = (await getRegisteredCommandsCount(client)) + 2;
       const profileAmount = await Profile.countDocuments();
@@ -110,7 +117,7 @@ module.exports = {
       const up = `\n**Uptime:** \`${formatUptime(
         process.uptime()
       )}\` \n**Start Time:** ${startTimeTimestamp}`;
-      const botstats = `**Servers:** \`${currentGuildCount}\` \n**Users:** \`${totalUserCount.toLocaleString()}\`\n**User Installs:** \`${approximateUserInstallCount}\``;
+      const botstats = `**Servers:** \`${currentGuildCount.toLocaleString()}\` \n**Users:** \`${totalUserCount.toLocaleString()}\`\n**User Installs:** \`${approximateUserInstallCount}\``;
       const commandstats = `**Commands:** \`${CommandsCount}\` \n**Total Usage:** \`${totalUsage}\` \n**Profiles:** \`${profileAmount}\``;
       const botversion = `**Dev:** \`${commitHundreds}.${commitTens}.${commitOnes}\` \n **Node.js:** \`${process.version}\` \n **Discord.js:** \`v14.19.2\``;
       const clientstats = `**CPU:** \`${cpuUsage}\` \n**Memory:** \`${memoryUsage}\``;

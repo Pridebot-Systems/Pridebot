@@ -14,7 +14,6 @@ const updateChannelName = async (client) => {
 
     console.log("[STATS] Starting statsTracker update");
 
-    // Get total guild and user count from all clusters
     const results = await client.cluster.broadcastEval((c) => {
       return {
         guildCount: c.guilds.cache.size,
