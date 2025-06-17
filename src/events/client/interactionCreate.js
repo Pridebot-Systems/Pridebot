@@ -90,7 +90,7 @@ module.exports = {
             .setColor("#FF00AE")
             .setTimestamp();
 
-          await interaction.followUp({ embeds: [adEmbed] });
+          await interaction.followUp({ embeds: [adEmbed], ephemeral: true });
         }
       } else if (
         interaction.isModalSubmit() &&

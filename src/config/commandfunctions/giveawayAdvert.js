@@ -9,7 +9,7 @@ async function shouldShowGiveawayAd(userId) {
     return true;
   }
 
-  if (Math.random() < 0.1) {
+  if (Math.random() < 0.0333) {
     record.lastSeen = new Date();
     await record.save();
     return true;
