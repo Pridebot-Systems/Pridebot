@@ -116,12 +116,8 @@ module.exports = (client) => {
   });
 
   app.get("/githubapi", (req, res) => {
-    const currentGuildCount = client.guilds.cache.size;
-    let totalUserCount = 0;
-
-    client.guilds.cache.forEach((guild) => {
-      totalUserCount += guild.memberCount;
-    });
+    const currentGuildCount = statsCache.data.currentGuildCount || 0;
+    const totalUserCount = statsCache.data.totalUserCount || 0;
 
     const prismaGuild = client.guilds.cache.get("921403338069770280");
     let prismatotal = 0;
@@ -146,65 +142,11 @@ module.exports = (client) => {
   });
 
   app.get("/stats", cors(), async (req, res) => {
-    const results = await client.cluster.broadcastEval((c) => {
-      return {
-        guildCount: c.guilds.cache.size,
-        userCount: c.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0),
-      };
-    });
-
-    const currentGuildCount = results.reduce((acc, r) => acc + r.guildCount, 0);
-    const totalUserCount = results.reduce((acc, r) => acc + r.userCount, 0);
-
-    const ping = client.ws.ping;
-
-    try {
-      const UserInstallCount = await getApproximateUserInstallCount(client);
-      const usages = await CommandUsage.find({}).sort({ count: -1 });
-      const totalUsage = usages.reduce((acc, cmd) => acc + cmd.count, 0);
-      const totalGuildCount = usages.reduce(
-        (acc, cmd) => acc + cmd.guildCount,
-        0
-      );
-      const totalUserContextCount = usages.reduce(
-        (acc, cmd) => acc + cmd.userContextCount,
-        0
-      );
-
-      const profileAmount = await ProfileData.countDocuments();
-
-      const commandsCount = (await getRegisteredCommandsCount(client)) + 2;
-
-      const botuptime = client.botStartTime;
-
-      const voting = await Voting.findOne();
-      const votingtotal = voting.votingAmount.OverallTotal;
-      const topggtoal = voting.votingAmount.TopGGTotal;
-      const wumpustotal = voting.votingAmount.WumpusTotal;
-      const botlisttotal = voting.votingAmount.BotListTotal;
-
-      res.json({
-        totalUserCount,
-        currentGuildCount,
-        UserInstallCount,
-        profileAmount,
-        totalUsage,
-        commandsCount,
-        totalGuildCount,
-        totalUserContextCount,
-        botuptime,
-        ping,
-        vote: {
-          votingtotal,
-          topggtoal,
-          wumpustotal,
-          botlisttotal,
-        },
-      });
-    } catch (error) {
-      console.error("Failed to get API stats:", error);
-      res.status(500).send("Internal Server Error");
+    if (!statsCache.data) {
+      return res.status(503).json({ error: "Stats are not yet available." });
     }
+
+    res.json(statsCache.data);
   });
 
   app.get("/serverstats", cors(), async (req, res) => {
