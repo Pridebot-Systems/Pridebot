@@ -29,6 +29,13 @@ async function handleEdit(interaction, client) {
   const attachment = interaction.options.getAttachment("premiumpicture");
 
   const originalProfile = await Profile.findOne({ userId });
+  if (!originalProfile) {
+    return interaction.reply({
+      content:
+        "You don’t have a profile yet. Use `/profile setup` to create one.",
+      ephemeral: true,
+    });
+  }
   const updates = {};
 
   if (colorInput) {
