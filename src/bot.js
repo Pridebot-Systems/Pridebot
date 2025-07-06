@@ -26,7 +26,6 @@ const eventHandlers = {
   handleGuildCreate: require("./events/client/guildCreate.js"),
   handleGuildDelete: require("./events/client/guildDelete.js"),
   sendRestartMessage: require("./events/server/restart.js"),
-  scheduleGiveawayMessage: require("./events/bot/giveaway_messages.js"),
 };
 
 const userprofile = require("./commands/Profile/userprofile.js");
@@ -175,10 +174,6 @@ module.exports = (client) => {
               type: 0,
               name: `with ${totalUsage.toLocaleString()} commands`,
             },
-            {
-              type: 0,
-              name: `Happy Pride Month! 🌈`,
-            },
           ];
 
           const presence = presences[client.presenceIndex];
@@ -222,7 +217,6 @@ module.exports = (client) => {
           initializeGoogleApi(client);
           initializeProfileApi(client);
           console.log("✅ API initialization complete.");
-          eventHandlers.scheduleGiveawayMessage(client);
           console.log("📣 Giveaway message scheduled.");
         } catch (err) {
           console.error("❌ Error during API initialization:", err);

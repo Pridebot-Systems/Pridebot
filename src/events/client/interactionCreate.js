@@ -1,4 +1,3 @@
-const { EmbedBuilder } = require("discord.js");
 const CommandUsage = require("../../../mongo/models/usageSchema");
 const Blacklist = require("../../../mongo/models/blacklistSchema.js");
 const IDLists = require("../../../mongo/models/idSchema.js");
@@ -6,9 +5,6 @@ const {
   handleModalSubmit,
   handleRemoveWebsite,
 } = require("../../commands/Profile/profilefunctions/profilehandlers.js");
-const {
-  shouldShowGiveawayAd,
-} = require("../../config/commandfunctions/giveawayAdvert.js");
 const { errorlogging } = require("../../config/logging/errorlogs.js");
 
 async function isBlacklisted(userId, guildId) {
@@ -77,21 +73,6 @@ module.exports = {
         }
 
         await command.execute(interaction, client, { userId, guildId });
-
-        const showAd = await shouldShowGiveawayAd(interaction.user.id);
-        if (showAd) {
-          const adEmbed = new EmbedBuilder()
-            .setTitle(
-              "🎉 Pridebot X Pridecord 5× $10 Nitro Pridemonth Giveaway 🎉"
-            )
-            .setDescription(
-              "Join [Pridecord](https://discord.gg/UPCqG6weXt) to win one of 5× $10 Nitro!\nUse </giveaway rules:1378536586701963395> for details."
-            )
-            .setColor("#FF00AE")
-            .setTimestamp();
-
-          await interaction.followUp({ embeds: [adEmbed], ephemeral: true });
-        }
       } else if (
         interaction.isModalSubmit() &&
         interaction.customId === "customWebsiteModal"
