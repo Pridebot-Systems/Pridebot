@@ -22,7 +22,6 @@ const { react } = require("./config/commandfunctions/trashreact.js");
 const { errorlogging } = require("./config/logging/errorlogs");
 
 const eventHandlers = {
-  updateChannelName: require("./events/server/statsTracker.js"),
   handleGuildCreate: require("./events/client/guildCreate.js"),
   handleGuildDelete: require("./events/client/guildDelete.js"),
   sendRestartMessage: require("./events/server/restart.js"),
@@ -67,15 +66,6 @@ module.exports = (client) => {
       }
     });
 
-    cron.schedule("*/15 * * * *", async () => {
-      try {
-        await eventHandlers.updateChannelName(client);
-      } catch (err) {
-        console.error("[CRON] Failed to update stats:", err);
-        await errorlogging(client, err);
-      }
-    });
- 
     client.once("ready", async () => {
       setInterval(() => {
         if (!client.user || client.ws.status !== 0) {
@@ -217,7 +207,6 @@ module.exports = (client) => {
           initializeGoogleApi(client);
           initializeProfileApi(client);
           console.log("✅ API initialization complete.");
-          console.log("📣 Giveaway message scheduled.");
         } catch (err) {
           console.error("❌ Error during API initialization:", err);
           errorlogging(client, err);
@@ -226,11 +215,6 @@ module.exports = (client) => {
 
       try {
         eventHandlers.sendRestartMessage(client);
-        try {
-          await eventHandlers.updateChannelName(client);
-        } catch (err) {
-          console.error("[BOT] statsTracker failed at startup:", err);
-        }
       } catch (err) {
         errorlogging(client, err);
       }
