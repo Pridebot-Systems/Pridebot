@@ -41,6 +41,7 @@
     "pm2": "^5.4.3",
     "puppeteer": "^20.9.0",
     "sharp": "^0.33.5",
-    "topgg-autoposter": "^2.0.2"
+    "topgg-autoposter": "^2.0.2",
+    "uuid": "^11.1.0"
   }
 }

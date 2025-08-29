@@ -24,22 +24,33 @@ function logShutdownTime() {
   }
 }
 
+let shuttingDown = false;
+const markShuttingDown = () => {
+  shuttingDown = true;
+};
+
 process.on("SIGINT", () => {
+  markShuttingDown;
   logShutdownTime();
   process.exit();
 });
 
 process.on("SIGTERM", () => {
   console.log("Received SIGTERM, shutting down...");
+  markShuttingDown;
   logShutdownTime();
   process.exit();
 });
 process.on("exit", (code) => {
   console.log("Process exiting with code:", code);
+  markShuttingDown;
 });
 process.on("beforeExit", (code) => {
   console.log("⚠️ beforeExit called with code:", code);
+  markShuttingDown;
 });
+
+process.on("disconnect", markShuttingDown);
 
 const client = new Client({
   shards: getInfo().SHARD_LIST,
@@ -57,19 +68,64 @@ const client = new Client({
 client.commands = new Map();
 client.commandArray = [];
 client.botStartTime = Math.floor(Date.now() / 1000);
-client.cluster = new ClusterClient(client);
 
 initializeBot(client);
 
 process.on("unhandledRejection", async (reason) => {
-  console.error("[UNHANDLED REJECTION]", reason);
-  const error = reason instanceof Error ? reason : new Error(reason);
-  await errorlogging(client, error, { event: "unhandledRejection" });
+  if (shuttingDown) return;
+  const timestamp = new Date().toISOString();
+  console.error(`[UNHANDLED REJECTION] ${timestamp}`, reason);
+
+  const errorStr = String(reason);
+  const hasIPCError =
+    (reason && reason.code === "ERR_IPC_CHANNEL_CLOSED") ||
+    errorStr.includes("ERR_IPC_CHANNEL_CLOSED") ||
+    errorStr.includes("Channel closed");
+
+  if (hasIPCError) {
+    console.warn(
+      `[UNHANDLED REJECTION] ${timestamp} IPC/Channel error detected - skipping error logging to prevent cascade`
+    );
+    return;
+  }
+
+  try {
+    const error = reason instanceof Error ? reason : new Error(reason);
+    await errorlogging(client, error, { event: "unhandledRejection" });
+  } catch (loggingError) {
+    console.error(
+      `[UNHANDLED REJECTION] ${timestamp} Failed to log error:`,
+      loggingError.message
+    );
+  }
 });
 
 process.on("uncaughtException", async (error) => {
-  console.error("[UNCAUGHT EXCEPTION]", error);
-  await errorlogging(client, error, { event: "uncaughtException" });
+  if (shuttingDown) return;
+  const timestamp = new Date().toISOString();
+  console.error(`[UNCAUGHT EXCEPTION] ${timestamp}`, error);
+
+  const errorStr = String(error);
+  const hasIPCError =
+    (error && error.code === "ERR_IPC_CHANNEL_CLOSED") ||
+    errorStr.includes("ERR_IPC_CHANNEL_CLOSED") ||
+    errorStr.includes("Channel closed");
+
+  if (hasIPCError) {
+    console.warn(
+      `[UNCAUGHT EXCEPTION] ${timestamp} IPC/Channel error detected - skipping error logging to prevent cascade`
+    );
+    return;
+  }
+
+  try {
+    await errorlogging(client, error, { event: "uncaughtException" });
+  } catch (loggingError) {
+    console.error(
+      `[UNCAUGHT EXCEPTION] ${timestamp} Failed to log error:`,
+      loggingError.message
+    );
+  }
 });
 
 console.log(getInfo());

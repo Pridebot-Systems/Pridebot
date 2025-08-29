@@ -84,15 +84,21 @@ async function updateStatsCache(client) {
 // ==========================
 
 module.exports = (client) => {
-  console.log(
-    `Bot API initialization started by Cluster ${getInfo().CLUSTER}.`
-  );
+  const clusterId = getInfo().CLUSTER;
+  console.log(`Bot API initialization started by Cluster ${clusterId}.`);
+  
+  // Only allow cluster 0 to run the API server
+  if (clusterId !== 0) {
+    console.log(`Cluster ${clusterId} skipping API initialization - only cluster 0 should run APIs.`);
+    return;
+  }
+  
   const app = express();
   const port = 2610;
 
   try {
     app.listen(port, () => {
-      console.log(`Bot API is running on port ${port}`);
+      console.log(`Bot API is running on port ${port} (Cluster ${clusterId})`);
     });
   } catch (error) {
     console.error("Failed to start Bot API:", error);
@@ -263,6 +269,7 @@ module.exports = (client) => {
   app.post("/wumpus-votes", async (req, res) => {
     let wumpususer = req.body.userId;
     let wumpusbot = req.body.botId;
+    console.log(`[Wumpus] Vote received for user ${wumpususer}, bot ${wumpusbot}`);
     const voteCooldownHours = 12;
     const voteCooldownSeconds = voteCooldownHours * 3600;
     const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -312,6 +319,7 @@ module.exports = (client) => {
   app.post("/topgg-votes", async (req, res) => {
     let topgguserid = req.body.user;
     let topggbotid = req.body.bot;
+    console.log(`[TopGG] Vote received for user ${topgguserid}, bot ${topggbotid}`);
     const voteCooldownHours = 12;
     const voteCooldownSeconds = voteCooldownHours * 3600;
     const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -346,6 +354,7 @@ module.exports = (client) => {
           }
 
           await channel.send({ embeds: [embed] });
+          console.log(`[TopGG] Vote embed sent successfully for user ${topgguserid}`);
           res.status(200).send("Success!");
         } catch (error) {
           console.error("Error sending message to Discord:", error);
@@ -470,6 +479,7 @@ module.exports = (client) => {
     async (request, response) => {
       const githubEvent = request.headers["x-github-event"];
       const data = request.body;
+      console.log(`[GitHub] Received ${githubEvent} webhook for ${data.repository?.name || 'unknown repo'}`);
       let embed = new EmbedBuilder();
 
       const repoName = data.repository?.name;
@@ -543,15 +553,64 @@ module.exports = (client) => {
       }
 
       try {
-        const channel = await client.channels.fetch("1101742377372237906");
-        if (!channel) {
-          console.log("Could not find channel");
+        console.log(`[GitHub] Processing ${githubEvent} event for ${repoName}`);
+        
+        // Check if cluster client is available
+        if (!client.cluster || !client.cluster.ready) {
+          console.warn("[GitHub] Cluster client not ready, attempting direct send...");
+          const channel = await client.channels.fetch("1101742377372237906").catch(() => null);
+          if (channel && channel.isTextBased()) {
+            await channel.send({ embeds: [embed] });
+            console.log("[GitHub] Embed sent directly (no clustering)");
+          } else {
+            console.error("[GitHub] Failed to send embed: channel not accessible");
+          }
+          response.sendStatus(200);
           return;
         }
 
-        await channel.send({ embeds: [embed] });
+        const results = await client.cluster.broadcastEval(
+          async (c, { channelId, embedJSON, guildId }) => {
+            if (!c.guilds.cache.has(guildId)) return null;
+
+            const { EmbedBuilder } = require("discord.js");
+            const channel = await c.channels.fetch(channelId).catch(() => null);
+            if (!channel || !channel.isTextBased()) return null;
+
+            const embed = new EmbedBuilder(embedJSON);
+            await channel.send({ embeds: [embed] });
+            return c.cluster?.id ?? true;
+          },
+          {
+            context: {
+              channelId: "1101742377372237906", // your log channel ID
+              embedJSON: embed.toJSON(),
+              guildId: "1101740375342845952", // your logging guild ID
+            },
+          }
+        );
+
+        const success = results.find((r) => r !== null);
+        if (!success) {
+          console.error("[GitHub] Embed send failed: no shard had access.");
+        } else {
+          console.log("[GitHub] Embed sent successfully by cluster:", success);
+        }
       } catch (error) {
-        console.error("Error sending message to Discord:", error);
+        if (error.code === 'ERR_IPC_CHANNEL_CLOSED') {
+          console.warn("[GitHub] IPC channel closed, attempting direct send...");
+          try {
+            const channel = await client.channels.fetch("1101742377372237906").catch(() => null);
+            if (channel && channel.isTextBased()) {
+              await channel.send({ embeds: [embed] });
+              console.log("[GitHub] Embed sent directly after IPC failure");
+            }
+          } catch (directError) {
+            console.error("[GitHub] Direct send also failed:", directError.message);
+          }
+        } else {
+          console.error("[GitHub] BroadcastEval failed:", error);
+        }
       }
       response.sendStatus(200);
     }
