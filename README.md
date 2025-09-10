@@ -2,9 +2,9 @@
 
 # <img src="web/assets/images/pridebotlogo.png" width="32" height="32" style="vertical-align: -6px;"> Pridebot
 
-[![Servers](https://img.shields.io/badge/dynamic/json?url=https://api.pridebot.xyz/stats&query=servers&label=Servers&color=brightgreen&suffix=%2B)](https://pridebot.xyz/invite)
-[![Users](https://img.shields.io/badge/dynamic/json?url=https://api.pridebot.xyz/stats&query=users&label=Users&color=blue&suffix=%2B)](https://pridebot.xyz/invite)
-[![Uses](https://img.shields.io/badge/dynamic/json?url=https://api.pridebot.xyz/stats&query=uses&label=Uses&color=ff69b4&suffix=%2B)](https://pridebot.xyz)
+[![Servers](https://img.shields.io/badge/dynamic/json?url=https://api.pridebot.xyz/stats&query=currentGuildCount&label=Servers&color=brightgreen)](https://pridebot.xyz/invite)
+[![Users](https://img.shields.io/badge/dynamic/json?url=https://api.pridebot.xyz/stats&query=totalUserCount&label=Users&color=blue)](https://pridebot.xyz/invite)
+[![Uses](https://img.shields.io/badge/dynamic/json?url=https://api.pridebot.xyz/stats&query=totalUsage&label=Uses&color=ff69b4)](https://pridebot.xyz)
 [![MIT License](https://img.shields.io/github/license/Pridebot-Systems/Pridebot)](LICENSE)
 
 [🚀 Invite to Server](https://pridebot.xyz/invite) • [📚 Documentation](https://pridebot.xyz) • [💬 Support Server](https://pridebot.xyz/support) • [💎 Premium](https://pridebot.xyz/premium)
