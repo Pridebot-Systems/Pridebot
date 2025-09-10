@@ -10,6 +10,7 @@ const initializeProfileApi = require("./apis/profileapi");
 
 const cron = require("node-cron");
 const { deleteOldFiles } = require("./config/botfunctions/cleanup");
+const { updatePfpStatsCache } = require("./commands/Dev/pfpstats.js");
 
 const { idCommand } = require("./commands/Dev/id.js");
 const { blacklistCommand } = require("./commands/Dev/blacklist.js");
@@ -17,6 +18,7 @@ const { termCommand } = require("./commands/Dev/termlist.js");
 const { darCommand } = require("./commands/Dev/darID.js");
 const { topServerCommand } = require("./commands/Dev/topserver.js");
 const { handleErrorModeCommand } = require("./commands/Dev/errormode.js");
+const { pfpStatsCommand } = require("./commands/Dev/pfpstats.js");
 
 const { react } = require("./config/commandfunctions/trashreact.js");
 const { errorlogging } = require("./config/logging/errorlogs");
@@ -48,6 +50,17 @@ module.exports = (client) => {
     cron.schedule("0 0 * * *", () => {
       console.log("🧹 Running daily cleanup...");
       deleteOldFiles(client, "1360270874933989386");
+    });
+
+    // Update PFP stats cache every 3 hours (8 times a day)
+    cron.schedule("0 */3 * * *", async () => {
+      console.log("📊 Running scheduled PFP stats update...");
+      try {
+        await updatePfpStatsCache();
+        console.log("✅ PFP stats cache updated successfully");
+      } catch (error) {
+        console.error("❌ Failed to update PFP stats cache:", error);
+      }
     });
 
     client.on(Events.GuildCreate, (guild) => {
@@ -252,6 +265,7 @@ module.exports = (client) => {
         darCommand(message, client);
         handleErrorModeCommand(message, client);
         topServerCommand(message, client);
+        pfpStatsCommand(message, client);
       } catch (err) {
         await errorlogging(client, err);
       }
