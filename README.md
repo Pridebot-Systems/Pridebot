@@ -1,8 +1,19 @@
-# Pridebot
+<div align="center">
+
+# <img src="web/assets/images/pridebotlogo.png" width="32" height="32" style="vertical-align: -6px;"> Pridebot
+
+[![Servers](https://img.shields.io/badge/dynamic/json?url=https://api.pridebot.xyz/stats&query=servers&label=Servers&color=brightgreen&suffix=%2B)](https://pridebot.xyz/invite)
+[![Users](https://img.shields.io/badge/dynamic/json?url=https://api.pridebot.xyz/stats&query=users&label=Users&color=blue&suffix=%2B)](https://pridebot.xyz/invite)
+[![Uses](https://img.shields.io/badge/dynamic/json?url=https://api.pridebot.xyz/stats&query=uses&label=Uses&color=ff69b4&suffix=%2B)](https://pridebot.xyz)
+[![MIT License](https://img.shields.io/github/license/Pridebot-Systems/Pridebot)](LICENSE)
+
+[🚀 Invite to Server](https://pridebot.xyz/invite) • [📚 Documentation](https://pridebot.xyz) • [💬 Support Server](https://pridebot.xyz/support) • [💎 Premium](https://pridebot.xyz/premium)
+
+</div>
 
 ## Introduction
 
-Pridebot, developed by [Sdriver1](https://github.com/Sdriver1), is a multi function LGBTQIA+ themed discord application set to make information and acceptance accessible to more users. Currently the bot is apart of 5.3k+ server reaching to 520k+ users. The bot been used over 685+ times with features ranging from profile system where users can in organize way express there identities, avatar editors to rep your flag, educational for identities and supportive resources for mental health or coming out, and finally fun little minigames to mess with your friends. Thank you for using Pridebot ❤️
+Pridebot, developed by [Sdriver1](https://sdriver1.me), is a multi function LGBTQIA+ themed discord application set to make information and acceptance accessible to more users. Currently the bot is apart of 8.3k+ server reaching to 690k+ users. The bot been used over 1.1M+ times with features ranging from profile system where users can in organize way express there identities, avatar editors to rep your flag, educational for identities and supportive resources for mental health or coming out, and finally fun little minigames to mess with your friends.
 
 ## Features
 
@@ -50,12 +61,23 @@ Contributions to Pridebot are welcome! If you're interested in contributing, ple
 For support, questions, or feedback about Pridebot, please join our Discord community [here](https://pridebot.xyz/support).
 For anyone who wants to donate/support the development of Pridebot, you can do that [here](https://pridebot.xyz/premium)
 
-## Legal
+## 📜 Legal
 
-- [Pridebot Term of Service](https://pridebot.xyz/tos)
-- [Pridebot Privacy Policy](https://pridebot.xyz/privacy)
-- [License - MIT](https://github.com/Pridebot-Systems/Pridebot?tab=MIT-1-ov-file)
+| Document | Description |
+|----------|-------------|
+| [Terms of Service](https://pridebot.xyz/tos) | Usage terms and conditions |
+| [Privacy Policy](https://pridebot.xyz/privacy) | How we handle your data |
+| [MIT License](https://github.com/Pridebot-Systems/Pridebot?tab=MIT-1-ov-file) | Open source license |
 
 ---
 
-Pridebot © 2023-2025
+<div align="center">
+
+**Made with ❤️ by the Pridebot team**
+
+🏳️‍🌈 *Pridebot © 2023-2025 - Celebrating diversity, one server at a time* 🏳️‍⚧️
+
+[![GitHub](https://img.shields.io/badge/GitHub-Pridebot--Systems-black?logo=github)](https://github.com/Pridebot-Systems)
+[![Website](https://img.shields.io/badge/Website-pridebot.xyz-blue)](https://pridebot.xyz)
+
+</div>
