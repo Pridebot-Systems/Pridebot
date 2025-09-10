@@ -25,6 +25,79 @@ const statsCache = {
   data: null,
 };
 
+// === VOTE EMBED HELPER FUNCTION ===
+async function sendVoteEmbed(client, embed, platform, userId, res) {
+  try {
+    console.log(`[${platform}] Processing vote embed for user ${userId}`);
+    
+    // Check if cluster client is available
+    if (!client.cluster || !client.cluster.ready) {
+      console.warn(`[${platform}] Cluster client not ready, attempting direct send...`);
+      const channel = await client.channels.fetch("1224815141921624186").catch(() => null);
+      if (channel && channel.type === ChannelType.GuildText) {
+        await channel.send({ embeds: [embed] });
+        console.log(`[${platform}] Embed sent directly (no clustering)`);
+      } else {
+        console.error(`[${platform}] Failed to send embed: channel not accessible`);
+        return res.status(400).send("Channel not found or is not a text channel");
+      }
+      res.status(200).send("Success!");
+      return;
+    }
+
+    const results = await client.cluster.broadcastEval(
+      async (c, { channelId, embedJSON, guildId }) => {
+        if (!c.guilds.cache.has(guildId)) return null;
+
+        const { EmbedBuilder, ChannelType } = require("discord.js");
+        const channel = await c.channels.fetch(channelId).catch(() => null);
+        if (!channel || channel.type !== ChannelType.GuildText) return null;
+
+        const embed = new EmbedBuilder(embedJSON);
+        await channel.send({ embeds: [embed] });
+        return c.cluster?.id ?? true;
+      },
+      {
+        context: {
+          channelId: "1224815141921624186",
+          embedJSON: embed.toJSON(),
+          guildId: "1077258761443483708",
+        },
+      }
+    );
+
+    const success = results.find((r) => r !== null);
+    if (!success) {
+      console.error(`[${platform}] Embed send failed: no cluster had access.`);
+      return res.status(500).send("Failed to send embed");
+    } else {
+      console.log(`[${platform}] Embed sent successfully by cluster:`, success);
+    }
+    
+    res.status(200).send("Success!");
+  } catch (error) {
+    if (error.code === 'ERR_IPC_CHANNEL_CLOSED') {
+      console.warn(`[${platform}] IPC channel closed, attempting direct send...`);
+      try {
+        const channel = await client.channels.fetch("1224815141921624186").catch(() => null);
+        if (channel && channel.type === ChannelType.GuildText) {
+          await channel.send({ embeds: [embed] });
+          console.log(`[${platform}] Embed sent directly after IPC failure`);
+          res.status(200).send("Success!");
+        } else {
+          res.status(500).send("Internal Server Error");
+        }
+      } catch (directError) {
+        console.error(`[${platform}] Direct send also failed:`, directError.message);
+        res.status(500).send("Internal Server Error");
+      }
+    } else {
+      console.error(`[${platform}] Error sending message to Discord:`, error);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+}
+
 async function updateStatsCache(client) {
   try {
     const results = await client.cluster.broadcastEval((c) => ({
@@ -295,20 +368,7 @@ module.exports = (client) => {
           .setThumbnail(userAvatarURL)
           .setTimestamp();
 
-        try {
-          const channel = await client.channels.fetch("1224815141921624186");
-          if (!channel || channel.type !== ChannelType.GuildText) {
-            return res
-              .status(400)
-              .send("Channel not found or is not a text channel");
-          }
-
-          await channel.send({ embeds: [embed] });
-          res.status(200).send("Success!");
-        } catch (error) {
-          console.error("Error sending message to Discord:", error);
-          res.status(500).send("Internal Server Error");
-        }
+        await sendVoteEmbed(client, embed, "Wumpus", wumpususer, res);
       })
       .catch((error) => {
         console.error("Error fetching user from Discord:", error);
@@ -345,21 +405,7 @@ module.exports = (client) => {
           .setThumbnail(userAvatarURL)
           .setTimestamp();
 
-        try {
-          const channel = await client.channels.fetch("1224815141921624186");
-          if (!channel || channel.type !== ChannelType.GuildText) {
-            return res
-              .status(400)
-              .send("Channel not found or is not a text channel");
-          }
-
-          await channel.send({ embeds: [embed] });
-          console.log(`[TopGG] Vote embed sent successfully for user ${topgguserid}`);
-          res.status(200).send("Success!");
-        } catch (error) {
-          console.error("Error sending message to Discord:", error);
-          res.status(500).send("Internal Server Error");
-        }
+        await sendVoteEmbed(client, embed, "TopGG", topgguserid, res);
       })
       .catch((error) => {
         console.error("Error fetching user from Discord:", error);
@@ -399,20 +445,7 @@ module.exports = (client) => {
           .setThumbnail(userAvatarURL)
           .setTimestamp();
 
-        try {
-          const channel = await client.channels.fetch("1224815141921624186");
-          if (!channel || channel.type !== ChannelType.GuildText) {
-            return res
-              .status(400)
-              .send("Channel not found or is not a text channel");
-          }
-
-          await channel.send({ embeds: [embed] });
-          res.status(200).send("Success!");
-        } catch (error) {
-          console.error("Error sending message to Discord:", error);
-          res.status(500).send("Internal Server Error");
-        }
+        await sendVoteEmbed(client, embed, "BotList", botlistuser, res);
       })
       .catch((error) => {
         console.error("Error fetching user from Discord:", error);
@@ -452,20 +485,7 @@ module.exports = (client) => {
           .setThumbnail(userAvatarURL)
           .setTimestamp();
 
-        try {
-          const channel = await client.channels.fetch("1224815141921624186");
-          if (!channel || channel.type !== ChannelType.GuildText) {
-            return res
-              .status(400)
-              .send("Channel not found or is not a text channel");
-          }
-
-          await channel.send({ embeds: [embed] });
-          res.status(200).send("Success!");
-        } catch (error) {
-          console.error("Error sending message to Discord:", error);
-          res.status(500).send("Internal Server Error");
-        }
+        await sendVoteEmbed(client, embed, "Discords", discordsuser, res);
       })
       .catch((error) => {
         console.error("Error fetching user from Discord:", error);
