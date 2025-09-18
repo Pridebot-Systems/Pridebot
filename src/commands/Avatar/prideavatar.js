@@ -12,15 +12,65 @@ const path = require("path");
 const commandLogging = require("../../config/logging/commandlog");
 
 const validFlags = [
-  "abrosexual", "aceflux", "agender", "ally", "androgyne", "aroace", "aroace2",
-  "aroflux", "aromantic", "asexual", "aurorian", "bigender", "bisexual", "boyflux",
-  "butch", "butchlesbian", "butchlesbian2", "butchlesbian3", "catgender", "cupioromantic",
-  "demibisexual", "demiboy", "demigirl", "deminonbinary", "demiromantic",
-  "demisexual", "gay", "genderfae", "genderfaun", "genderfluid", "genderflux", "genderqueer",
-  "girlflux", "graygender", "grayromantic", "graysexual", "lesbian", "lgbt", "lunarian",
-  "neptunic", "nonbinary", "omnisexual", "pangender", "pansexual", "polyamorous", "polysexual",
-  "queer", "queerplatonic", "queerplatonic2", "sapphic", "selenosexual", "singularian", "solarian",
-  "spacilian", "stellarian", "transfeminine", "transgender", "transmasculine"
+  "abrosexual",
+  "aceflux",
+  "agender",
+  "ally",
+  "androgyne",
+  "aroace",
+  "aroace2",
+  "aroflux",
+  "aromantic",
+  "asexual",
+  "aurorian",
+  "bigender",
+  "bisexual",
+  "boyflux",
+  "butch",
+  "butchlesbian",
+  "butchlesbian2",
+  "butchlesbian3",
+  "catgender",
+  "cupioromantic",
+  "demibisexual",
+  "demiboy",
+  "demigirl",
+  "deminonbinary",
+  "demiromantic",
+  "demisexual",
+  "gay",
+  "genderfae",
+  "genderfaun",
+  "genderfluid",
+  "genderflux",
+  "genderqueer",
+  "girlflux",
+  "graygender",
+  "grayromantic",
+  "graysexual",
+  "lesbian",
+  "lesboy",
+  "lgbt",
+  "lunarian",
+  "neptunic",
+  "nonbinary",
+  "omnisexual",
+  "pangender",
+  "pansexual",
+  "polyamorous",
+  "polysexual",
+  "queer",
+  "queerplatonic",
+  "queerplatonic2",
+  "sapphic",
+  "selenosexual",
+  "singularian",
+  "solarian",
+  "spacilian",
+  "stellarian",
+  "transfeminine",
+  "transgender",
+  "transmasculine",
 ];
 
 module.exports = {
@@ -117,7 +167,7 @@ module.exports = {
       let flagBuffer;
       try {
         const flagPath = path.join(__dirname, "../../flags", `${flagName}.png`);
-        flagBuffer = await sharp(flagPath).resize(512, 512).png().toBuffer(); 
+        flagBuffer = await sharp(flagPath).resize(512, 512).png().toBuffer();
       } catch (error) {
         console.error(`Error loading flag image for flag ${flagName}:`, error);
         await interaction.editReply(
@@ -203,7 +253,7 @@ module.exports = {
         );
         return;
       }
-      
+
       const fileName = `${flagName}${flagName2 ? flagName2 : ""}.png`;
       const userDirectoryID = path.join(
         __dirname,

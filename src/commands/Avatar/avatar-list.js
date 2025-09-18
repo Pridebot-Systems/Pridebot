@@ -45,6 +45,7 @@ module.exports = {
       "grayromantic",
       "graysexual",
       "lesbian",
+      "lesboy",
       "lgbt",
       "lunarian",
       "neptunic",
