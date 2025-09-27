@@ -18,6 +18,14 @@ const idDarSchema = new mongoose.Schema({
     type: [radarEntrySchema],
     default: [],
   },
+  rizzdar: {
+    type: [radarEntrySchema],
+    default: [],
+  },
+  bidar: {
+    type: [radarEntrySchema],
+    default: [],
+  },
 });
 
 module.exports = mongoose.model("DarList", idDarSchema);
