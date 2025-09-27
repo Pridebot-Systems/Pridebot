@@ -31,7 +31,7 @@ module.exports = {
         emoji: "1113295174701940776",
         info: {
           title: "Avatar Commands",
-          description: `</avatar-list:1273988656561913906> - Get list of available flags to add \n</avatar-view:1301025323009441886> - View full list of your pride avatars \n</prideavatar:1273988656561913907> - Add a pride flag to your avatar \n\nYou can access any of your avatars by going to **https://pfp.pridebot.xyz/your_user_id**`,
+          description: `</avatar-list:1273988656561913906> - Get list of available flags to add\n</avatar-view:1301025323009441886> - View full list of your pride avatars\n</prideavatar:1273988656561913907> - Add a pride flag to your avatar\n\n**Quick Access:** Visit **https://pfp.pridebot.xyz/your_user_id** to view all your avatars\n*Replace "your_user_id" with your actual Discord user ID*`,
         },
       },
       {
@@ -41,7 +41,7 @@ module.exports = {
         emoji: "1196254858689380474",
         info: {
           title: "Fun Commands",
-          description: `</gaydar:1273988656561913909> - How gay are you or your friend? \n</lgbtq:1273988656561913910> - Fun little command to show off the LGBTQ command \n</match:1273988656561913911> - Determine the compatibility between two users. \n</nametester:1273988656561913912> - Use this to try out new names for yourselfs \n</pronountester:1273988656561913913> - Use this to try out new pronouns for yourself \n</queerdar:1273988656561913914> -  How queer are you or your friend? \n</transdar:1273988656561913915> -  How trans are you or your friend? \n\n-# - </gaydar:1273988656561913909>, </queerdar:1273988656561913914>, and </transdar:1273988656561913915> are for fun and not based on any real diagnosis/readings of users*`,
+          description: `</gaydar:1273988656561913909> - How gay are you or your friend?\n</lgbtq:1273988656561913910> - Fun little command to show off the LGBTQ+ community\n</match:1273988656561913911> - Determine the compatibility between two users\n</nametester:1273988656561913912> - Try out new names for yourself\n</pronountester:1273988656561913913> - Try out new pronouns for yourself\n</queerdar:1273988656561913914> - How queer are you or your friend?\n</transdar:1273988656561913915> - How trans are you or your friend?\n</rizzdar:0> - How much rizz do you or your friend have?\n</bidar:0> - How bi are you or your friend?\n\n*These radar commands are for entertainment only and not based on any real diagnosis or readings of users.*`,
         },
       },
       {
@@ -51,7 +51,7 @@ module.exports = {
         emoji: "1108822823721521242",
         info: {
           title: "Pride Commands",
-          description: `</asexual:1273988656696135805> - Learn about term "asexual" and some brief history \n</bisexual:1273988656696135806> - Learn about term "bisexual" and some brief history \n</gay:1273988656696135807> - Learn about term "gay" and some brief history \n</genderfluid:1273988656696135808> - Learn about term "genderfluid" and some brief history \n</lesbian:1273988656696135809> - Learn about term "lesbian" and some brief history \n</nonbinary:1273988656696135810> Learn about term "non-binary" and some brief history \n</pansexual:1273988656696135811> - Learn about term "pansexual" and some brief history \n</pridemonth:1273988656839004280> - Learn about pride month and some brief history \n</queer:1273988656839004281> - Learn about term "queer" and some brief history \n</transgender:1273988656839004282> - Learn about term "transgender" and some brief history`,
+          description: `</asexual:1273988656696135805> - Learn about the term "asexual" and its history\n</bisexual:1273988656696135806> - Learn about the term "bisexual" and its history\n</gay:1273988656696135807> - Learn about the term "gay" and its history\n</genderfluid:1273988656696135808> - Learn about the term "genderfluid" and its history\n</lesbian:1273988656696135809> - Learn about the term "lesbian" and its history\n</nonbinary:1273988656696135810> - Learn about the term "non-binary" and its history\n</pansexual:1273988656696135811> - Learn about the term "pansexual" and its history\n</pridemonth:1273988656839004280> - Learn about pride month and its history\n</queer:1273988656839004281> - Learn about the term "queer" and its history\n</transgender:1273988656839004282> - Learn about the term "transgender" and its history`,
         },
       },
       {
@@ -61,7 +61,7 @@ module.exports = {
         emoji: "1197388214843998299",
         info: {
           title: "Profile Commands",
-          description: `</profile edit:1273988656839004283> - Edit your profile appearence \n</profile setup:1273988656839004283> - Setup your profile \n</profile view:1273988656839004283> - View your or another users profile \n</profile update:1273988656839004283> - Update the information in your profile`,
+          description: `</profile edit:1273988656839004283> - Edit your profile appearance\n</profile setup:1273988656839004283> - Set up your profile\n</profile view:1273988656839004283> - View your or another user's profile\n</profile update:1273988656839004283> - Update the information in your profile`,
         },
       },
       {
@@ -71,7 +71,7 @@ module.exports = {
         emoji: "1197399653109473301",
         info: {
           title: "Support Commands",
-          description: `</comingout:1273988656839004285> - Access tips and guides on how to come out to anyone \n</mentalhealth:1273988656839004287> - Access helplines and any mental health resources provided \n</transresources:1273988656839004288> - Provides resources and advice for users of transgender identities.`,
+          description: `</comingout:1273988656839004285> - Access tips and guides on how to come out safely\n</mentalhealth:1273988656839004287> - Access helplines and mental health resources\n</transresources:1273988656839004288> - Resources and advice for users of transgender identities`,
         },
       },
       {
@@ -81,7 +81,7 @@ module.exports = {
         emoji: "1112602480128299079",
         info: {
           title: "Term Commands",
-          description: `</gender:1273988656839004289> - Learn about any kinds or types of genders \n </other:1273988656956309647> - Learn about other common terms associated with or normally found in LGBTQIA+ environments\n</pronouns:1273988656956309648> - Learn about any kinds or types of pronouns \n</sexuality:1273988656956309649> - Learn about any kinds or types of sexualities`,
+          description: `</gender:1273988656839004289> - Learn about different types of genders\n</other:1273988656956309647> - Learn about other terms commonly found in LGBTQIA+ spaces\n</pronouns:1273988656956309648> - Learn about different types of pronouns\n</sexuality:1273988656956309649> - Learn about different types of sexualities`,
         },
       },
       {
@@ -91,7 +91,7 @@ module.exports = {
         emoji: "1112234548999245834",
         info: {
           title: "Tool Commands",
-          description: `</donate:1317291535985016882> - Donate to help support Pridebot \n</help:1273988656956309650> - Shows command list and helpful links \n</partner:1273988656956309651> - Check out Pridebot partners \n</stats:1273988656956309652> - Get the bot's and discord stats \n</vote:1273988656956309653> - Support Pridebot by voting for us here`,
+          description: `</donate:1317291535985016882> - Donate to help support Pridebot's development\n</help:1273988656956309650> - Shows command list and helpful links\n</partner:1273988656956309651> - Check out Pridebot's amazing partners\n</stats:1273988656956309652> - Get the bot's and Discord statistics\n</vote:1273988656956309653> - Support Pridebot by voting for us`,
         },
       },
     ];
@@ -111,12 +111,25 @@ module.exports = {
 
     const row = new ActionRowBuilder().addComponents(selectMenu);
 
+    // Count total commands
+    const totalCommands = helpOptions.reduce((count, category) => {
+      // Rough count based on command mentions in descriptions
+      const commandMatches = (category.info.description.match(/<\/\w+/g) || []).length;
+      return count + commandMatches;
+    }, 0);
+
     const embed = new EmbedBuilder()
-      .setTitle(`Pridebot Help`)
+      .setTitle(`🌈 Pridebot Help`)
       .setDescription(
-        `Pridebot, developed by <@691506668781174824>, is a unique LGBTQIA themed bot designed to provide creditble and accurate information on LGBTQIA+ identities and terms but also to help users with discovering them through resources and interact commands. Pridebot offers a range of topics including different sexual orientations, gender identities, pronouns, and the intricate aspects of the LGBTQ community. Including the educational ascept, Pridebot also offers fun and cool commands like gaydar or profiles to help others learn about you. Thank you for using Pridebot :heart:`
+        `Pridebot, developed by <@691506668781174824>, is a unique LGBTQIA+ themed bot designed to provide credible and accurate information on LGBTQIA+ identities and terms, while also helping users discover themselves through resources and interactive commands.\n\nPridebot offers a range of topics including different sexual orientations, gender identities, pronouns, and the intricate aspects of the LGBTQ+ community. Including the educational aspect, Pridebot also offers fun and engaging commands like radar games and profiles to help others learn about you.\n\n**${totalCommands}+ commands available** • Thank you for using Pridebot! ❤️`
       )
       .setColor(0xff00ae)
+      .setThumbnail(client.user?.displayAvatarURL({ dynamic: true }))
+      .setFooter({
+        text: `Select a category below to explore commands • Developed with 💖`,
+        iconURL: client.user?.displayAvatarURL(),
+      })
+      .setTimestamp()
       .addFields(
         {
           name: "Help Categories",
@@ -137,34 +150,50 @@ module.exports = {
 
     const collector = interaction.channel.createMessageComponentCollector({
       componentType: ComponentType.StringSelect,
+      time: 300_000, // 5 minutes timeout
+      filter: (i) => i.user.id === interaction.user.id, // Only allow original user
     });
 
-    collector.on("collect", (selectInteraction) => {
+    collector.on("collect", async (selectInteraction) => {
       if (selectInteraction.customId === "helpSelect") {
         const selectedValue = selectInteraction.values[0];
         const helpInfo = helpOptions.find((h) => h.value === selectedValue);
 
         if (!helpInfo) {
-          console.error(
-            `No gender information found for value: ${selectedValue}`
-          );
-          selectInteraction.reply({
-            content:
-              "Sorry, an error occurred while fetching help information.",
+          console.error(`No help information found for value: ${selectedValue}`);
+          await selectInteraction.reply({
+            content: "❌ Sorry, an error occurred while fetching help information.",
             ephemeral: true,
           });
           return;
         }
 
-        const selectedEmbed = new EmbedBuilder().setColor(0xff00ae).addFields({
-          name: helpInfo.info.title,
-          value: helpInfo.info.description,
-        });
+        const selectedEmbed = new EmbedBuilder()
+          .setColor(0xff00ae)
+          .setTitle(helpInfo.info.title)
+          .setDescription(helpInfo.info.description)
+          .setFooter({
+            text: `Use /help to see all categories • ${helpInfo.name} Commands`,
+          })
+          .setTimestamp();
 
-        selectInteraction.reply({
+        await selectInteraction.reply({
           embeds: [selectedEmbed],
           ephemeral: true,
         });
+      }
+    });
+
+    collector.on("end", (collected, reason) => {
+      if (reason === "time") {
+        // Disable the select menu after timeout
+        const disabledRow = new ActionRowBuilder().addComponents(
+          selectMenu.setDisabled(true)
+        );
+        interaction.editReply({ 
+          embeds: [embed], 
+          components: [disabledRow] 
+        }).catch(() => {}); // Ignore errors if message was deleted
       }
     });
   },
