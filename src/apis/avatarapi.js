@@ -1,8 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const fs = require("fs").promises;
-const fsSync = require("fs");
+const fsPromises = require("fs").promises;
+const fs = require("fs");
 const { getInfo } = require("discord-hybrid-sharding");
 
 module.exports = (client) => {
@@ -41,6 +41,44 @@ module.exports = (client) => {
       uptime: process.uptime(),
       memory: process.memoryUsage()
     });
+  });
+
+  // Get user information endpoint
+  app.get("/getUser/:userId", async (req, res) => {
+    const { userId } = req.params;
+    
+    try {
+      // Only try to fetch from Discord if it looks like a user ID (numeric)
+      if (/^\d+$/.test(userId)) {
+        const user = await client.users.fetch(userId);
+        return res.json({
+          id: user.id,
+          username: user.username,
+          discriminator: user.discriminator || "0000",
+          tag: user.tag || `${user.username}#0000`,
+          avatar: user.displayAvatarURL({ dynamic: true, size: 256 })
+        });
+      } else {
+        // If it's not numeric, treat it as a username
+        return res.json({
+          id: null,
+          username: userId,
+          discriminator: "0000",
+          tag: userId,
+          avatar: null
+        });
+      }
+    } catch (error) {
+      console.error(`Error fetching user ${userId}:`, error);
+      // Return username as fallback
+      return res.json({
+        id: null,
+        username: userId,
+        discriminator: "0000", 
+        tag: userId,
+        avatar: null
+      });
+    }
   });
 
   // Cache statistics endpoint (for monitoring)
@@ -88,9 +126,9 @@ module.exports = (client) => {
     );
 
     try {
-      const stats = await fs.stat(imagePath);
+      const stats = await fsPromises.stat(imagePath);
       if (stats.isDirectory()) {
-        const files = await fs.readdir(imagePath);
+        const files = await fsPromises.readdir(imagePath);
         const imageFiles = files.filter((file) => 
           file.endsWith(".png") || file.endsWith(".webp")
         );
@@ -122,55 +160,9 @@ module.exports = (client) => {
 
   app.get("/:identifier", async (req, res) => {
     const { identifier } = req.params;
-    if (/^\d+$/.test(identifier)) {
-      try {
-        const user = await client.users.fetch(identifier);
-        const htmlFilePath = path.join(
-          __dirname,
-          "..",
-          "..",
-          "web",
-          "webavatar.html"
-        );
-        let htmlContent = fs.readFileSync(htmlFilePath, "utf8");
-
-        const username = user.username;
-        const capitalizedUsername =
-          username.charAt(0).toUpperCase() + username.slice(1);
-
-        htmlContent = htmlContent.replace(/{user.tag}/g, capitalizedUsername);
-        htmlContent = htmlContent.replace(
-          /<meta name="og:title" content=".*" \/>/,
-          `<meta name="og:title" content="${capitalizedUsername}'s Pride Avatars" />`
-        );
-        htmlContent = htmlContent.replace(
-          /<meta name="og:description" content=".*" \/>/,
-          `<meta name="og:description" content="Pridebot Pride Avatars for ${capitalizedUsername}" />`
-        );
-        htmlContent = htmlContent.replace(
-          /<meta name="description" content=".*" \/>/,
-          `<meta name="description" content="Pridebot Pride Avatars for ${capitalizedUsername}" />`
-        );
-        htmlContent = htmlContent.replace(
-          /<title>.*<\/title>/,
-          `<title>${capitalizedUsername}'s Pride Avatars | Pridebot</title>`
-        );
-
-        return res.send(htmlContent);
-      } catch (error) {
-      }
-    }
-
-    const folderIdentifier = identifier.toLowerCase();
-    const imagePath = path.join(
-      __dirname,
-      "..",
-      "..",
-      "src",
-      "pfps",
-      folderIdentifier
-    );
-    if (fs.existsSync(imagePath)) {
+    
+    // Function to serve HTML with user information
+    function serveHtmlWithUserInfo(username) {
       const htmlFilePath = path.join(
         __dirname,
         "..",
@@ -180,8 +172,7 @@ module.exports = (client) => {
       );
       let htmlContent = fs.readFileSync(htmlFilePath, "utf8");
 
-      const capitalizedUsername =
-        folderIdentifier.charAt(0).toUpperCase() + folderIdentifier.slice(1);
+      const capitalizedUsername = username.charAt(0).toUpperCase() + username.slice(1);
 
       htmlContent = htmlContent.replace(/{user.tag}/g, capitalizedUsername);
       htmlContent = htmlContent.replace(
@@ -203,10 +194,41 @@ module.exports = (client) => {
 
       return res.send(htmlContent);
     }
+    
+    // If it looks like a user ID, try to fetch from Discord
+    if (/^\d+$/.test(identifier)) {
+      try {
+        const user = await client.users.fetch(identifier);
+        return serveHtmlWithUserInfo(user.username);
+      } catch (error) {
+        console.error(`Failed to fetch Discord user ${identifier}:`, error.message);
+        // Fall through to check for folder existence
+      }
+    }
 
-    return res
-      .status(404)
-      .sendFile(path.join(__dirname, "..", "..", "web", "404.html"));
+    // Check if folder exists for this identifier
+    const folderIdentifier = identifier.toLowerCase();
+    const imagePath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "src",
+      "pfps",
+      folderIdentifier
+    );
+    
+    if (fs.existsSync(imagePath)) {
+      return serveHtmlWithUserInfo(folderIdentifier);
+    }
+    
+    // If we reach here, neither Discord user lookup nor folder exists
+    console.log(`No user or folder found for identifier: ${identifier}`);
+    console.log(`Checked Discord API: ${/^\d+$/.test(identifier) ? 'Yes (failed)' : 'No (not numeric)'}`);
+    console.log(`Checked folder path: ${imagePath} - exists: ${fs.existsSync(imagePath)}`);
+    
+    // Serve HTML anyway with the identifier as fallback username
+    // This prevents infinite loading and shows debug info
+    return serveHtmlWithUserInfo(identifier);
   });
 
   // Enhanced image serving with username/userID support and format negotiation
@@ -231,7 +253,7 @@ module.exports = (client) => {
       );
       
       try {
-        stats = await fs.stat(testPath);
+        stats = await fsPromises.stat(testPath);
         imagePath = testPath;
         break; // Found the file, stop searching
       } catch (error) {
@@ -281,7 +303,7 @@ module.exports = (client) => {
           possibleId, `${flag}.png`
         );
         
-        if (fsSync.existsSync(pngPath)) {
+        if (fs.existsSync(pngPath)) {
           res.set({
             'Cache-Control': 'public, max-age=86400',
             'Content-Type': 'image/png'
