@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <link
       rel="preload"
-      href="https://cdn.discordapp.com/attachments/1101742240944107601/1219500201765507102/pridebotlogo.webp?ex=660b8711&is=65f91211&hm=e9df14c42a2b0852490db1dcce4af100eeb9253d8a72825d85d6deb9b498086b&"
+      href="https://cdn.discordapp.com/attachments/1101742240944107601/1219500201765507102/pridebotlogo.webp"
       as="image"
       fetchpriority="high"
     />
@@ -19,7 +19,7 @@
     <meta name="og:title" content="user's Pride Avatars" />
     <meta
       name="og:image"
-      content="https://cdn.discordapp.com/attachments/1101742240944107601/1219500201765507102/pridebotlogo.webp?ex=660b8711&is=65f91211&hm=e9df14c42a2b0852490db1dcce4af100eeb9253d8a72825d85d6deb9b498086b&"
+      content="https://cdn.discordapp.com/attachments/1101742240944107601/1219500201765507102/pridebotlogo.webp"
     />
     <meta property="og:site_name" content="Pridebot" />
     <meta name="theme-color" content="#FF00ea" />
@@ -32,121 +32,116 @@
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css" />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css?family=Alfa+Slab+One"
+      href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Inter:wght@300;400;500;600;700&display=swap"
     />
-    <link rel="stylesheet" href="assets/fonts/font-awesome.min.css" />
-    <link rel="stylesheet" href="assets/fonts/ionicons.min.css" />
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
     <link rel="stylesheet" href="assets/css/webavatar.css" />
   </head>
-  <body style="background-color: var(--background)">
-    <div id="top" style="height: 12px">
-      <nav
-        class="navbar navbar-light navbar-expand fixed-top"
-        style="
-          color: var(--main-color);
-          border-top-width: 6px;
-          border-top-style: solid;
-          background: var(--background);
-        "
-      >
-        <div class="container-fluid">
-          <a
-            class="navbar-brand"
-            href="https://pridebot.xyz"
-            style="
-              color: var(--main-color);
-              font-family: 'Alfa Slab One', cursive;
-            "
-          >
-            Pridebot </a
-          ><button
-            data-toggle="collapse"
-            class="navbar-toggler"
-            data-target="#navcol-1"
-          >
-            <span class="sr-only">Toggle navigation</span
-            ><span class="navbar-toggler-icon"></span>
-          </button>
+  <body>
+    <!-- Modern Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top" id="top">
+      <div class="container">
+        <a class="navbar-brand" href="https://pridebot.xyz">
+          <img
+            src="https://cdn.discordapp.com/emojis/1108228682184654908.png?size=128"
+            width="32"
+            height="32"
+            alt="Pridebot"
+          />
+          Pridebot
+        </a>
+        <div class="navbar-nav ms-auto">
+          <a class="nav-link" href="https://pridebot.xyz">Home</a>
+          <a class="nav-link" href="/">Search</a>
+          <a class="nav-link" href="https://pridebot.xyz/commands">Commands</a>
+          <a class="nav-link" href="https://discord.gg/guybqSTzdS">Support</a>
         </div>
-      </nav>
-    </div>
-    <header
-      class="d-xl-flex flex-column justify-content-xl-center align-items-xl-center"
-      style="height: 418px; text-align: center; margin: 55px"
-    >
-      <img
-        class="rounded"
-        src="https://cdn.discordapp.com/emojis/1108228682184654908.png?size=1024"
-        width="200"
-        height="200"
-        style="margin-top: 15px"
-      />
-      <h1
-        class="d-xl-flex justify-content-xl-start"
-        style="color: var(--text-color)"
-      >
-        <span class="user-tag">User's</span>&nbsp;Pride Avatars
-      </h1>
-      <p style="color: var(--secondary-text-color)">
-        List of all of the pride avatars for <span class="user-tag">user</span>.
-        You can save each avatar by just clicking on the download button below
-        each avatar.
-      </p>
-    </header>
-    <div id="feature" style="height: 90px; background: var(--secondary)">
-      <div>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
-          <path
-            fill="var(--background)"
-            fill-opacity="1"
-            d="M0,96L40,112C80,128,160,160,240,144C320,128,400,64,480,48C560,32,640,64,720,69.3C800,75,880,53,960,58.7C1040,64,1120,96,1200,96C1280,96,1360,64,1400,48L1440,32L1440,0L1400,0C1360,0,1280,0,1200,0C1120,0,1040,0,960,0C880,0,800,0,720,0C640,0,560,0,480,0C400,0,320,0,240,0C160,0,80,0,40,0L0,0Z"
-          ></path>
-        </svg>
       </div>
-    </div>
-    <div class="features-boxed" style="background: var(--secondary)">
-      <div class="container" style="color: var(--main-color)">
-        <div class="intro">
-          <div id="partners">
-            <h2
-              id="avatar-title"
-              class="text-center"
-              style="
-                color: var(--text-color);
-                margin-top: 20px;
-                margin-bottom: 20px;
-              "
-            >
-              Pride Avatars
-            </h2>
+    </nav>
+    <!-- Hero Section -->
+    <section
+      class="hero-section"
+      style="min-height: 60vh; padding: 120px 0 60px"
+    >
+      <div class="container">
+        <div class="hero-content">
+          <div class="hero-logo">
+            <img
+              src="https://cdn.discordapp.com/emojis/1108228682184654908.png?size=1024"
+              alt="User Avatar"
+              class="logo-image"
+              style="width: 120px; height: 120px"
+            />
+          </div>
+          <h1 class="hero-title" style="font-size: 2.5rem">
+            <span class="user-tag">User's</span> Pride Avatars
+          </h1>
+          <p class="hero-subtitle">
+            Explore the pride avatar collection for
+            <strong><span class="user-tag">user</span></strong
+            >. Click to view full size or download any avatar you like.
+          </p>
+
+          <!-- Format Selector -->
+          <div class="format-selector">
+            <button class="format-btn active" data-format="all">
+              <i class="fas fa-images"></i> All Formats
+            </button>
+            <button class="format-btn" data-format="png">
+              <i class="fas fa-file-image"></i> PNG Only
+            </button>
+            <button class="format-btn" data-format="webp">
+              <i class="fas fa-compress-alt"></i> WebP Only
+            </button>
           </div>
         </div>
-        <div class="row justify-content-center features">
+      </div>
+    </section>
+    <!-- Avatar Gallery -->
+    <div class="features-boxed">
+      <div class="container">
+        <div class="intro">
+          <h2 id="avatar-title" class="section-title">Pride Avatars</h2>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-container" class="text-center" style="display: block">
+          <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <h3>Loading Avatars...</h3>
+            <p>Please wait while we fetch the avatar collection</p>
+          </div>
+        </div>
+
+        <!-- Avatar Grid -->
+        <div
+          class="row justify-content-center features"
+          id="avatar-grid"
+          style="display: none"
+        >
           <!-- The JavaScript will dynamically populate this section -->
         </div>
-      </div>
-    </div>
 
-    <div style="background-color: var(--secondary)">
-      <div style="height: 150px; overflow: hidden">
-        <svg
-          viewBox="0 0 500 150"
-          preserveAspectRatio="none"
-          style="height: 100%; width: 100%"
+        <!-- Empty State -->
+        <div id="empty-state" class="empty-state" style="display: none">
+          <h3>No Avatars Found</h3>
+          <p>This user hasn't generated any pride avatars yet.</p>
+          <a href="https://pridebot.xyz/commands" class="btn">
+            <i class="fas fa-plus"></i> Learn How to Create Avatars
+          </a>
+        </div>
+
+        <!-- Pagination -->
+        <div
+          class="pagination-container"
+          id="pagination-container"
+          style="display: none"
         >
-          <path
-            d="M-41.53,-9.56 C167.83,173.98 302.14,-60.89 534.09,89.10 L500.00,0.00 L0.00,0.00 Z"
-            style="
-              stroke: none;
-              fill: var(--background);
-              transform: rotate(180deg) translate(-500px, -150px);
-            "
-          ></path>
-        </svg>
+          <!-- Pagination will be inserted here by JavaScript -->
+        </div>
       </div>
     </div>
     <div class="footer-dark">

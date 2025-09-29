@@ -8,82 +8,99 @@
       as="image"
       fetchpriority="high"
     />
-    <title>Pridebot Avatar Search</title>
+    <title>Pride Avatar Search | Pridebot</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
     />
     <meta
       name="description"
-      content="Search for Pridebot avatars by entering a username or user ID."
+      content="Search and discover beautiful pride avatars created with Pridebot. Enter a username or user ID to explore their pride avatar collection."
     />
     <meta name="theme-color" content="#FF00ea" />
+    <meta name="og:title" content="Pride Avatar Search | Pridebot" />
+    <meta
+      name="og:description"
+      content="Search and discover beautiful pride avatars created with Pridebot."
+    />
+    <meta
+      name="og:image"
+      content="https://cdn.discordapp.com/attachments/1101742240944107601/1219500201765507102/pridebotlogo.webp"
+    />
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css" />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css?family=Alfa+Slab+One"
+      href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Inter:wght@300;400;500;600;700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
     <link rel="stylesheet" href="assets/css/webavatar.css" />
     <script src="assets/js/search.js" defer></script>
   </head>
-  <body style="background-color: var(--background)">
-    <nav
-      class="navbar navbar-light navbar-expand fixed-top"
-      style="background: var(--background)"
-    >
-      <div class="container-fluid">
-        <a
-          class="navbar-brand"
-          href="https://pridebot.xyz"
-          style="
-            color: var(--main-color);
-            font-family: 'Alfa Slab One', cursive;
-          "
-          >Pridebot</a
-        >
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+      <div class="container">
+        <a class="navbar-brand" href="https://pridebot.xyz">
+          <img
+            src="https://cdn.discordapp.com/emojis/1108228682184654908.png?size=128"
+            width="32"
+            height="32"
+            alt="Pridebot"
+          />
+          Pridebot
+        </a>
+        <div class="navbar-nav ms-auto">
+          <a class="nav-link" href="https://pridebot.xyz">Home</a>
+          <a class="nav-link" href="https://discord.gg/guybqSTzdS">Support</a>
+        </div>
       </div>
     </nav>
 
-    <header class="text-center" style="margin-top: 80px">
-      <img
-        src="https://cdn.discordapp.com/emojis/1108228682184654908.png?size=1024"
-        width="200"
-        height="200"
-      />
-      <h1 style="font-size: 50px; color: var(--text-color)">
-        Search for Pride Avatars
-      </h1>
-      <p style="font-size: 20px; color: var(--secondary-text-color)">
-        Find Pridebot avatars by entering a **username or user ID**.
-      </p>
-    </header>
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="container">
+        <div class="hero-content">
+          <div class="hero-logo">
+            <img
+              src="https://cdn.discordapp.com/emojis/1108228682184654908.png?size=1024"
+              alt="Pridebot Logo"
+              class="logo-image"
+            />
+          </div>
+          <h1 class="hero-title">Find Your Pride AvatarsS</h1>
+          <p class="hero-subtitle">
+            Search for your pride avatars by entering a
+            <strong>username</strong> or <strong>user ID</strong>. Need to have
+            created one in the last 30 days to show up here.
+          </p>
 
-    <!-- Search Section -->
-    <section class="text-center" style="margin-top: 20px">
-      <form id="search-form" style="max-width: 500px; margin: auto">
-        <input
-          type="text"
-          id="search-input"
-          class="form-control"
-          placeholder="Enter Username or User ID"
-          style="text-align: center; margin-bottom: 10px"
-        />
-        <button
-          type="submit"
-          class="btn btn-primary"
-          style="
-            background-color: var(--main-color);
-            border-color: var(--main-color);
-          "
-        >
-          Search
-        </button>
-      </form>
-      <div
-        id="result"
-        class="text-center"
-        style="margin-top: 20px; color: var(--text-color)"
-      ></div>
+          <!-- Enhanced Search Form -->
+          <div class="search-container">
+            <form id="search-form" class="search-form">
+              <div class="search-input-container">
+                <i class="fas fa-search search-icon"></i>
+                <input
+                  type="text"
+                  id="search-input"
+                  class="search-input"
+                  placeholder="Enter username or user ID..."
+                  autocomplete="off"
+                />
+                <button type="submit" class="search-button">
+                  <span class="button-text">Search</span>
+                  <i class="fas fa-arrow-right button-icon"></i>
+                </button>
+              </div>
+              <div class="search-suggestions" id="search-suggestions"></div>
+            </form>
+
+            <div id="search-result" class="search-result"></div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <div class="footer-dark">
@@ -91,12 +108,12 @@
       <div class="row">
         <div class="col text-center">
           <p class="copyright" style="color: var(--text-color)">
-            Pridebot © 2023-2024
+            Pridebot © 2023-2025
           </p>
           <p class="developed-by" style="color: var(--text-color)">
             Developed by
             <a
-              href="https://discordapp.com/users/691506668781174824"
+              href="https://sdriver1.dev"
               style="color: var(--main-color)"
               >Sdriver1</a
             >
