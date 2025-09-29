@@ -1,79 +1,51 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { validFlags } = require("./avatarProcessor");
 const commandLogging = require("../../config/logging/commandlog");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("avatar-list")
     .setDescription("List all available flags for the avatar command"),
-    
+
   async execute(interaction, client) {
-    const validFlags = [
-      "abrosexual",
-      "aceflux",
-      "agender",
-      "ally",
-      "androgyne",
-      "aroace",
-      "aroace2",
-      "aroflux",
-      "aromantic",
-      "asexual",
-      "aurorian",
-      "bigender",
-      "bisexual",
-      "boyflux",
-      "butch",
-      "butchlesbian",
-      "butchlesbian2",
-      "butchlesbian3",
-      "catgender",
-      "cupioromantic",
-      "demibisexual",
-      "demiboy",
-      "demigirl",
-      "deminonbinary",
-      "demiromantic",
-      "demisexual",
-      "gay",
-      "genderfae",
-      "genderfaun",
-      "genderfluid",
-      "genderflux",
-      "genderqueer",
-      "girlflux",
-      "graygender",
-      "grayromantic",
-      "graysexual",
-      "lesbian",
-      "lesboy",
-      "lgbt",
-      "lunarian",
-      "neptunic",
-      "nonbinary",
-      "omnisexual",
-      "pangender",
-      "pansexual",
-      "polyamorous",
-      "polysexual",
-      "queer",
-      "queerplatonic",
-      "queerplatonic2",
-      "sapphic",
-      "selenosexual",
-      "singularian",
-      "solarian",
-      "spacilian",
-      "stellarian",
-      "transfeminine",
-      "transgender",
-      "transmasculine",
-    ];
+    const flagsPerColumn = 20;
+    const columns = [];
+
+    // Split flags into columns for better readability
+    for (let i = 0; i < validFlags.length; i += flagsPerColumn) {
+      columns.push(validFlags.slice(i, i + flagsPerColumn));
+    }
 
     const embed = new EmbedBuilder()
-      .setTitle("Available Flags")
-      .setDescription(validFlags.join(", "))
+      .setTitle(`Available Pride Flags (${validFlags.length} total)`)
       .setColor("#FF00EA")
-      .setTimestamp();
+      .setTimestamp()
+      .setFooter({
+        text: "Use /prideavatar to create your avatar with any of these flags",
+      });
+
+    // Add each column as a field
+    columns.forEach((column, index) => {
+      embed.addFields({
+        name: `Flags ${index * flagsPerColumn + 1}-${Math.min(
+          (index + 1) * flagsPerColumn,
+          validFlags.length
+        )}`,
+        value: column.join(", "),
+        inline: true,
+      });
+    });
+
+    // Add usage examples
+    embed.addFields({
+      name: "💡 Usage Examples",
+      value: [
+        "`/prideavatar flag:lesbian` - Single flag",
+        "`/prideavatar flag:transgender flag2:lesbian` - Dual flags",
+        "`/prideavatar flag:gay user:@friend` - For another user",
+      ].join("\n"),
+      inline: false,
+    });
 
     await commandLogging(client, interaction);
     await interaction.reply({ embeds: [embed], ephemeral: true });
