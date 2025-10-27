@@ -1,4 +1,12 @@
-const { EmbedBuilder, SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require("discord.js");
+const {
+  EmbedBuilder,
+  SlashCommandBuilder,
+  ActionRowBuilder,
+  StringSelectMenuBuilder,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+} = require("discord.js");
 const commandLogging = require("../../config/logging/commandlog");
 const Feedback = require("../../../mongo/models/feedbackSchema");
 
@@ -58,13 +66,13 @@ module.exports = {
       .setTitle("Send Feedback")
       .setDescription(
         "Your feedback helps us make PrideBot better for everyone!\n\n" +
-        "**What can you share with us?**\n" +
-        "• General thoughts about the bot\n" +
-        "• Bug reports and issues\n" +
-        "• New feature suggestions\n" +
-        "• Improvements to existing commands\n" +
-        "• Anything else on your mind!\n\n" +
-        "**Please select a category below to get started:**"
+          "**What can you share with us?**\n" +
+          "• General thoughts about the bot\n" +
+          "• Bug reports and issues\n" +
+          "• New feature suggestions\n" +
+          "• Improvements to existing commands\n" +
+          "• Anything else on your mind!\n\n" +
+          "**Please select a category below to get started:**"
       )
       .setColor(0xff00ae)
       .setFooter({
@@ -77,15 +85,20 @@ module.exports = {
       ephemeral: !isPublic,
     });
 
-    const filter = (i) => i.customId === "feedback_category" && i.user.id === interaction.user.id;
+    const filter = (i) =>
+      i.customId === "feedback_category" && i.user.id === interaction.user.id;
     const collector = interaction.channel.createMessageComponentCollector({
       filter,
       time: 300000,
     });
 
+    if (!collector) {
+      return;
+    }
+
     collector.on("collect", async (selectInteraction) => {
       const category = selectInteraction.values[0];
-      
+
       const modal = new ModalBuilder()
         .setCustomId(`feedback_modal_${category}`)
         .setTitle(`${getCategoryEmoji(category)} ${getCategoryName(category)}`);
@@ -94,11 +107,15 @@ module.exports = {
         .setCustomId("feedback_text")
         .setLabel("Your Feedback")
         .setStyle(TextInputStyle.Paragraph)
-        .setPlaceholder("Share your thoughts, suggestions, or report issues here...")
+        .setPlaceholder(
+          "Share your thoughts, suggestions, or report issues here..."
+        )
         .setRequired(true)
         .setMaxLength(1000);
 
-      const firstActionRow = new ActionRowBuilder().addComponents(feedbackInput);
+      const firstActionRow = new ActionRowBuilder().addComponents(
+        feedbackInput
+      );
       modal.addComponents(firstActionRow);
 
       await selectInteraction.showModal(modal);
@@ -106,10 +123,12 @@ module.exports = {
 
     collector.on("end", (collected, reason) => {
       if (reason === "time" && collected.size === 0) {
-        interaction.editReply({
-          embeds: [embed],
-          components: [],
-        }).catch(() => {});
+        interaction
+          .editReply({
+            embeds: [embed],
+            components: [],
+          })
+          .catch(() => {});
       }
     });
 
@@ -136,9 +155,9 @@ const handleFeedbackModal = async (interaction) => {
     const UserCommandUsage = require("../../../mongo/models/userCommandUsageSchema");
     await UserCommandUsage.updateOne(
       { userId: interaction.user.id },
-      { 
+      {
         $set: { hasSentFeedback: true },
-        $setOnInsert: { userId: interaction.user.id }
+        $setOnInsert: { userId: interaction.user.id },
       },
       { upsert: true }
     );
@@ -147,17 +166,21 @@ const handleFeedbackModal = async (interaction) => {
       .setTitle("Feedback Received!")
       .setDescription(
         "Thank you for your feedback! Your input is valuable to us and helps make PrideBot better for everyone.\n\n" +
-        "**What happens next?**\n" +
-        "• Our team will review your feedback\n" +
-        "• We may reach out if we need clarification\n" +
-        "• Valuable feedback contributors may receive Discord Nitro as a thank you!\n\n" +
-        "Keep an eye on our support server for updates and announcements!"
+          "**What happens next?**\n" +
+          "• Our team will review your feedback\n" +
+          "• We may reach out if we need clarification\n" +
+          "• Valuable feedback contributors may receive Discord Nitro as a thank you!\n\n" +
+          "Keep an eye on our support server for updates and announcements!"
       )
       .setColor(0x00ff00)
       .addFields([
         {
           name: "Your Feedback",
-          value: `**Category:** ${getCategoryName(category)}\n**Feedback:** ${feedbackText.substring(0, 200)}${feedbackText.length > 200 ? "..." : ""}`,
+          value: `**Category:** ${getCategoryName(
+            category
+          )}\n**Feedback:** ${feedbackText.substring(0, 200)}${
+            feedbackText.length > 200 ? "..." : ""
+          }`,
           inline: false,
         },
       ])
@@ -170,14 +193,19 @@ const handleFeedbackModal = async (interaction) => {
       ephemeral: true,
     });
 
-    await sendFeedbackNotification(interaction.client, feedback, interaction.user);
-
+    await sendFeedbackNotification(
+      interaction.client,
+      feedback,
+      interaction.user
+    );
   } catch (error) {
     console.error("Error saving feedback:", error);
-    
+
     const errorEmbed = new EmbedBuilder()
       .setTitle("❌ Error")
-      .setDescription("Sorry, there was an error saving your feedback. Please try again later.")
+      .setDescription(
+        "Sorry, there was an error saving your feedback. Please try again later."
+      )
       .setColor(0xff0000);
 
     await interaction.reply({
@@ -212,10 +240,14 @@ function getCategoryName(category) {
 async function sendFeedbackNotification(client, feedback, user) {
   try {
     const { sendLog } = require("../../config/logging/sendlogs");
-    
+
     const notificationEmbed = new EmbedBuilder()
       .setTitle("📝 New Feedback Received")
-      .setDescription(`**From:** ${user.username} (${user.id})\n**Category:** ${getCategoryName(feedback.category)}`)
+      .setDescription(
+        `**From:** ${user.username} (${
+          user.id
+        })\n**Category:** ${getCategoryName(feedback.category)}`
+      )
       .addFields([
         {
           name: "Feedback",
@@ -224,7 +256,9 @@ async function sendFeedbackNotification(client, feedback, user) {
         },
         {
           name: "Server Info",
-          value: feedback.guildId ? `${feedback.guildName} (${feedback.guildId})` : "Direct Message",
+          value: feedback.guildId
+            ? `${feedback.guildName} (${feedback.guildId})`
+            : "Direct Message",
           inline: true,
         },
         {

@@ -89,7 +89,7 @@ async function checkAndShowFeedbackPrompt(interaction, userId) {
       const feedbackPromptEmbed = new EmbedBuilder()
         .setTitle("Help Improve PrideBot!")
         .setDescription(
-          "Hey there! We noticed you've been using PrideBot quite a bit and we'd love to hear your thoughts!**\n"
+          "Hey there! We noticed you've been using PrideBot quite a bit and we'd love to hear your thoughts!\n\n Use the `/feedback` command to share your suggestions, report bugs, or just let us know what you think."
         )
         .setColor(0xff00ae)
         .setFooter({
