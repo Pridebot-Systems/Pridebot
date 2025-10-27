@@ -13,7 +13,7 @@
 
 ## Introduction
 
-Pridebot, developed by [Sdriver1](https://sdriver1.me), is a multi function LGBTQIA+ themed discord application set to make information and acceptance accessible to more users. Currently the bot is apart of 8.3k+ server reaching to 690k+ users. The bot been used over 1.1M+ times with features ranging from profile system where users can in organize way express there identities, avatar editors to rep your flag, educational for identities and supportive resources for mental health or coming out, and finally fun little minigames to mess with your friends.
+Pridebot, developed by [Sdriver1](https://sdriver1.me), is a multi function LGBTQIA+ themed discord application set to make information and acceptance accessible to more users. Currently the bot is apart of 9.4k+ server reaching to 746k+ users. The bot been used over 1.3M+ times with features ranging from profile system where users can in organize way express there identities, avatar editors to rep your flag, educational for identities and supportive resources for mental health or coming out, and finally fun little minigames to mess with your friends.
 
 ## Features
 
@@ -42,7 +42,7 @@ Here is a list of the commands you can use with Pridebot:
   - **Genders** - `/genderfluid`, `/nonbinary`, and `/trans`
   - **Months** - `/pridemonth`
 - **Profiles** - `profile setup`, `profile view`,`profile edit`, and `profile update`
-- **Support** - `/comingout`, `/mentalhealth`, and `/transresources`
+- **Support** - `/comingout`, `/feedback`, `/mentalhealth`, and `/transresources`
 - **Terms** - `/gender`, `/other`, `/pronouns`, and `/sexuality`
 - **Tools** - `/donate`, `/help,`, `/partner`, `/stats`, and `/vote`
 
@@ -52,6 +52,7 @@ Here is a list of the commands you can use with Pridebot:
 
 Contributions to Pridebot are welcome! If you're interested in contributing, please:
 
+- **Use Feedback command**: Fastest way to contribute or alert devs, use new `/feedback` command!
 - **Bugs / Features**: Join the Support Server below to report any bugs or suggest any features!
 - **Pull Request**: I go through pull request alot so if you want to code anything into the bot, you are free too!
 - **Voting**: Vote for Pridebot on [Botlist.me](https://botlist.me/bots/1101256478632972369/vote) and [Top.gg](https://top.gg/bot/1101256478632972369/vote)
