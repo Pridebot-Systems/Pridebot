@@ -96,8 +96,8 @@ module.exports = {
       const up = `\n**Uptime:** \`${formatUptime(
         process.uptime()
       )}\` \n**Start Time:** ${startTimeTimestamp}`;
-      const botstats = `**Servers:** \`${currentGuildCount.toLocaleString()}\` \n**Users:** \`${totalUserCount.toLocaleString()}\`\n**User Installs:** \`${approximateUserInstallCount}\``;
-      const commandstats = `**Commands:** \`${CommandsCount}\` \n**Total Usage:** \`${totalUsage}\` \n**Profiles:** \`${profileAmount}\``;
+      const botstats = `**Servers:** \`${currentGuildCount.toLocaleString()}\` \n**Users:** \`${totalUserCount.toLocaleString()}\`\n**User Installs:** \`${approximateUserInstallCount.toLocaleString()}\``;
+      const commandstats = `**Commands:** \`${CommandsCount}\` \n**Total Usage:** \`${totalUsage.toLocaleString()}\` \n**Profiles:** \`${profileAmount.toLocaleString()}\``;
       const botversion = `**Dev:** \`${commitHundreds}.${commitTens}.${commitOnes}\` \n **Node.js:** \`${process.version}\` \n **Discord.js:** \`v14.19.2\``;
       const clientstats = `**CPU:** \`${cpuUsage}\` \n**Memory:** \`${memoryUsage}\``;
       const shardstats = `**Shards:** \`${
