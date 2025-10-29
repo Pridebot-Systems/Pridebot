@@ -85,14 +85,24 @@ module.exports = {
       ephemeral: !isPublic,
     });
 
+    let collector;
     const filter = (i) =>
       i.customId === "feedback_category" && i.user.id === interaction.user.id;
-    const collector = interaction.channel.createMessageComponentCollector({
-      filter,
-      time: 300000,
-    });
-
-    if (!collector) {
+    try {
+      if (interaction.channel) {
+        collector = interaction.channel.createMessageComponentCollector({
+          filter,
+          time: 300000,
+        });
+      } else {
+        const message = await interaction.fetchReply();
+        collector = message.createMessageComponentCollector({
+          filter,
+          time: 300000,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to create component collector:", err);
       return;
     }
 
