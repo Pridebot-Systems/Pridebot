@@ -19,27 +19,32 @@ const {
   getApproximateUserInstallCount,
 } = require("../config/botfunctions/user_install.js");
 
-// === NEW: STATS CACHE ===
 const statsCache = {
   lastUpdated: null,
   data: null,
 };
 
-// === VOTE EMBED HELPER FUNCTION ===
 async function sendVoteEmbed(client, embed, platform, userId, res) {
   try {
     console.log(`[${platform}] Processing vote embed for user ${userId}`);
-    
-    // Check if cluster client is available
+
     if (!client.cluster || !client.cluster.ready) {
-      console.warn(`[${platform}] Cluster client not ready, attempting direct send...`);
-      const channel = await client.channels.fetch("1224815141921624186").catch(() => null);
+      console.warn(
+        `[${platform}] Cluster client not ready, attempting direct send...`
+      );
+      const channel = await client.channels
+        .fetch("1224815141921624186")
+        .catch(() => null);
       if (channel && channel.type === ChannelType.GuildText) {
         await channel.send({ embeds: [embed] });
         console.log(`[${platform}] Embed sent directly (no clustering)`);
       } else {
-        console.error(`[${platform}] Failed to send embed: channel not accessible`);
-        return res.status(400).send("Channel not found or is not a text channel");
+        console.error(
+          `[${platform}] Failed to send embed: channel not accessible`
+        );
+        return res
+          .status(400)
+          .send("Channel not found or is not a text channel");
       }
       res.status(200).send("Success!");
       return;
@@ -73,13 +78,17 @@ async function sendVoteEmbed(client, embed, platform, userId, res) {
     } else {
       console.log(`[${platform}] Embed sent successfully by cluster:`, success);
     }
-    
+
     res.status(200).send("Success!");
   } catch (error) {
-    if (error.code === 'ERR_IPC_CHANNEL_CLOSED') {
-      console.warn(`[${platform}] IPC channel closed, attempting direct send...`);
+    if (error.code === "ERR_IPC_CHANNEL_CLOSED") {
+      console.warn(
+        `[${platform}] IPC channel closed, attempting direct send...`
+      );
       try {
-        const channel = await client.channels.fetch("1224815141921624186").catch(() => null);
+        const channel = await client.channels
+          .fetch("1224815141921624186")
+          .catch(() => null);
         if (channel && channel.type === ChannelType.GuildText) {
           await channel.send({ embeds: [embed] });
           console.log(`[${platform}] Embed sent directly after IPC failure`);
@@ -88,7 +97,10 @@ async function sendVoteEmbed(client, embed, platform, userId, res) {
           res.status(500).send("Internal Server Error");
         }
       } catch (directError) {
-        console.error(`[${platform}] Direct send also failed:`, directError.message);
+        console.error(
+          `[${platform}] Direct send also failed:`,
+          directError.message
+        );
         res.status(500).send("Internal Server Error");
       }
     } else {
@@ -154,18 +166,17 @@ async function updateStatsCache(client) {
   }
 }
 
-// ==========================
-
 module.exports = (client) => {
   const clusterId = getInfo().CLUSTER;
   console.log(`Bot API initialization started by Cluster ${clusterId}.`);
-  
-  // Only allow cluster 0 to run the API server
+
   if (clusterId !== 0) {
-    console.log(`Cluster ${clusterId} skipping API initialization - only cluster 0 should run APIs.`);
+    console.log(
+      `Cluster ${clusterId} skipping API initialization - only cluster 0 should run APIs.`
+    );
     return;
   }
-  
+
   const app = express();
   const port = 2610;
 
@@ -339,47 +350,12 @@ module.exports = (client) => {
     }
   );
 
-  app.post("/wumpus-votes", async (req, res) => {
-    let wumpususer = req.body.userId;
-    let wumpusbot = req.body.botId;
-    console.log(`[Wumpus] Vote received for user ${wumpususer}, bot ${wumpusbot}`);
-    const voteCooldownHours = 12;
-    const voteCooldownSeconds = voteCooldownHours * 3600;
-    const currentTimestamp = Math.floor(Date.now() / 1000);
-    const voteAvailableTimestamp = currentTimestamp + voteCooldownSeconds;
-
-    client.users
-      .fetch(wumpususer)
-      .then(async (user) => {
-        const userAvatarURL = user.displayAvatarURL();
-
-        await updateVotingStats(wumpususer, "Wumpus");
-
-        const voting = await Voting.findOne();
-        const userVoting = voting.votingUsers.find(
-          (u) => u.userId === wumpususer
-        );
-
-        const embed = new EmbedBuilder()
-          .setDescription(
-            `**Thank you <@${wumpususer}> for voting for <@${wumpusbot}> on [Wumpus.Store](https://wumpus.store/bot/${wumpusbot}/vote) <:_:1198663251580440697>** \nYou can vote again <t:${voteAvailableTimestamp}:R>.\n\n<@${wumpususer}> **Wumpus.Store Votes: ${userVoting.votingWumpus}** \n**Total Wumpus.Store Votes: ${voting.votingAmount.WumpusTotal}**`
-          )
-          .setColor("#FF00EA")
-          .setThumbnail(userAvatarURL)
-          .setTimestamp();
-
-        await sendVoteEmbed(client, embed, "Wumpus", wumpususer, res);
-      })
-      .catch((error) => {
-        console.error("Error fetching user from Discord:", error);
-        res.status(500).send("Internal Server Error");
-      });
-  });
-
   app.post("/topgg-votes", async (req, res) => {
     let topgguserid = req.body.user;
     let topggbotid = req.body.bot;
-    console.log(`[TopGG] Vote received for user ${topgguserid}, bot ${topggbotid}`);
+    console.log(
+      `[TopGG] Vote received for user ${topgguserid}, bot ${topggbotid}`
+    );
     const voteCooldownHours = 12;
     const voteCooldownSeconds = voteCooldownHours * 3600;
     const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -415,7 +391,7 @@ module.exports = (client) => {
 
   app.post("/botlist-votes", async (req, res) => {
     if (req.header("Authorization") != botlistauth) {
-      return res.status("401").end();
+      return res.status(401);
     }
 
     let botlistuser = req.body.user;
@@ -455,7 +431,7 @@ module.exports = (client) => {
 
   app.post("/discords-votes", async (req, res) => {
     if (req.header("Authorization") != discordsauth) {
-      return res.status("401").end();
+      return res.status(401);
     }
 
     let discordsuser = req.body.user;
@@ -499,7 +475,11 @@ module.exports = (client) => {
     async (request, response) => {
       const githubEvent = request.headers["x-github-event"];
       const data = request.body;
-      console.log(`[GitHub] Received ${githubEvent} webhook for ${data.repository?.name || 'unknown repo'}`);
+      console.log(
+        `[GitHub] Received ${githubEvent} webhook for ${
+          data.repository?.name || "unknown repo"
+        }`
+      );
       let embed = new EmbedBuilder();
 
       const repoName = data.repository?.name;
@@ -574,16 +554,22 @@ module.exports = (client) => {
 
       try {
         console.log(`[GitHub] Processing ${githubEvent} event for ${repoName}`);
-        
+
         // Check if cluster client is available
         if (!client.cluster || !client.cluster.ready) {
-          console.warn("[GitHub] Cluster client not ready, attempting direct send...");
-          const channel = await client.channels.fetch("1101742377372237906").catch(() => null);
+          console.warn(
+            "[GitHub] Cluster client not ready, attempting direct send..."
+          );
+          const channel = await client.channels
+            .fetch("1101742377372237906")
+            .catch(() => null);
           if (channel && channel.isTextBased()) {
             await channel.send({ embeds: [embed] });
             console.log("[GitHub] Embed sent directly (no clustering)");
           } else {
-            console.error("[GitHub] Failed to send embed: channel not accessible");
+            console.error(
+              "[GitHub] Failed to send embed: channel not accessible"
+            );
           }
           response.sendStatus(200);
           return;
@@ -617,16 +603,23 @@ module.exports = (client) => {
           console.log("[GitHub] Embed sent successfully by cluster:", success);
         }
       } catch (error) {
-        if (error.code === 'ERR_IPC_CHANNEL_CLOSED') {
-          console.warn("[GitHub] IPC channel closed, attempting direct send...");
+        if (error.code === "ERR_IPC_CHANNEL_CLOSED") {
+          console.warn(
+            "[GitHub] IPC channel closed, attempting direct send..."
+          );
           try {
-            const channel = await client.channels.fetch("1101742377372237906").catch(() => null);
+            const channel = await client.channels
+              .fetch("1101742377372237906")
+              .catch(() => null);
             if (channel && channel.isTextBased()) {
               await channel.send({ embeds: [embed] });
               console.log("[GitHub] Embed sent directly after IPC failure");
             }
           } catch (directError) {
-            console.error("[GitHub] Direct send also failed:", directError.message);
+            console.error(
+              "[GitHub] Direct send also failed:",
+              directError.message
+            );
           }
         } else {
           console.error("[GitHub] BroadcastEval failed:", error);
