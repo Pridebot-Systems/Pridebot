@@ -1,8 +1,6 @@
-// sendlogs.js
 const LOGGING_GUILD_ID = "1101740375342845952";
 
 function ipcOpen(client) {
-  // process.connected is false once the channel is closed
   return Boolean(
     process?.connected &&
       client?.cluster &&
@@ -11,7 +9,6 @@ function ipcOpen(client) {
 }
 
 async function sendLog(client, message, channelId) {
-  // If IPC is already closed, never try to talk to other clusters
   if (!ipcOpen(client)) {
     try {
       const printable =
@@ -28,7 +25,6 @@ async function sendLog(client, message, channelId) {
     return;
   }
 
-  // 1) Try local direct send first (safe if this cluster has the guild)
   try {
     const guild = client.guilds.cache.get(LOGGING_GUILD_ID);
     if (guild) {
@@ -57,7 +53,6 @@ async function sendLog(client, message, channelId) {
     );
   }
 
-  // 2) Fallback to broadcastEval, but fully wrapped
   try {
     const results = await client.cluster.broadcastEval(
       async (c, { message, channelId, guildId }) => {
@@ -87,16 +82,6 @@ async function sendLog(client, message, channelId) {
         },
       }
     );
-
-    const successCluster = results.find((r) => r !== null);
-    if (successCluster === undefined) {
-      console.error("[sendLog] No cluster was able to send the message.");
-    } else {
-      console.log(
-        "[sendLog] Message sent by cluster (fallback):",
-        successCluster
-      );
-    }
   } catch (err) {
     console.error(
       "[sendLog] broadcastEval failed (IPC likely closed):",

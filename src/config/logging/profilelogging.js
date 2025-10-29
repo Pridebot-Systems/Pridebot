@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require("discord.js");
-const {sendLog} = require("./sendlogs");
+const { sendLog } = require("./sendlogs");
 
 const profileLogging = async (
   client,
@@ -16,7 +16,6 @@ const profileLogging = async (
     .setTimestamp(now);
 
   if (actionType === "created") {
-    // Log initial values for all important fields
     embed.addFields(
       {
         name: "Preferred Name",
@@ -94,7 +93,6 @@ const profileLogging = async (
         inline: true,
       }
     );
-    // List any websites or avatars
     if (updatedProfile.customWebsites?.length) {
       embed.addFields({
         name: "Websites",
@@ -117,7 +115,6 @@ const profileLogging = async (
     return;
   }
 
-  // Edited branch: compare fields
   const diffs = [];
   const checkField = (key, displayName) => {
     const oldVal = originalProfile[key] ?? null;
@@ -138,7 +135,6 @@ const profileLogging = async (
     }
   };
 
-  // Basic scalar fields
   checkField("preferredName", "Preferred Name");
   checkField("age", "Age");
   checkField("bio", "Bio");
@@ -156,7 +152,6 @@ const profileLogging = async (
   checkField("premiumSince", "Premium Since");
   checkField("premiumVisible", "Premium Visible");
 
-  // Website additions/removals
   const oldSites = originalProfile.customWebsites || [];
   const newSites = updatedProfile.customWebsites || [];
   const addedSites = newSites.filter(
@@ -176,7 +171,6 @@ const profileLogging = async (
       value: removedSites.map((w) => `• **${w.label}**: ${w.url}`).join("\n"),
     });
 
-  // Avatar changes
   const oldAvs = originalProfile.customAvatars || [];
   const newAvs = updatedProfile.customAvatars || [];
   const addedAvs = newAvs.filter((a) => !oldAvs.some((o) => o.url === a.url));

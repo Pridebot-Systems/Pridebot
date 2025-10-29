@@ -1,7 +1,6 @@
 const { EmbedBuilder } = require("discord.js");
 const CommandUsage = require("../../../mongo/models/usageSchema");
 const { sendLog } = require("./sendlogs");
-const { v4: uuidv4 } = require("uuid");
 
 const commandLogging = async (client, interaction) => {
   console.log(
@@ -28,8 +27,6 @@ const commandLogging = async (client, interaction) => {
     location = "User Install Context (External Server)";
   }
 
-  const uuid = uuidv4();
-
   const logEmbed = new EmbedBuilder()
     .setTitle("Command Used")
     .setDescription(
@@ -41,11 +38,9 @@ const commandLogging = async (client, interaction) => {
       }> (${interaction.user.id})\n**Time:** ${estDate} (EST)`
     )
     .setColor(0xff00ea)
-    .addFields({ name: "Debug UUID", value: uuid })
-    .setFooter({ text: `User: ${interaction.user.id} | UUID: ${uuid}` })
+    .setFooter({ text: `User: ${interaction.user.id}` })
     .setTimestamp();
 
-  console.log(`[COMMANDLOG] Logging embed with UUID: ${uuid}`);
   await sendLog(client, logEmbed, "1256810888694861914");
 };
 
