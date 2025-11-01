@@ -3,12 +3,6 @@ const CommandUsage = require("../../../mongo/models/usageSchema");
 const { sendLog } = require("./sendlogs");
 
 const commandLogging = async (client, interaction) => {
-  console.log(
-    "commandLogging called for",
-    interaction.commandName,
-    interaction.id
-  );
-
   const estDate = new Date().toLocaleString("en-US", {
     timeZone: "America/New_York",
   });
