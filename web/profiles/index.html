@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      rel="preload"
+      href="https://cdn.discordapp.com/attachments/1101742240944107601/1219500201765507102/pridebotlogo.webp"
+      as="image"
+      fetchpriority="high"
+    />
+    <title>Profile Search | Pridebot</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="Search and discover user profiles on Pridebot. Enter a user ID to view their profile."
+    />
+    <meta name="theme-color" content="#FF00ea" />
+    <meta name="og:title" content="Profile Search | Pridebot" />
+    <meta
+      name="og:description"
+      content="Search and discover user profiles on Pridebot."
+    />
+    <meta
+      name="og:image"
+      content="https://cdn.discordapp.com/attachments/1101742240944107601/1219500201765507102/pridebotlogo.webp"
+    />
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Inter:wght@300;400;500;600;700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../assets/css/webavatar.css" />
+    <link rel="stylesheet" href="../assets/css/profiles.css" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg fixed-top">
+      <div class="container">
+        <a class="navbar-brand" href="https://pridebot.xyz">
+          <img
+            src="https://cdn.discordapp.com/emojis/1108228682184654908.png?size=128"
+            width="28"
+            height="28"
+            alt="Pridebot"
+          />
+          Pridebot
+        </a>
+        <button
+          class="navbar-toggler"
+          id="nav-toggle"
+          aria-label="Toggle navigation"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div class="navbar-nav" id="nav-menu">
+          <a class="nav-link" href="https://pfp.pridebot.xyz">Avatars</a>
+          <a class="nav-link" href="https://pridebot.xyz/support">Support</a>
+        </div>
+      </div>
+    </nav>
+    <section class="hero-section">
+      <div class="container">
+        <div class="hero-content">
+          <div class="hero-logo">
+            <img
+              src="https://cdn.discordapp.com/emojis/1108228682184654908.png?size=1024"
+              alt="Pridebot Logo"
+              class="logo-image"
+            />
+          </div>
+          <h1 class="hero-title">Find User Profiles</h1>
+          <p class="hero-subtitle">
+            Enter a <strong>Discord User ID</strong> to view their Pridebot
+            profile. Users must have created a profile using the
+            <code>/profile setup</code> command.
+          </p>
+
+          <div class="search-container">
+            <form id="search-form" class="search-form">
+              <div class="search-input-container">
+                <i class="fas fa-search search-icon"></i>
+                <input
+                  type="text"
+                  id="search-input"
+                  class="search-input"
+                  placeholder="Enter Discord User ID..."
+                  autocomplete="off"
+                  pattern="[0-9]+"
+                  title="Please enter a valid Discord User ID (numbers only)"
+                />
+                <button type="submit" class="search-button">
+                  <span class="button-text">View Profile</span>
+                  <i class="fas fa-arrow-right button-icon"></i>
+                </button>
+              </div>
+            </form>
+
+            <div id="search-result" class="search-result"></div>
+          </div>
+          <div class="info-section">
+            <h3>
+              <i class="fas fa-question-circle"></i> How to find a Discord User
+              ID
+            </h3>
+            <ol>
+              <li>
+                Enable Developer Mode in Discord Settings → App Settings →
+                Advanced
+              </li>
+              <li>Right-click on a user's profile</li>
+              <li>Click "Copy User ID"</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-dark">
+      <div class="row"></div>
+      <div class="row">
+        <div class="col text-center">
+          <p class="copyright" style="color: var(--text-color)">
+            Pridebot © 2023-2025
+          </p>
+          <p class="developed-by" style="color: var(--text-color)">
+            Developed by
+            <a href="https://sdriver1.dev" style="color: var(--main-color)"
+              >Sdriver1</a
+            >
+          </p>
+        </div>
+      </div>
+      <div class="container">
+        <div class="footer-links" style="padding: 20px">
+          <a
+            href="https://github.com/Sdriver1/Pridebot"
+            class="footer-link-item"
+            style="
+              color: var(--text-color);
+              margin-right: 20px;
+              text-decoration: none;
+            "
+          >
+            <i
+              class="fa fa-github"
+              aria-hidden="true"
+              style="font-size: 24px; vertical-align: middle"
+            ></i>
+            <span style="vertical-align: middle">GitHub</span>
+          </a>
+          <a
+            href="https://discord.gg/guybqSTzdS"
+            class="footer-link-item"
+            style="
+              color: var(--text-color);
+              margin-right: 0px;
+              text-decoration: none;
+            "
+          >
+            <img
+              src="https://cdn.discordapp.com/emojis/1108417509624926228.png"
+              alt="Wumpus Store Icon"
+              style="width: 24px; height: auto; vertical-align: middle"
+            />
+            <span style="vertical-align: middle">Support Server</span>
+          </a>
+
+          <div class="link-divider"></div>
+          <a
+            href="https://discordlist.gg/bot/1101256478632972369/vote"
+            class="footer-link-item"
+            style="
+              color: var(--text-color);
+              margin-right: 20px;
+              text-decoration: none;
+            "
+          >
+            <img
+              src="https://discordlist.gg/img/brand/logo.svg"
+              alt="discordlist Icon"
+              style="width: 24px; height: auto; vertical-align: middle"
+            />
+            <span style="vertical-align: middle">DiscordList</span>
+          </a>
+          <a
+            href="https://top.gg/bot/1101256478632972369/vote"
+            class="footer-link-item"
+            style="
+              color: var (--text-color);
+              margin-right: 0px;
+              text-decoration: none;
+            "
+          >
+            <img
+              src="https://cdn.discordapp.com/emojis/1195866944482590731.png"
+              alt="Topgg Icon"
+              style="width: 24px; height: auto; vertical-align: middle"
+            />
+            <span style="vertical-align: middle">Top.gg</span>
+          </a>
+          <div class="link-divider"></div>
+          <a
+            href="https://x.com/pridebotdiscord?s=21&t=vvy-KvCpsjPgQFNN8_DkAQ"
+            class="footer-link-item"
+            style="
+              color: var (--text-color);
+              margin-right: 20px;
+              text-decoration: none;
+            "
+          >
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/5/53/X_logo_2023_original.svg"
+              alt="Twitter Icon"
+              style="width: 24px; height: auto; vertical-align: middle"
+            />
+            <span style="vertical-align: middle">𝕏/Twitter</span>
+          </a>
+          <a
+            href="https://www.tiktok.com/@pridebotdiscord?_t=8kSLVmDoEcp&_r=1"
+            class="footer-link-item"
+            style="
+              color: var (--text-color);
+              margin-right: 0px;
+              text-decoration: none;
+            "
+          >
+            <img
+              src="https://cdn.inspireuplift.com/uploads/images/seller_products/1690970852_a2-01.png"
+              alt="Tiktok Icon"
+              style="width: 24px; height: auto; vertical-align: middle"
+            />
+            <span style="vertical-align: middle">Tiktok</span>
+          </a>
+          <div class="link-divider"></div>
+          <a
+            href="https://pridebot.xyz/tos"
+            class="footer-link-item"
+            style="
+              color: var (--text-color);
+              margin-right: 20px;
+              text-decoration: none;
+            "
+          >
+            <span style="vertical-align: middle">TOS</span>
+          </a>
+          <a
+            href="https://pridebot.xyz/privacy"
+            class="footer-link-item"
+            style="
+              color: var (--text-color);
+              margin-right: 30px;
+              text-decoration: none;
+            "
+          >
+            <span style="vertical-align: middle">Privacy Policy</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("search-form")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const userId = document.getElementById("search-input").value.trim();
+          const resultDiv = document.getElementById("search-result");
+
+          if (!userId) {
+            resultDiv.className = "search-result error";
+            resultDiv.innerHTML =
+              '<i class="fas fa-exclamation-circle"></i> Please enter a User ID';
+            return;
+          }
+
+          if (!/^\d+$/.test(userId)) {
+            resultDiv.className = "search-result error";
+            resultDiv.innerHTML =
+              '<i class="fas fa-exclamation-circle"></i> User ID must contain only numbers';
+            return;
+          }
+
+          if (userId.length < 17 || userId.length > 20) {
+            resultDiv.className = "search-result error";
+            resultDiv.innerHTML =
+              '<i class="fas fa-exclamation-circle"></i> Invalid User ID length (should be 17-20 digits)';
+            return;
+          }
+
+          window.location.href = `/${userId}`;
+        });
+
+      document
+        .getElementById("nav-toggle")
+        .addEventListener("click", function () {
+          document.getElementById("nav-menu").classList.toggle("active");
+        });
+      document.querySelectorAll("#nav-menu .nav-link").forEach((link) => {
+        link.addEventListener("click", () => {
+          document.getElementById("nav-menu").classList.remove("active");
+        });
+      });
+    </script>
+
+    <style>
+      .info-section {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem 2rem;
+        margin-top: 3rem;
+        text-align: left;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .info-section h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .info-section h3 i {
+        color: var(--main-color);
+      }
+
+      .info-section ol {
+        color: var(--text-secondary);
+        padding-left: 1.5rem;
+        margin: 0;
+      }
+
+      .info-section li {
+        margin-bottom: 0.5rem;
+        line-height: 1.5;
+      }
+
+      .info-section li:last-child {
+        margin-bottom: 0;
+      }
+
+      code {
+        background: rgba(255, 112, 243, 0.1);
+        color: var(--main-color);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+    </style>
+  </body>
+</html>
