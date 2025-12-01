@@ -265,6 +265,12 @@ body {
   transition: var(--transition);
 }
 
+@media (max-width: 576px) {
+  .search-icon {
+    top: 25%;
+  }
+}
+
 .search-input-container:focus-within .search-icon {
   color: var(--main-color);
 }
