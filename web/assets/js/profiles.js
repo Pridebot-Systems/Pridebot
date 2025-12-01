@@ -35,6 +35,73 @@ const badgeImages = {
 
 const API_BASE_URL = "";
 
+const userCache = new Map();
+async function formatBioText(text) {
+  if (!text) return "";
+  
+  let formatted = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  
+  formatted = formatted.replace(
+    /(https?:\/\/[^\s<]+)/g,
+    '{{LINK:$1}}'
+  );
+  
+  const mentionRegex = /&lt;@(\d{17,19})&gt;/g;
+  const mentions = [...formatted.matchAll(mentionRegex)];
+  
+  const userPromises = mentions.map(async (match) => {
+    const userId = match[1];
+    if (userCache.has(userId)) {
+      return { userId, username: userCache.get(userId) };
+    }
+    try {
+      const response = await fetch(`${API_BASE_URL}/getUser/${userId}`);
+      if (response.ok) {
+        const userData = await response.json();
+        const username = userData.username || `User ${userId}`;
+        userCache.set(userId, username);
+        return { userId, username };
+      }
+    } catch (e) {
+      console.log(`Could not fetch user ${userId}:`, e);
+    }
+    return { userId, username: `User` };
+  });
+  
+  const users = await Promise.all(userPromises);
+  
+  users.forEach(({ userId, username }) => {
+    const mentionPattern = new RegExp(`&lt;@${userId}&gt;`, "g");
+    formatted = formatted.replace(
+      mentionPattern,
+      `<a href="https://discord.com/users/${userId}" target="_blank" rel="noopener noreferrer" class="user-mention">@${username}</a>`
+    );
+  });
+
+  formatted = formatted.replace(
+    /\|\|([^|]+)\|\|/g,
+    '<span class="spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>'
+  );
+  
+  formatted = formatted.replace(
+    /\*\*([^*]+)\*\*/g,
+    '<strong>$1</strong>'
+  );
+  
+  formatted = formatted.replace(
+    /\{\{LINK:(https?:\/\/[^\}]+)\}\}/g,
+    '<a href="$1" target="_blank" rel="noopener noreferrer" class="bio-link">$1</a>'
+  );
+  
+  formatted = formatted.replace(/\\n/g, "<br>");
+  formatted = formatted.replace(/\n/g, "<br>");
+  
+  return formatted;
+}
+
 document.addEventListener("DOMContentLoaded", async function () {
   const userId = window.location.pathname.split("/").pop();
   
@@ -94,7 +161,7 @@ async function loadProfile(userId) {
       updateThemeColor(profile.color);
     }
 
-    populateProfile(profile, discordUser, userId, userBadges);
+    await populateProfile(profile, discordUser, userId, userBadges);
     updatePageMeta(profile, discordUser);
 
     loadingContainer.style.display = "none";
@@ -108,7 +175,7 @@ async function loadProfile(userId) {
   }
 }
 
-function populateProfile(profile, discordUser, userId, userBadges) {
+async function populateProfile(profile, discordUser, userId, userBadges) {
   const avatarEl = document.getElementById("profile-avatar");
   
   const defaultAvatar = "https://cdn.discordapp.com/embed/avatars/0.png";
@@ -174,7 +241,8 @@ function populateProfile(profile, discordUser, userId, userBadges) {
   if (profile.bio) {
     const bioSection = document.getElementById("bio-section");
     const bioEl = document.getElementById("profile-bio");
-    bioEl.textContent = profile.bio.replace(/\\n/g, "\n");
+    const formattedBio = await formatBioText(profile.bio);
+    bioEl.innerHTML = formattedBio;
     bioSection.style.display = "block";
   }
   if (profile.age && profile.age !== 0) {

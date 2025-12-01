@@ -163,6 +163,62 @@
   line-height: 1.7;
   margin: 0;
   white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.profile-bio strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.profile-bio .bio-link {
+  color: var(--profile-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+  word-break: break-all;
+}
+
+.profile-bio .bio-link:hover {
+  color: var(--profile-accent);
+  text-decoration: underline;
+}
+
+.profile-bio .user-mention {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(88, 101, 242, 0.15);
+  color: #5865F2;
+  padding: 0 0.4rem;
+  border-radius: 4px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.profile-bio .user-mention:hover {
+  background: rgba(88, 101, 242, 0.3);
+  color: #7289da;
+}
+
+.profile-bio .spoiler {
+  background: var(--text-muted);
+  color: transparent;
+  border-radius: 4px;
+  padding: 0 0.3rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  user-select: none;
+}
+
+.profile-bio .spoiler:hover {
+  background: var(--text-secondary);
+}
+
+.profile-bio .spoiler.revealed {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  cursor: default;
 }
 
 .profile-details {
