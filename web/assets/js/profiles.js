@@ -39,12 +39,23 @@ const userCache = new Map();
 async function formatBioText(text) {
   if (!text) return "";
 
-  let formatted = text
+  let formatted = text.replace(
+    /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,
+    "{{MDLINK::$1||$2}}"
+  );
+
+  formatted = formatted
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
-  formatted = formatted.replace(/(https?:\/\/[^\s<]+)/g, "{{LINK:$1}}");
+  formatted = formatted.replace(/(https?:\/\/[^\s<]+)/g, (match, url) => {
+    const beforeMatch = formatted.substring(0, formatted.indexOf(match));
+    if (beforeMatch.endsWith("||")) {
+      return match;
+    }
+    return `{{LINK:${url}}}`;
+  });
 
   const mentionRegex = /&lt;@(\d{17,19})&gt;/g;
   const mentions = [...formatted.matchAll(mentionRegex)];
@@ -78,13 +89,40 @@ async function formatBioText(text) {
     );
   });
 
+  // Spoilers
   formatted = formatted.replace(
     /\|\|([^|]+)\|\|/g,
     '<span class="spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>'
   );
 
+  // Bold text
   formatted = formatted.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 
+  // Italic text
+  formatted = formatted.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+
+  // Code blocks (```code```)
+  formatted = formatted.replace(/```([^`]+)```/g, "<pre><code>$1</code></pre>");
+
+  // Inline code (`code`)
+  formatted = formatted.replace(
+    /`([^`]+)`/g,
+    '<code class="inline-code">$1</code>'
+  );
+
+  // Discord emotes <:name:id> or <a:name:id>
+  formatted = formatted.replace(
+    /&lt;a?:(\w+):(\d+)&gt;/g,
+    '<img src="https://cdn.discordapp.com/emojis/$2.png" alt=":$1:" class="discord-emoji" title=":$1:">'
+  );
+
+  // Convert markdown link placeholders to actual links
+  formatted = formatted.replace(
+    /\{\{MDLINK::([^\|]+)\|\|(https?:\/\/[^\}]+)\}\}/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer" class="bio-link">$1</a>'
+  );
+
+  // Auto-linked URLs
   formatted = formatted.replace(
     /\{\{LINK:(https?:\/\/[^\}]+)\}\}/g,
     '<a href="$1" target="_blank" rel="noopener noreferrer" class="bio-link">$1</a>'

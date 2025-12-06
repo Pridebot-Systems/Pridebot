@@ -47,13 +47,17 @@
 }
 
 .profile-header::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--profile-color), var(--profile-accent));
+  background: linear-gradient(
+    90deg,
+    var(--profile-color),
+    var(--profile-accent)
+  );
 }
 
 .profile-avatar-container {
@@ -106,7 +110,11 @@
   font-size: 2.5rem;
   font-weight: 700;
   margin: 0;
-  background: linear-gradient(135deg, var(--profile-color), var(--profile-accent));
+  background: linear-gradient(
+    135deg,
+    var(--profile-color),
+    var(--profile-accent)
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -188,7 +196,7 @@
   display: inline-flex;
   align-items: center;
   background: rgba(88, 101, 242, 0.15);
-  color: #5865F2;
+  color: #5865f2;
   padding: 0 0.4rem;
   border-radius: 4px;
   font-weight: 500;
@@ -219,6 +227,41 @@
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   cursor: default;
+}
+
+.profile-bio .inline-code {
+  background: rgba(255, 112, 243, 0.1);
+  color: var(--profile-color);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
+  font-size: 0.9em;
+}
+
+.profile-bio pre {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  overflow-x: auto;
+  margin: -0.5rem 0;
+}
+
+.profile-bio pre code {
+  color: #e8eaed;
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
+  font-size: 0.9em;
+  line-height: 1.5;
+  display: block;
+}
+
+.profile-bio .discord-emoji {
+  height: 1.375em;
+  width: 1.375em;
+  vertical-align: bottom;
+  display: inline-block;
+  margin-bottom: 10px;
+  margin: 0.05em 0em 0.05em;
 }
 
 .profile-details {
@@ -259,7 +302,11 @@
 }
 
 .detail-icon.premium-icon {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 140, 0, 0.2));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.2),
+    rgba(255, 140, 0, 0.2)
+  );
   color: #ffd700;
 }
 
