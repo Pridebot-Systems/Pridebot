@@ -13,6 +13,7 @@ const avatarSchema = new mongoose.Schema({
 const profileSchema = new mongoose.Schema(
   {
     userId: { type: String, required: true, unique: true },
+    username: { type: String, required: true },
     preferredName: { type: String },
     bio: { type: String },
     age: { type: Number },

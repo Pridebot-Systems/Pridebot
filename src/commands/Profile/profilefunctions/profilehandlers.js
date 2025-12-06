@@ -109,6 +109,11 @@ async function handleView(interaction, client) {
     return interaction.reply({ content: msg, ephemeral: true });
   }
 
+  if (profile.username !== targetUser.username) {
+    profile.username = targetUser.username;
+    await profile.save();
+  }
+
   const embedColor = profile.color || "#FF00EA";
   const idLists = await IDLists.findOne();
 
@@ -168,6 +173,14 @@ async function handleView(interaction, client) {
     .setTimestamp();
 
   const row = new ActionRowBuilder();
+
+  row.addComponents(
+    new ButtonBuilder()
+      .setLabel("Web Profile")
+      .setStyle(ButtonStyle.Link)
+      .setURL(`https://profile.pridebot.xyz/${userId}`)
+  );
+
   if (profile.pronounpage) {
     row.addComponents(
       new ButtonBuilder()
@@ -315,6 +328,7 @@ async function handleUpdate(interaction, client) {
   }
 
   const updates = collectUpdateFields(interaction);
+  updates.username = interaction.user.username;
   const originalProfile = await Profile.findOne({
     userId: interaction.user.id,
   });
@@ -568,6 +582,7 @@ function collectUpdateFields(interaction) {
 function collectSetupFields(interaction) {
   return {
     userId: interaction.user.id,
+    username: interaction.user.username,
     preferredName: interaction.options.getString("preferredname") || "",
     age: interaction.options.getInteger("age"),
     bio: interaction.options.getString("bio") || "",
