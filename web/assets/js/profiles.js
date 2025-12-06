@@ -40,8 +40,13 @@ async function formatBioText(text) {
   if (!text) return "";
 
   let formatted = text.replace(
+    /\|\|([^|]+)\|\|/g,
+    "{{SPOILER::$1}}"
+  );
+
+  formatted = formatted.replace(
     /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,
-    "{{MDLINK::$1||$2}}"
+    "{{MDLINK::$1::$2}}"
   );
 
   formatted = formatted
@@ -51,7 +56,7 @@ async function formatBioText(text) {
 
   formatted = formatted.replace(/(https?:\/\/[^\s<]+)/g, (match, url) => {
     const beforeMatch = formatted.substring(0, formatted.indexOf(match));
-    if (beforeMatch.endsWith("||")) {
+    if (beforeMatch.includes("{{MDLINK::") && beforeMatch.endsWith("::")) {
       return match;
     }
     return `{{LINK:${url}}}`;
@@ -89,12 +94,6 @@ async function formatBioText(text) {
     );
   });
 
-  // Spoilers
-  formatted = formatted.replace(
-    /\|\|([^|]+)\|\|/g,
-    '<span class="spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>'
-  );
-
   // Bold text
   formatted = formatted.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 
@@ -116,9 +115,15 @@ async function formatBioText(text) {
     '<img src="https://cdn.discordapp.com/emojis/$2.png" alt=":$1:" class="discord-emoji" title=":$1:">'
   );
 
+  // Convert spoiler placeholders
+  formatted = formatted.replace(
+    /\{\{SPOILER::([^\}]+)\}\}/g,
+    '<span class="spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>'
+  );
+
   // Convert markdown link placeholders to actual links
   formatted = formatted.replace(
-    /\{\{MDLINK::([^\|]+)\|\|(https?:\/\/[^\}]+)\}\}/g,
+    /\{\{MDLINK::([^:]+)::(https?:\/\/[^\}]+)\}\}/g,
     '<a href="$2" target="_blank" rel="noopener noreferrer" class="bio-link">$1</a>'
   );
 

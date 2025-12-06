@@ -231,7 +231,7 @@
 
 .profile-bio .inline-code {
   background: rgba(255, 112, 243, 0.1);
-  color: var(--profile-color);
+  color: #e8eaed;
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
   font-family: "Consolas", "Monaco", "Courier New", monospace;
@@ -244,7 +244,7 @@
   border-radius: 8px;
   padding: 0.5rem;
   overflow-x: auto;
-  margin: -0.5rem 0;
+  margin: 0.5rem 0 -20px;
 }
 
 .profile-bio pre code {
