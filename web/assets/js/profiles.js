@@ -38,20 +38,17 @@ const API_BASE_URL = "";
 const userCache = new Map();
 async function formatBioText(text) {
   if (!text) return "";
-  
+
   let formatted = text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
-  
-  formatted = formatted.replace(
-    /(https?:\/\/[^\s<]+)/g,
-    '{{LINK:$1}}'
-  );
-  
+
+  formatted = formatted.replace(/(https?:\/\/[^\s<]+)/g, "{{LINK:$1}}");
+
   const mentionRegex = /&lt;@(\d{17,19})&gt;/g;
   const mentions = [...formatted.matchAll(mentionRegex)];
-  
+
   const userPromises = mentions.map(async (match) => {
     const userId = match[1];
     if (userCache.has(userId)) {
@@ -70,9 +67,9 @@ async function formatBioText(text) {
     }
     return { userId, username: `User` };
   });
-  
+
   const users = await Promise.all(userPromises);
-  
+
   users.forEach(({ userId, username }) => {
     const mentionPattern = new RegExp(`&lt;@${userId}&gt;`, "g");
     formatted = formatted.replace(
@@ -85,43 +82,42 @@ async function formatBioText(text) {
     /\|\|([^|]+)\|\|/g,
     '<span class="spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>'
   );
-  
-  formatted = formatted.replace(
-    /\*\*([^*]+)\*\*/g,
-    '<strong>$1</strong>'
-  );
-  
+
+  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+
   formatted = formatted.replace(
     /\{\{LINK:(https?:\/\/[^\}]+)\}\}/g,
     '<a href="$1" target="_blank" rel="noopener noreferrer" class="bio-link">$1</a>'
   );
-  
+
   formatted = formatted.replace(/\\n/g, "<br>");
   formatted = formatted.replace(/\n/g, "<br>");
-  
+
   return formatted;
 }
 
 document.addEventListener("DOMContentLoaded", async function () {
-  const userId = window.location.pathname.split("/").pop();
-  
-  if (!userId || userId === "profiles" || userId === "") {
-    showError("No user ID provided. Please access via profile.pridebot.xyz/{userId}");
+  const searched = window.location.pathname.split("/").pop();
+
+  if (!searched || searched === "profiles" || searched === "") {
+    showError(
+      "No user ID or username provided. Please access via profile.pridebot.xyz/{userId or username}"
+    );
     return;
   }
 
-  console.log(`Loading profile for user: ${userId}`);
-  await loadProfile(userId);
+  console.log(`Loading profile for: ${searched}`);
+  await loadProfile(searched);
 });
 
-async function loadProfile(userId) {
+async function loadProfile(searchedValue) {
   const loadingContainer = document.getElementById("loading-container");
   const profileContent = document.getElementById("profile-content");
   const errorState = document.getElementById("error-state");
 
   try {
-    const response = await fetch(`${API_BASE_URL}/profile/${userId}`);
-    
+    const response = await fetch(`${API_BASE_URL}/profile/${searchedValue}`);
+
     if (!response.ok) {
       if (response.status === 404) {
         throw new Error("This user hasn't set up a profile yet.");
@@ -131,6 +127,7 @@ async function loadProfile(userId) {
 
     const profile = await response.json();
     console.log("Profile data:", profile);
+    const userId = profile.userId;
 
     let discordUser = null;
     try {
@@ -156,8 +153,14 @@ async function loadProfile(userId) {
     }
 
     if (profile.color) {
-      document.documentElement.style.setProperty("--profile-color", profile.color);
-      document.documentElement.style.setProperty("--profile-accent", profile.color);
+      document.documentElement.style.setProperty(
+        "--profile-color",
+        profile.color
+      );
+      document.documentElement.style.setProperty(
+        "--profile-accent",
+        profile.color
+      );
       updateThemeColor(profile.color);
     }
 
@@ -167,7 +170,6 @@ async function loadProfile(userId) {
     loadingContainer.style.display = "none";
     profileContent.style.display = "block";
     profileContent.classList.add("fade-in");
-
   } catch (error) {
     console.error("Error loading profile:", error);
     loadingContainer.style.display = "none";
@@ -177,10 +179,10 @@ async function loadProfile(userId) {
 
 async function populateProfile(profile, discordUser, userId, userBadges) {
   const avatarEl = document.getElementById("profile-avatar");
-  
+
   const defaultAvatar = "https://cdn.discordapp.com/embed/avatars/0.png";
   let fallbackAvatar = defaultAvatar;
-  
+
   if (discordUser) {
     if (discordUser.displayAvatarURL) {
       fallbackAvatar = discordUser.displayAvatarURL;
@@ -188,8 +190,8 @@ async function populateProfile(profile, discordUser, userId, userBadges) {
       fallbackAvatar = `https://cdn.discordapp.com/avatars/${userId}/${discordUser.avatar}.png?size=512`;
     }
   }
-  
-  avatarEl.onerror = function() {
+
+  avatarEl.onerror = function () {
     console.log("Avatar failed to load, falling back to:", fallbackAvatar);
     if (this.src !== fallbackAvatar && this.src !== defaultAvatar) {
       this.src = fallbackAvatar;
@@ -197,7 +199,7 @@ async function populateProfile(profile, discordUser, userId, userBadges) {
       this.src = defaultAvatar;
     }
   };
-  
+
   if (profile.pfp) {
     avatarEl.src = profile.pfp;
   } else {
@@ -205,7 +207,9 @@ async function populateProfile(profile, discordUser, userId, userBadges) {
   }
 
   const nameEl = document.getElementById("profile-name");
-  nameEl.textContent = profile.preferredName || (discordUser ? discordUser.username : "Unknown User");
+  nameEl.textContent =
+    profile.preferredName ||
+    (discordUser ? discordUser.username : "Unknown User");
 
   const usernameEl = document.getElementById("profile-username");
   if (discordUser && discordUser.username) {
@@ -261,7 +265,8 @@ async function populateProfile(profile, discordUser, userId, userBadges) {
   }
   if (profile.romanticOrientation) {
     const romanticCard = document.getElementById("romantic-card");
-    document.getElementById("profile-romantic").textContent = profile.romanticOrientation;
+    document.getElementById("profile-romantic").textContent =
+      profile.romanticOrientation;
     romanticCard.style.display = "flex";
   }
   if (profile.gender) {
@@ -288,7 +293,7 @@ async function populateProfile(profile, discordUser, userId, userBadges) {
   if (profile.customAvatars && profile.customAvatars.length > 0) {
     const avatarsSection = document.getElementById("avatars-section");
     const avatarsGrid = document.getElementById("custom-avatars");
-    
+
     profile.customAvatars.forEach((avatar) => {
       const avatarCard = document.createElement("div");
       avatarCard.className = "avatar-card";
@@ -301,7 +306,7 @@ async function populateProfile(profile, discordUser, userId, userBadges) {
       });
       avatarsGrid.appendChild(avatarCard);
     });
-    
+
     avatarsSection.style.display = "block";
   }
 
@@ -310,14 +315,22 @@ async function populateProfile(profile, discordUser, userId, userBadges) {
   let hasLinks = false;
 
   if (profile.pronounpage) {
-    const link = createLinkButton("Pronoun Page", profile.pronounpage, "fa-user-tag");
+    const link = createLinkButton(
+      "Pronoun Page",
+      profile.pronounpage,
+      "fa-user-tag"
+    );
     linksGrid.appendChild(link);
     hasLinks = true;
   }
 
   if (profile.customWebsites && profile.customWebsites.length > 0) {
     profile.customWebsites.forEach((site) => {
-      const link = createLinkButton(site.label, site.url, "fa-external-link-alt");
+      const link = createLinkButton(
+        site.label,
+        site.url,
+        "fa-external-link-alt"
+      );
       linksGrid.appendChild(link);
     });
     hasLinks = true;
@@ -350,19 +363,21 @@ function updateThemeColor(color) {
 }
 
 function updatePageMeta(profile, discordUser) {
-  const name = profile.preferredName || (discordUser ? discordUser.username : "User");
+  const name =
+    profile.preferredName || (discordUser ? discordUser.username : "User");
   document.title = `${name}'s Profile | Pridebot`;
-  
+
   const ogTitle = document.querySelector('meta[name="og:title"]');
   const ogDesc = document.querySelector('meta[name="og:description"]');
-  
+
   if (ogTitle) {
     ogTitle.setAttribute("content", `${name}'s Profile | Pridebot`);
   }
-  
+
   if (ogDesc) {
-    const desc = profile.bio 
-      ? profile.bio.substring(0, 150).replace(/\\n/g, ' ') + (profile.bio.length > 150 ? "..." : "")
+    const desc = profile.bio
+      ? profile.bio.substring(0, 150).replace(/\\n/g, " ") +
+        (profile.bio.length > 150 ? "..." : "")
       : `View ${name}'s profile on Pridebot`;
     ogDesc.setAttribute("content", desc);
   }
@@ -379,7 +394,7 @@ function showError(message) {
   const loadingContainer = document.getElementById("loading-container");
   const errorState = document.getElementById("error-state");
   const errorMessage = document.getElementById("error-message");
-  
+
   loadingContainer.style.display = "none";
   errorMessage.textContent = message;
   errorState.style.display = "block";

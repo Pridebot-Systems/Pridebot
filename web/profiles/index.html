@@ -80,8 +80,8 @@
           </div>
           <h1 class="hero-title">Find User Profiles</h1>
           <p class="hero-subtitle">
-            Enter a <strong>Discord User ID</strong> to view their Pridebot
-            profile. Users must have created a profile using the
+            Enter a <strong>Discord User ID or Username</strong> to view their
+            Pridebot profile. Users must have created a profile using the
             <code>/profile setup</code> command.
           </p>
 
@@ -93,10 +93,9 @@
                   type="text"
                   id="search-input"
                   class="search-input"
-                  placeholder="Enter Discord User ID..."
+                  placeholder="Enter Discord User ID or Username..."
                   autocomplete="off"
-                  pattern="[0-9]+"
-                  title="Please enter a valid Discord User ID (numbers only)"
+                  title="Please enter a valid Discord User ID or Username"
                 />
                 <button type="submit" class="search-button">
                   <span class="button-text">View Profile</span>
@@ -277,31 +276,28 @@
         .getElementById("search-form")
         .addEventListener("submit", function (e) {
           e.preventDefault();
-          const userId = document.getElementById("search-input").value.trim();
+          const searchValue = document
+            .getElementById("search-input")
+            .value.trim();
           const resultDiv = document.getElementById("search-result");
 
-          if (!userId) {
+          if (!searchValue) {
             resultDiv.className = "search-result error";
             resultDiv.innerHTML =
-              '<i class="fas fa-exclamation-circle"></i> Please enter a User ID';
+              '<i class="fas fa-exclamation-circle"></i> Please enter a User ID or Username';
             return;
           }
 
-          if (!/^\d+$/.test(userId)) {
-            resultDiv.className = "search-result error";
-            resultDiv.innerHTML =
-              '<i class="fas fa-exclamation-circle"></i> User ID must contain only numbers';
-            return;
+          if (/^\d+$/.test(searchValue)) {
+            if (searchValue.length < 17 || searchValue.length > 20) {
+              resultDiv.className = "search-result error";
+              resultDiv.innerHTML =
+                '<i class="fas fa-exclamation-circle"></i> Invalid User ID length (should be 17-20 digits)';
+              return;
+            }
           }
 
-          if (userId.length < 17 || userId.length > 20) {
-            resultDiv.className = "search-result error";
-            resultDiv.innerHTML =
-              '<i class="fas fa-exclamation-circle"></i> Invalid User ID length (should be 17-20 digits)';
-            return;
-          }
-
-          window.location.href = `/${userId}`;
+          window.location.href = `/${searchValue}`;
         });
 
       document

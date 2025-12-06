@@ -107,9 +107,16 @@ module.exports = (client) => {
     }
   });
 
-  app.get("/profile/:userId", async (req, res) => {
+  app.get("/profile/:userIdOrUsername", async (req, res) => {
     try {
-      const profile = await ProfileData.findOne({ userId: req.params.userId });
+      const { userIdOrUsername } = req.params;
+      let profile;
+
+      if (/^\d+$/.test(userIdOrUsername)) {
+        profile = await ProfileData.findOne({ userId: userIdOrUsername });
+      } else {
+        profile = await ProfileData.findOne({ username: userIdOrUsername });
+      }
 
       if (!profile) {
         return res.status(404).json({ message: "Profile not found" });
@@ -173,18 +180,19 @@ module.exports = (client) => {
     }
   });
 
-  app.get("/:userId", async (req, res) => {
-    const { userId } = req.params;
+  app.get("/:searched", async (req, res) => {
+    const { searched } = req.params;
 
     if (
-      userId === "profile" ||
-      userId === "health" ||
-      userId === "getUser" ||
-      userId === "badges"
+      searched === "profile" ||
+      searched === "health" ||
+      searched === "getUser" ||
+      searched === "badges"
     ) {
       return res.status(404).json({ message: "Not found" });
     }
-    async function serveProfilePage(username, userAvatar) {
+
+    async function serveProfilePage(resolvedUserId, username, userAvatar) {
       const htmlFilePath = path.join(
         __dirname,
         "..",
@@ -197,7 +205,7 @@ module.exports = (client) => {
       try {
         let htmlContent = fs.readFileSync(htmlFilePath, "utf8");
 
-        const profile = await ProfileData.findOne({ userId });
+        const profile = await ProfileData.findOne({ userId: resolvedUserId });
         const preferredName = profile?.preferredName || username || "User";
         const bio =
           profile?.bio || `View ${preferredName}'s profile on Pridebot`;
@@ -243,21 +251,49 @@ module.exports = (client) => {
       }
     }
 
-    if (/^\d+$/.test(userId)) {
+    if (/^\d+$/.test(searched)) {
       try {
-        const user = await client.users.fetch(userId);
+        const user = await client.users.fetch(searched);
         return serveProfilePage(
+          searched,
           user.username,
           user.displayAvatarURL({ dynamic: true, size: 512 })
         );
       } catch (error) {
-        console.error(`Failed to fetch Discord user ${userId}:`, error.message);
-        return serveProfilePage(null, null);
+        console.error(
+          `Failed to fetch Discord user ${searched}:`,
+          error.message
+        );
+        return serveProfilePage(searched, null, null);
       }
     }
 
-    return res
-      .status(400)
-      .sendFile(path.join(__dirname, "..", "..", "web", "404.html"));
+    try {
+      const profile = await ProfileData.findOne({ username: searched });
+      if (!profile) {
+        return res
+          .status(404)
+          .sendFile(path.join(__dirname, "..", "..", "web", "404.html"));
+      }
+      try {
+        const user = await client.users.fetch(profile.userId);
+        return serveProfilePage(
+          profile.userId,
+          user.username,
+          user.displayAvatarURL({ dynamic: true, size: 512 })
+        );
+      } catch (error) {
+        console.error(
+          `Failed to fetch Discord user ${profile.userId}:`,
+          error.message
+        );
+        return serveProfilePage(profile.userId, profile.username, null);
+      }
+    } catch (error) {
+      console.error(`Error looking up username ${searched}:`, error);
+      return res
+        .status(404)
+        .sendFile(path.join(__dirname, "..", "..", "web", "404.html"));
+    }
   });
 };
