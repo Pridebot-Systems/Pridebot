@@ -25,7 +25,7 @@ const feedbackSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["general", "bug", "feature", "improvement", "other"],
+      enum: ["general", "bug", "feature", "improvement", "other", "data_delete"],
       default: "general",
     },
     status: {
@@ -35,6 +35,10 @@ const feedbackSchema = new mongoose.Schema(
     },
     adminNotes: {
       type: String,
+      required: false,
+    },
+    metadata: {
+      type: mongoose.Schema.Types.Mixed,
       required: false,
     },
   },
