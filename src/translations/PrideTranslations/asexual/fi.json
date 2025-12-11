@@ -11,14 +11,14 @@
   },
   "flag": {
     "name": "Lippu",
-    "value": "Aseksuaalinen ylpeyslippu koostuu neljästä vaakasuorasta raidasta: musta aseksuaalisuudelle, harmaa harmaa-ase ja demiseksuaaliselle yhteisölle, valkoinen liittolaisille ja violetti yhteisölle. Myös aromanttinen yhteisö on saanut lipun, jossa on vihreitä, vaaleanvihreitä, valkoisia, harmaita ja mustia raitoja, symboloimassa aromanttista spektriä."
+    "value": "Aseksuaalinen ylpeyslippu koostuu neljästä vaakasuorasta raidasta: musta aseksuaalisuudelle, harmaa- ja demiseksuaaliselle yhteisölle, valkoinen liittolaisille ja violetti yhteisölle. Myös aromanttinen yhteisö on saanut lipun, jossa on vihreä, vaaleanvihreä, valkoinen, harmaa ja musta raita, symboloimassa aromanttista kirjoa."
   },
   "aromantic_days": {
     "name": "Aromanttiset päivät/juhlinta-ajat",
-    "value": "- Aromanttinen tietoisuuskuukausi - **Helmikuu** \n- Aromanttisen spektrin tietoisuusviikko - **18. - 24. helmikuuta** \n- Aromanttinen näkyvyyspäivä - **5. kesäkuuta ja 25. elokuuta**"
+    "value": "- Aromanttisen tietoisuuskuukausi - **Helmikuu** \n- Aromanttisen kirjon tietoisuusviikko - **18. - 24. helmikuuta** \n- Aromanttisen Kirjon Näkyvyyspäivä - **25. elokuuta**"
   },
   "asexual_days": {
     "name": "Aseksuaaliset päivät/juhlinta-ajat",
-    "value": "- Aseksuaaliviikko - **20. - 26. lokakuuta** \n- Kansainvälinen aseksuaalisuuden päivä - **6. huhtikuuta** \n- Aseksuaalinen näkyvyyspäivä - **8. toukokuuta**"
+    "value": "- Ace viikko - **20. - 26. lokakuuta** \n- Kansainvälinen aseksuaalisuuden päivä - **6. huhtikuuta** \n- Aseksuaalien näkyvyyspäivä - **8. toukokuuta**"
   }
 }

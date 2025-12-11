@@ -1,9 +1,9 @@
 {
   "title": "Biseksuaali!",
-  "description": "Tässä on joitain faktoja biseksuaalisuudesta/biseksuaalisesta romantiikasta",
+  "description": "Tässä on joitain faktoja biseksuaalisuudesta/biromantisuudesta",
   "what_is_bisexuality": {
     "name": "Mitä on biseksuaalisuus",
-    "value": "Biseksuaalisuus viittaa romanttiseen ja/tai seksuaaliseen vetovoimaan sekä miehiä että naisia kohtaan. Se tunnustaa vetovoiman spektrin, joka voi vaihdella intensiteetiltään ja muuttua ajan myötä. Biseksuaalit voivat myös kokea vetovoimaa sukupuolen binäärikäsityksen ulkopuolella."
+    "value": "Biseksuaalisuus viittaa romanttiseen ja/tai seksuaaliseen vetovoimaan sekä miehiä että naisia kohtaan. Se tunnustaa vetovoiman kirjon, joka voi vaihdella intensiteetiltään ja muuttua ajan myötä. Biseksuaalit voivat myös kokea vetovoimaa sukupuolen binäärikäsityksen ulkopuolella."
   },
   "history": {
     "name": "Historia",
@@ -15,6 +15,6 @@
   },
   "days": {
     "name": "Päivät/juhla-ajat",
-    "value": "- Biseksuaalisen terveyden tietoisuuskuukausi - **Maaliskuu** \n- Biseksuaalisen tietoisuuden viikko - **16. - 22. syyskuuta** \n- Biseksuaalisuuden päivä - **23. syyskuuta**"
+    "value": "- Biseksuaalien terveystietoisuus kuukausi - **Maaliskuu** \n- Biseksuaalisuuden tietoisuusviikko - **16. - 22. syyskuuta** \n- Juhli Biseksuaalisuuden päivää - **23. syyskuuta**"
   }
 }

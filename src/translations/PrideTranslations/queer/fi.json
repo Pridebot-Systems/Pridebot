@@ -1,20 +1,20 @@
 {
-  "title": "Queer!",
-  "description": "Tässä on muutamia faktoja \"queerista\"",
+  "title": "Kvääri!",
+  "description": "Tässä on muutamia faktoja \"kvääri\"",
   "what_is_queer": {
-    "name": "Mikä on \"queer\"",
-    "value": "Termi \"queer\" on sateenvarjotermi ihmisille, jotka eivät ole heteroseksuaaleja tai cis-sukupuolisia. Se on termi, joka kattaa laajan kirjon seksuaalisia suuntautumisia ja sukupuoli-identiteettejä ja juhlistaa LGBTQ+-yhteisön monimuotoisuutta."
+    "name": "Mikä on \"kvääri\"",
+    "value": "Termi \"kvääri\" on sateenvarjotermi ihmisille, jotka eivät ole heteroseksuaaleja tai cis-sukupuolisia. Se on termi, joka kattaa laajan kirjon seksuaalisia suuntautumisia ja sukupuoli-identiteettejä ja juhlistaa LGBTQ+-yhteisön monimuotoisuutta."
   },
   "history": {
     "name": "Historia",
-    "value": "Alunperin halventavana terminä käytettyä sanaa \"queer\" LGBTQ+-yhteisö on ottanut sen takaisin ylpeyden ja syrjinnän vastustamisen symbolina. Sen käyttö osallistavana ja yhdistävänä nimityksenä kuvastaa LGBTQ+-kokemusten moninaisuutta ja monimutkaisuutta."
+    "value": "Alunperin halventavana terminä käytettyä sanaa \"kvääri\" LGBTQ+-yhteisö on ottanut sen takaisin ylpeyden ja syrjinnän vastustamisen symbolina. Sen käyttö osallistavana ja yhdistävänä nimityksenä kuvastaa LGBTQ+-kokemusten moninaisuutta ja monimutkaisuutta."
   },
   "flag": {
     "name": "Lippu",
-    "value": "Queer pride -lippu, joka on usein synonyymi LGBTQ+ pride -lipulle, on queer-identiteetin ja -yhteisön symboli. Siinä on tyypillisesti sateenkaarikuvio, jossa kukin väri edustaa yhteisön eri näkökohtaa: punainen elämää, oranssi parantumista, keltainen auringonvaloa, vihreä luontoa, sininen harmoniaa ja violetti henkeä. Tämä lippu on laajalti tunnustettu LGBTQ+-ylpeyden ja moninaisuuden symboli, joka juhlistaa kaikkien seksuaalisten suuntautumisten ja sukupuoli-identiteettien sisällyttämistä ja hyväksymistä queer-yhteisössä."
+    "value": "Kvääri ylpeyslippu, joka on usein synonyymi LGBTQ+ ylpeyslipulle, on kvääri-identiteetin ja -yhteisön symboli. Siinä on tyypillisesti sateenkaarikuvio, jossa kukin väri edustaa yhteisön eri näkökohtaa: punainen elämää, oranssi parantumista, keltainen auringonvaloa, vihreä luontoa, sininen harmoniaa ja violetti henkeä. Tämä lippu on laajalti tunnustettu LGBTQ+-ylpeyden ja moninaisuuden symboli, joka juhlistaa kaikkien seksuaalisten suuntautumisten ja sukupuoli-identiteettien sisällyttämistä ja hyväksymistä kvääri-yhteisössä."
   },
   "important_dates": {
     "name": "Tärkeitä päiviä",
-    "value": "- LGBTQ+ Pride kuukausi- **kesäkuu** \n- Kansallinen ulostulo päivä- **11. lokakuuta**"
+    "value": "- Pride-kuukausi - **kesäkuu** \n- Kansainvälinen kaapista ulos -päivä - **11. lokakuuta**"
   }
 }
