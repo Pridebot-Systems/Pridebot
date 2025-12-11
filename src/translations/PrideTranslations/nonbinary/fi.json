@@ -1,20 +1,20 @@
 {
-  "title": "Non-binary",
-  "description": "Tässä on muutamia faktoja \"non-binarista\"",
+  "title": "Muunsukupuolinen",
+  "description": "Tässä on muutamia faktoja \"muunsukupuolisista\"",
   "what_is_nonbinary": {
-    "name": "Mikä on non-binary",
-    "value": "Non-binary on termi, jota käytetään kuvaamaan sukupuolia jotka eivät kuulu tiukasti mies- tai naiskategorioihin. Nin-binary henkilöt saatavat kokea sukupuolensa sekoituksena molempia, ei kumpaakaan tai jotain aivan muuta. Tämä identiteetti on osa laajempaa transsukupuolisten kirjoa."
+    "name": "Mikä on muunsukupuolinen",
+    "value": "Muunsukupuolinen on termi, jota käytetään kuvaamaan sukupuolia jotka eivät kuulu tiukasti mies- tai naiskategorioihin. Muunsukupuoliset henkilöt saatavat kokea sukupuolensa sekoituksena molempia, ei kumpaakaan tai jotain aivan muuta. Tämä identiteetti on osa laajempaa transsukupuolisten kirjoa."
   },
   "history": {
     "name": "Historia",
-    "value": "Non-binary sukupuolten tunnustamisella on pitkä historia eri kulttuureissa, kuten eräiden Pohjois-Amerikan alkuperäiskansojen \"Two-Spirit\"-ihmiset. Viime aikoina, nin-binary identiteetti on saanut enemmän näkyvyyttä, kun yhteiskunnissa tunnustetaan yhä enemmän sukupuolen moninaisuutta binääristen puitteiden ulkopuolella."
+    "value": "Muunsukupuolisten tunnustamisella on pitkä historia eri kulttuureissa, kuten eräiden Pohjois-Amerikan alkuperäiskansojen \"Two-Spirit\"-ihmiset. Viime aikoina, muunsukupuolinen identiteetti on saanut enemmän näkyvyyttä, kun yhteiskunnissa tunnustetaan yhä enemmän sukupuolen moninaisuutta binääristen puitteiden ulkopuolella."
   },
   "flag": {
     "name": "Lippu",
-    "value": "Non-binary pride lippu luotiin vuonna 2014 aktivisti Kye Rowanin toimesta, se sisältää neljä vaakasuoraa raitaa: keltainenm valkoinen, liila ja musta. Jokainen väri sisältää merkitystä: keltainen edustaa binäärisen ulkopuolisia sukupuolia, valkoinen non-binary henkilöitä, jotka myös identifioivat itsensä transsukupuolisiksi, violetti perinteisten mies- ja naisvärien yhdistelmää ja musta niitä, jotka eivät identifioi itseään sukupuolettomiksi."
+    "value": "Muunsukupuolisten ylpeyslippu luotiin vuonna 2014 aktivisti Kye Rowanin toimesta, se sisältää neljä vaakasuoraa raitaa: keltainenm valkoinen, liila ja musta. Jokainen väri sisältää merkitystä: keltainen edustaa binäärisen ulkopuolisia sukupuolia, valkoinen muunsukupuolisia henkilöitä, jotka myös identifioivat itsensä transsukupuolisiksi, violetti perinteisten mies- ja naisvärien yhdistelmää ja musta niitä, jotka eivät identifioi itseään sukupuolettomiksi."
   },
   "nonbinary_days": {
     "name": "Päivät/Kunnianosoitus ajat",
-    "value": "- Non-binary tietoisuusviikko (2024) - **8.-14. heinäkuuta**\n- Kansainvälinen non-binary ihmisten päivä - **14. heinäkuuta**\n- Non-binary lasten päivä - **lokakuun 1. päivä**"
+    "value": "- Muunsukupuolisten tietoisuusviikko - **7.-13. heinäkuuta**\n- Kansainvälinen muunsukupuolisten ihmisten päivä - **14. heinäkuuta**\n- Muunsukupuolisten lasten päivä - **1. lokakuuta**"
   }
 }

@@ -1,20 +1,20 @@
 {
   "title": "Panseksuaali!",
-  "description": "Tässä on muutama fakta \"panseksuaalisuudesta/panromanttisesta\"",
+  "description": "Tässä on muutama fakta \"panseksuaalisuudesta\"",
   "what_is_pansexual": {
-    "name": "Mitä on panseksuaali/panromanttinen",
+    "name": "Mikä on panseksuaali?",
     "value": "Panseksuaalisuus on vetovoimaa ihmisiä kohtaan heidän sukupuoli-identiteetistään riippumatta. Tämä sisältää vetovoiman kaikkiin sukupuoli ja (syntymä)sukupuoleen, ja siinä tunnustetaan sukupuoli-identiteettien kirjo, joka ulottuu mies-nainen-binäärin ulkopuolelle. Voit lukea tästä lisää osoitteessa </sexuality:1111289006299283456>"
   },
   "history": {
     "name": "Historia",
-    "value": "Sana \"panseksuaali\" tulee kreikan kielen etuliitteestä \"pan\", joka tarkoittaa \"kaikki\". Käsite syntyi 1900-luvun alussa, ja se on saanut lisää tunnustusta viime aikoina. Panseksuaalisuus eroaa biseksuaalisuudesta; kun biseksuaalisuus viittaa vetovoimaan kahta sukupuolta kohtaan, panseksuaalisuus sisältää kaikki sukupuoli-identiteetit, ja se on osa laajempaa LGBTQ+-oikeusliikettä."
+    "value": "Sana \"panseksuaali\" tulee kreikan kielen etuliitteestä \"pan\", joka tarkoittaa \"kaikkia\". Käsite syntyi 1900-luvun alussa, ja se on saanut lisää tunnustusta viime aikoina. Panseksuaalisuus eroaa biseksuaalisuudesta; kun biseksuaalisuus viittaa vetovoimaan kahta sukupuolta kohtaan, panseksuaalisuus sisältää kaikki sukupuoli-identiteetit, ja se on osa laajempaa LGBTQ+-oikeusliikettä."
   },
   "flag": {
     "name": "Lippu",
-    "value": "Panseksuaali lippu luotu noin vuonna 2010, sisältää vaaleanpunaisia, keltaisia ja sinisiä raitoja. Se oli suunniteltu eroamaan biseksuaali lipusta. Vaaleanpunainen edustaa vetovoimaa naisiin, keltainen vetovoimaa genderqueereihin, non-binaareihin, asukupuolisiin, androgynous ihmisiin tai heihin, jotka eivät ole mies-nainen binäärissä, ja sininen vetovoima niihin, jotka identifioituvat mieheksi."
+    "value": "Panseksuaali lippu luotiin noin vuonna 2010, se sisältää vaaleanpunaisia, keltaisia ja sinisiä raitoja. Se oli suunniteltu eroamaan biseksuaali lipusta. Vaaleanpunainen edustaa vetovoimaa naisiin, keltainen vetovoimaa genderqueereihin, muunsukupuolisiin, asukupuolisiin, androgyynisiin ihmisiin tai heihin, jotka eivät ole mies-nainen binäärissä, ja sininen vetovoima niihin, jotka identifioituvat mieheksi."
   },
   "pansexual_days": {
     "name": "Päivät/Kunnianosoitus ajat",
-    "value": "- Pan-viikko - **6.-12. joulukuuta** \n- Panseksuaalisen ja panromanttisen tietoisuuden päivä - **24. toukokuuta**. \n- Panseksuaalisen ylpeyden päivä - **8. joulukuuta**"
+    "value": "- Pan viikko - **6.-12. joulukuuta** \n- Panseksuaaliten ja panromanttiten tietoisuudenpäivä - **24. toukokuuta**. \n- Panihmisten ylpeyspäivä - **8. joulukuuta**"
   }
 }
