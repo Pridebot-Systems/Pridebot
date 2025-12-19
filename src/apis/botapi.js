@@ -507,14 +507,21 @@ module.exports = (client) => {
         return;
       } else if (githubEvent === "push") {
         const commitCount = data.commits.length;
-        const commitMessages = data.commits
-          .map(
-            (commit) =>
-              `[\`${commit.id.slice(0, 7)}\`](${commit.url}) - **${
-                commit.message
-              }**`
-          )
-          .join("\n");
+        const commitStrings = data.commits.map(
+          (commit) =>
+            `[\`${commit.id.slice(0, 7)}\`](${commit.url}) - **${commit.message}**`
+        );
+        
+        const viewMoreLink = `\n[View more on GitHub](https://github.com/${ownerName}/${repoName}/commits/main/)`;
+        let commitMessages = commitStrings.join("\n");
+
+        if (commitMessages.length + viewMoreLink.length > 1024) {
+          while (commitStrings.length > 0 && commitStrings.join("\n").length + viewMoreLink.length > 1024) {
+            commitStrings.pop();
+          }
+          commitMessages = commitStrings.join("\n") + viewMoreLink;
+        }
+        
         const title = `${commitCount} New ${repoName} ${
           commitCount > 1 ? "Commits" : "Commit"
         } (# ${commitHundreds}${commitTens}${commitOnes})`;
