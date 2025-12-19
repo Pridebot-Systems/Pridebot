@@ -1,16 +1,16 @@
 {
-  "title": "Pride kuukausi!",
-  "description": "Tässä on muutamia faktoja Pride kuukaudesta:",
+  "title": "Pride-kuukausi!",
+  "description": "Tässä on muutamia faktoja Pride-kuukaudesta:",
   "what_is_pride_month": {
-    "name": "Mikä on pride kuukausi",
-    "value": "Pride kuukausi on juhlittu joka vuosi kesäkuussa kunnioittamaan vuoden 1969 Stonewall-kapinaa New Yorkissa. Se on aika, jolloin LGBTQ+ yhteisö kokoontuu yhteen juhlimaan identiteettiään, saavutuksiaan ja jatkuvia kamppailujaan tasa-arvon puolesta."
+    "name": "Mikä on pride-kuukausi",
+    "value": "Pride-kuukausi on juhlittu joka vuosi kesäkuussa kunnioittamaan vuoden 1969 Stonewallin mellakkaa New Yorkissa. Se on aika, jolloin LGBTQ+ yhteisö kokoontuu yhteen juhlimaan identiteettiään, saavutuksiaan ja jatkuvia kamppailujaan tasa-arvon puolesta."
   },
   "history": {
     "name": "Historia",
-    "value": "Stonewallin kansannousu alkoi 28. kesäkuuta 1969, ja sitä pidetään keskeisenä tapahtumana taistelussa LGBTQ+-oikeuksien puolesta. Ensimmäistä virallista Pride-kuukautta vietettiin kesäkuussa 1970, jolloin Stonewallin kansannoususta tuli kuluneeksi vuosi. Tapahtuma käynnisti erilaisten LGBTQ+-järjestöjen perustamisen ja johti ensimmäisiin Pride-marsseihin suurissa kaupungeissa, kuten New Yorkissa, Los Angelesissa ja Chicagossa. Vuosien mittaan Pride-kuukausi on kasvanut ja levinnyt muihin maihin, ja siitä on tullut maailmanlaajuinen monimuotoisuuden ja osallisuuden juhla."
+    "value": "Stonewallin mellakat alkoi 28. kesäkuuta 1969, ja sitä pidetään keskeisenä tapahtumana taistelussa LGBTQ+-oikeuksien puolesta. Ensimmäistä virallista pride-kuukautta vietettiin kesäkuussa 1970, jolloin Stonewallin mellakoista tuli kuluneeksi vuosi. Tapahtuma käynnisti erilaisten LGBTQ+-järjestöjen perustamisen ja johti ensimmäisiin pride-marsseihin suurissa kaupungeissa, kuten New Yorkissa, Los Angelesissa ja Chicagossa. Vuosien mittaan pride-kuukausi on kasvanut ja levinnyt muihin maihin, ja siitä on tullut maailmanlaajuinen monimuotoisuuden ja osallisuuden juhla."
   },
   "pride_month_days": {
     "name": "Päivät/Kunnianosoitus ajat",
-    "value": "- LGBTQ+ pride kuukausi - **kesäkuu** \n- Stonewallin kansannousun vuosipäivä - **28. kesäkuuta**"
+    "value": "- Pride-kuukausi - **kesäkuu** \n- Stonewallin mellakoiden vuosipäivä - **28. kesäkuuta**"
   }
 }
