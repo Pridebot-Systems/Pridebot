@@ -485,17 +485,13 @@ module.exports = (client) => {
       const repoName = data.repository?.name;
       const ownerName = data.repository?.owner?.login;
 
-      async function getTotalCommitsFromRepo(repoName, ownerName) {
-        return await getTotalCommits(
+      let totalCommits = 0;
+      if (repoName && ownerName) {
+        totalCommits = await getTotalCommits(
           ownerName,
           repoName,
           process.env.githubToken
         );
-      }
-
-      let totalCommits = 0;
-      if (repoName && ownerName) {
-        totalCommits = await getTotalCommitsFromRepo(repoName, ownerName);
       }
 
       let commitHundreds = totalCommits.toString().slice(-3, -2) || "0";
