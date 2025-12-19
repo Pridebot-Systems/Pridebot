@@ -544,7 +544,88 @@ module.exports = (client) => {
             `## :star: Star Removed \n**[${data.sender.login}](https://github.com/${data.sender.login}) removed their star from [${repoName}](https://github.com/${ownerName}/${repoName}) ;-;**`
           )
           .setTimestamp();
+      } else if (githubEvent === "pull_request" && data.action === "opened") {
+        const pr = data.pull_request;
+        embed
+          .setColor("#FF00EA")
+          .setAuthor({
+            name: `${data.sender.login}`,
+            iconURL: `${data.sender.avatar_url}`,
+            url: `${data.sender.html_url}`,
+          })
+          .setTitle(`New Pull Request: #${pr.number} - ${pr.title}`)
+          .setURL(pr.html_url)
+          .setDescription(pr.body || "No description provided")
+          .addFields(
+            {
+              name: "Branch",
+              value: `${pr.head.ref} → ${pr.base.ref}`,
+              inline: true,
+            },
+            { name: "Commits", value: `${pr.commits}`, inline: true },
+            {
+              name: "Changed Files",
+              value: `${pr.changed_files}`,
+              inline: true,
+            }
+          )
+          .setTimestamp();
+      } else if (githubEvent === "pull_request" && data.action === "closed") {
+        const pr = data.pull_request;
+        const wasMerged = pr.merged;
+        embed
+          .setColor("#FF00EA")
+          .setAuthor({
+            name: `${data.sender.login}`,
+            iconURL: `${data.sender.avatar_url}`,
+            url: `${data.sender.html_url}`,
+          })
+          .setTitle(
+            `Pull Request ${wasMerged ? "Merged" : "Closed"}: #${pr.number} - ${
+              pr.title
+            }`
+          )
+          .setURL(pr.html_url)
+          .addFields(
+            {
+              name: "Branch",
+              value: `${pr.head.ref} → ${pr.base.ref}`,
+              inline: true,
+            },
+            {
+              name: "Status",
+              value: wasMerged ? "✅ Merged" : "❌ Closed",
+              inline: true,
+            }
+          )
+          .setTimestamp();
+      } else if (githubEvent === "issues" && data.action === "opened") {
+        const issue = data.issue;
+        embed
+          .setColor("#FF00EA")
+          .setAuthor({
+            name: `${data.sender.login}`,
+            iconURL: `${data.sender.avatar_url}`,
+            url: `${data.sender.html_url}`,
+          })
+          .setTitle(`New Issue: #${issue.number} - ${issue.title}`)
+          .setURL(issue.html_url)
+          .setDescription(issue.body || "No description provided")
+          .setTimestamp();
+      } else if (githubEvent === "issues" && data.action === "closed") {
+        const issue = data.issue;
+        embed
+          .setColor("#FF00EA")
+          .setAuthor({
+            name: `${data.sender.login}`,
+            iconURL: `${data.sender.avatar_url}`,
+            url: `${data.sender.html_url}`,
+          })
+          .setTitle(`Issue Closed: #${issue.number} - ${issue.title}`)
+          .setURL(issue.html_url)
+          .setTimestamp();
       } else {
+        console.log(`[GitHub] Unhandled event type: ${githubEvent}`);
         return;
       }
 
