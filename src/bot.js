@@ -7,6 +7,7 @@ const initializeApi = require("./apis/botapi");
 const initializeAvatarApi = require("./apis/avatarapi");
 const initializeGoogleApi = require("./apis/googleapi");
 const initializeProfileApi = require("./apis/profileapi");
+const initializePremiumApi = require("./apis/premiumapi");
 
 const cron = require("node-cron");
 const { deleteOldFiles } = require("./config/botfunctions/cleanup");
@@ -219,6 +220,7 @@ module.exports = (client) => {
           initializeApi(client);
           initializeGoogleApi(client);
           initializeProfileApi(client);
+          initializePremiumApi(client);
           console.log("✅ API initialization complete.");
         } catch (err) {
           console.error("❌ Error during API initialization:", err);
