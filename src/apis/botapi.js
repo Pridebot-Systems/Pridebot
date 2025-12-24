@@ -10,6 +10,14 @@ const { botlistauth, discordsauth } = process.env;
 require("dotenv").config();
 const { getInfo } = require("discord-hybrid-sharding");
 
+const VOTE_CHANNEL_ID = "1224815141921624186";
+const GITHUB_CHANNEL_ID = "1101742377372237906";
+const GITHUB_GUILD_ID = "1101740375342845952";
+const VOTE_COOLDOWN_HOURS = 12;
+const STATS_CACHE_TTL = 2 * 60 * 1000;
+const MAX_EMBED_FIELD_LENGTH = 1024;
+const API_PORT = 2610;
+
 const { getTotalCommits } = require("../config/commandfunctions/commit.js");
 const {
   getRegisteredCommandsCount,
@@ -24,94 +32,162 @@ const statsCache = {
   data: null,
 };
 
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60000;
+const RATE_LIMIT_MAX_REQUESTS = 30;
+
+function rateLimiter(req, res, next) {
+  const ip = req.ip || req.connection.remoteAddress;
+  const now = Date.now();
+
+  if (!rateLimitMap.has(ip)) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return next();
+  }
+
+  const limit = rateLimitMap.get(ip);
+
+  if (now > limit.resetTime) {
+    limit.count = 1;
+    limit.resetTime = now + RATE_LIMIT_WINDOW;
+    return next();
+  }
+
+  if (limit.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return res.status(429).json({
+      error: "Too many requests",
+      retryAfter: Math.ceil((limit.resetTime - now) / 1000),
+    });
+  }
+
+  limit.count++;
+  next();
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, limit] of rateLimitMap.entries()) {
+    if (now > limit.resetTime) {
+      rateLimitMap.delete(ip);
+    }
+  }
+}, RATE_LIMIT_WINDOW);
+
+function validateWebhookAuth(authHeader, platform) {
+  if (platform === "botlist" && authHeader !== botlistauth) {
+    return false;
+  }
+  if (platform === "discords" && authHeader !== discordsauth) {
+    return false;
+  }
+  return true;
+}
+
+async function sendEmbedToChannel(client, embed, channelId, context = "Vote") {
+  if (!client.cluster || !client.cluster.ready) {
+    console.warn(
+      `[${context}] Cluster client not ready, attempting direct send...`
+    );
+    const channel = await client.channels.fetch(channelId).catch(() => null);
+    if (
+      channel &&
+      (channel.type === ChannelType.GuildText || channel.isTextBased())
+    ) {
+      await channel.send({ embeds: [embed] });
+      console.log(`[${context}] Embed sent directly (no clustering)`);
+      return true;
+    }
+    console.error(`[${context}] Failed to send embed: channel not accessible`);
+    return false;
+  }
+
+  const results = await client.cluster.broadcastEval(
+    async (c, { channelId, embedJSON }) => {
+      const { EmbedBuilder, ChannelType } = require("discord.js");
+      const channel = await c.channels.fetch(channelId).catch(() => null);
+      if (
+        !channel ||
+        (channel.type !== ChannelType.GuildText && !channel.isTextBased())
+      )
+        return null;
+      const embed = new EmbedBuilder(embedJSON);
+      await channel.send({ embeds: [embed] });
+      return c.cluster?.id ?? true;
+    },
+    { context: { channelId, embedJSON: embed.toJSON() } }
+  );
+
+  const success = results.find((r) => r !== null);
+  if (!success) {
+    console.error(`[${context}] Embed send failed: no cluster had access.`);
+    return false;
+  }
+  console.log(`[${context}] Embed sent successfully by cluster:`, success);
+  return true;
+}
+
 async function sendVoteEmbed(client, embed, platform, userId, res) {
   try {
     console.log(`[${platform}] Processing vote embed for user ${userId}`);
 
-    if (!client.cluster || !client.cluster.ready) {
-      console.warn(
-        `[${platform}] Cluster client not ready, attempting direct send...`
-      );
-      const channel = await client.channels
-        .fetch("1224815141921624186")
-        .catch(() => null);
-      if (channel && channel.type === ChannelType.GuildText) {
-        await channel.send({ embeds: [embed] });
-        console.log(`[${platform}] Embed sent directly (no clustering)`);
-      } else {
-        console.error(
-          `[${platform}] Failed to send embed: channel not accessible`
-        );
-        return res
-          .status(400)
-          .send("Channel not found or is not a text channel");
-      }
-      res.status(200).send("Success!");
-      return;
-    }
-
-    const results = await client.cluster.broadcastEval(
-      async (c, { channelId, embedJSON, guildId }) => {
-        if (!c.guilds.cache.has(guildId)) return null;
-
-        const { EmbedBuilder, ChannelType } = require("discord.js");
-        const channel = await c.channels.fetch(channelId).catch(() => null);
-        if (!channel || channel.type !== ChannelType.GuildText) return null;
-
-        const embed = new EmbedBuilder(embedJSON);
-        await channel.send({ embeds: [embed] });
-        return c.cluster?.id ?? true;
-      },
-      {
-        context: {
-          channelId: "1224815141921624186",
-          embedJSON: embed.toJSON(),
-          guildId: "1077258761443483708",
-        },
-      }
+    const success = await sendEmbedToChannel(
+      client,
+      embed,
+      VOTE_CHANNEL_ID,
+      platform
     );
 
-    const success = results.find((r) => r !== null);
     if (!success) {
-      console.error(`[${platform}] Embed send failed: no cluster had access.`);
-      return res.status(500).send("Failed to send embed");
-    } else {
-      console.log(`[${platform}] Embed sent successfully by cluster:`, success);
+      return res.status(500).json({ error: "Failed to send embed" });
     }
 
-    res.status(200).send("Success!");
+    res
+      .status(200)
+      .json({ success: true, message: "Vote processed successfully" });
   } catch (error) {
+    console.error(`[${platform}] Error processing vote:`, error);
+
     if (error.code === "ERR_IPC_CHANNEL_CLOSED") {
       console.warn(
         `[${platform}] IPC channel closed, attempting direct send...`
       );
       try {
         const channel = await client.channels
-          .fetch("1224815141921624186")
+          .fetch(VOTE_CHANNEL_ID)
           .catch(() => null);
-        if (channel && channel.type === ChannelType.GuildText) {
+        if (
+          channel &&
+          (channel.type === ChannelType.GuildText || channel.isTextBased())
+        ) {
           await channel.send({ embeds: [embed] });
           console.log(`[${platform}] Embed sent directly after IPC failure`);
-          res.status(200).send("Success!");
-        } else {
-          res.status(500).send("Internal Server Error");
+          return res
+            .status(200)
+            .json({ success: true, message: "Vote processed (recovery mode)" });
         }
       } catch (directError) {
         console.error(
           `[${platform}] Direct send also failed:`,
           directError.message
         );
-        res.status(500).send("Internal Server Error");
       }
-    } else {
-      console.error(`[${platform}] Error sending message to Discord:`, error);
-      res.status(500).send("Internal Server Error");
     }
+
+    res
+      .status(500)
+      .json({ error: "Internal Server Error", message: error.message });
   }
 }
 
 async function updateStatsCache(client) {
   try {
+    console.log("[API] Updating stats cache...");
+
+    if (!client.cluster || !client.cluster.ready) {
+      console.warn("[API] Cluster not ready, skipping stats cache update");
+      return;
+    }
+
     const results = await client.cluster.broadcastEval((c) => ({
       guildCount: c.guilds.cache.size,
       userCount: c.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0),
@@ -178,29 +254,78 @@ module.exports = (client) => {
   }
 
   const app = express();
-  const port = 2610;
 
-  try {
-    app.listen(port, () => {
-      console.log(`Bot API is running on port ${port} (Cluster ${clusterId})`);
-    });
-  } catch (error) {
-    console.error("Failed to start Bot API:", error);
-  }
-
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  app.set("trust proxy", 1);
+  app.use(express.json({ limit: "1mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "1mb" }));
   app.use(cors());
+  app.use(rateLimiter);
+
+  app.use((req, res, next) => {
+    console.log(`[API] ${req.method} ${req.path} - ${req.ip}`);
+    next();
+  });
+
+  app.get("/health", (req, res) => {
+    res.status(200).json({
+      status: "healthy",
+      cluster: clusterId,
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    });
+  });
 
   app.get("/", (req, res) => {
-    res.status(404).json({
-      message: "These are the API requests you can make:",
+    res.status(200).json({
+      name: "Pridebot API",
+      version: "1.0.0",
+      cluster: clusterId,
+      message: "Available API endpoints:",
       endpoints: {
-        stats: "/stats",
-        serverstats: "/serverstats",
-        profiles: "/profiles/:userId",
-        votes: "/votes/:userId",
-        commands: "/commands/:command_type?/:command_name?",
+        health: { path: "/health", method: "GET", description: "Health check" },
+        stats: { path: "/stats", method: "GET", description: "Bot statistics" },
+        serverstats: {
+          path: "/serverstats",
+          method: "GET",
+          description: "Server statistics",
+        },
+        githubapi: {
+          path: "/githubapi",
+          method: "GET",
+          description: "GitHub stats",
+        },
+        votes: {
+          path: "/votes/:userId",
+          method: "GET",
+          description: "User voting statistics",
+        },
+        commands: {
+          path: "/commands/:command_type?/:command_name?",
+          method: "GET",
+          description: "Command information",
+        },
+        webhooks: {
+          topgg: {
+            path: "/topgg-votes",
+            method: "POST",
+            description: "Top.gg vote webhook",
+          },
+          botlist: {
+            path: "/botlist-votes",
+            method: "POST",
+            description: "BotList.me vote webhook (auth required)",
+          },
+          discords: {
+            path: "/discords-votes",
+            method: "POST",
+            description: "Discords.com vote webhook (auth required)",
+          },
+          github: {
+            path: "/github",
+            method: "POST",
+            description: "GitHub webhook",
+          },
+        },
       },
     });
   });
@@ -232,11 +357,24 @@ module.exports = (client) => {
   });
 
   app.get("/stats", cors(), async (req, res) => {
-    if (!statsCache.data) {
-      return res.status(503).json({ error: "Stats are not yet available." });
-    }
+    try {
+      if (!statsCache.data) {
+        return res.status(503).json({
+          error: "Stats are not yet available.",
+          retryAfter: 10,
+        });
+      }
 
-    res.json(statsCache.data);
+      res.json({
+        ...statsCache.data,
+        cacheAge: statsCache.lastUpdated
+          ? Date.now() - statsCache.lastUpdated.getTime()
+          : null,
+      });
+    } catch (error) {
+      console.error("[API] Error fetching stats:", error);
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
   });
 
   app.get("/serverstats", cors(), async (req, res) => {
@@ -390,8 +528,17 @@ module.exports = (client) => {
   });
 
   app.post("/botlist-votes", async (req, res) => {
-    if (req.header("Authorization") != botlistauth) {
-      return res.status(401);
+    const auth = req.header("Authorization");
+
+    if (!auth || !validateWebhookAuth(auth, "botlist")) {
+      console.warn("[BotList] Unauthorized vote attempt");
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    if (!req.body.user || !req.body.bot) {
+      return res
+        .status(400)
+        .json({ error: "Missing required fields: user, bot" });
     }
 
     let botlistuser = req.body.user;
@@ -430,8 +577,17 @@ module.exports = (client) => {
   });
 
   app.post("/discords-votes", async (req, res) => {
-    if (req.header("Authorization") != discordsauth) {
-      return res.status(401);
+    const auth = req.header("Authorization");
+
+    if (!auth || !validateWebhookAuth(auth, "discords")) {
+      console.warn("[Discords] Unauthorized vote attempt");
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    if (!req.body.user || !req.body.bot) {
+      return res
+        .status(400)
+        .json({ error: "Missing required fields: user, bot" });
     }
 
     let discordsuser = req.body.user;
@@ -509,19 +665,24 @@ module.exports = (client) => {
         const commitCount = data.commits.length;
         const commitStrings = data.commits.map(
           (commit) =>
-            `[\`${commit.id.slice(0, 7)}\`](${commit.url}) - **${commit.message}**`
+            `[\`${commit.id.slice(0, 7)}\`](${commit.url}) - **${
+              commit.message
+            }**`
         );
-        
+
         const viewMoreLink = `\n[View more on GitHub](https://github.com/${ownerName}/${repoName}/commits/main/)`;
         let commitMessages = commitStrings.join("\n");
 
         if (commitMessages.length + viewMoreLink.length > 1024) {
-          while (commitStrings.length > 0 && commitStrings.join("\n").length + viewMoreLink.length > 1024) {
+          while (
+            commitStrings.length > 0 &&
+            commitStrings.join("\n").length + viewMoreLink.length > 1024
+          ) {
             commitStrings.pop();
           }
           commitMessages = commitStrings.join("\n") + viewMoreLink;
         }
-        
+
         const title = `${commitCount} New ${repoName} ${
           commitCount > 1 ? "Commits" : "Commit"
         } (# ${commitHundreds}${commitTens}${commitOnes})`;
@@ -659,60 +820,64 @@ module.exports = (client) => {
           return;
         }
 
-        const results = await client.cluster.broadcastEval(
-          async (c, { channelId, embedJSON, guildId }) => {
-            if (!c.guilds.cache.has(guildId)) return null;
-
-            const { EmbedBuilder } = require("discord.js");
-            const channel = await c.channels.fetch(channelId).catch(() => null);
-            if (!channel || !channel.isTextBased()) return null;
-
-            const embed = new EmbedBuilder(embedJSON);
-            await channel.send({ embeds: [embed] });
-            return c.cluster?.id ?? true;
-          },
-          {
-            context: {
-              channelId: "1101742377372237906", // your log channel ID
-              embedJSON: embed.toJSON(),
-              guildId: "1101740375342845952", // your logging guild ID
-            },
-          }
+        const success = await sendEmbedToChannel(
+          client,
+          embed,
+          GITHUB_CHANNEL_ID,
+          "GitHub"
         );
-
-        const success = results.find((r) => r !== null);
         if (!success) {
-          console.error("[GitHub] Embed send failed: no shard had access.");
-        } else {
-          console.log("[GitHub] Embed sent successfully by cluster:", success);
+          console.error("[GitHub] Failed to send embed to channel");
         }
       } catch (error) {
-        if (error.code === "ERR_IPC_CHANNEL_CLOSED") {
-          console.warn(
-            "[GitHub] IPC channel closed, attempting direct send..."
-          );
-          try {
-            const channel = await client.channels
-              .fetch("1101742377372237906")
-              .catch(() => null);
-            if (channel && channel.isTextBased()) {
-              await channel.send({ embeds: [embed] });
-              console.log("[GitHub] Embed sent directly after IPC failure");
-            }
-          } catch (directError) {
-            console.error(
-              "[GitHub] Direct send also failed:",
-              directError.message
-            );
-          }
-        } else {
-          console.error("[GitHub] BroadcastEval failed:", error);
-        }
+        console.error("[GitHub] Error processing webhook:", error);
       }
       response.sendStatus(200);
     }
   );
 
+  // Global error handler (must be last)
+  app.use((err, req, res, next) => {
+    console.error("[API] Unhandled error:", err);
+    res.status(500).json({
+      error: "Internal Server Error",
+      message: process.env.NODE_ENV === "development" ? err.message : undefined,
+    });
+  });
+
+  // 404 handler
+  app.use((req, res) => {
+    res.status(404).json({
+      error: "Not Found",
+      path: req.path,
+      message: "Endpoint does not exist. Visit / for available endpoints.",
+    });
+  });
+
+  // Start server
+  const server = app.listen(API_PORT, () => {
+    console.log(
+      `✅ Bot API running on port ${API_PORT} (Cluster ${clusterId})`
+    );
+  });
+
+  server.on("error", (error) => {
+    console.error("❌ Failed to start Bot API:", error);
+  });
+
+  // Graceful shutdown
+  process.on("SIGTERM", () => {
+    console.log("[API] SIGTERM received, closing server...");
+    server.close(() => {
+      console.log("[API] Server closed");
+    });
+  });
+
+  // Initialize stats cache
   updateStatsCache(client);
-  setInterval(() => updateStatsCache(client), 2 * 60 * 1000); // every 5 mins
+  setInterval(() => updateStatsCache(client), STATS_CACHE_TTL);
+
+  console.log(
+    `[API] Stats cache will update every ${STATS_CACHE_TTL / 1000} seconds`
+  );
 };
