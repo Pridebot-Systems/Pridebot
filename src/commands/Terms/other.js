@@ -14,7 +14,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName("other")
     .setDescription(
-      "Learn about other common terms associated with or normally found in LGBTQIA+ environments"
+      "Learn about other common terms associated with or normally found in LGBTQIA+ environments",
     ),
 
   async execute(interaction, client) {
@@ -22,7 +22,7 @@ module.exports = {
 
     if (!channel) {
       await interaction.reply(
-        "The type of command you are trying to send can't be sent in User Install format. Please use this command again in a server where Pridebot is added. \nInvite link: https://pridebot.xyz/invite"
+        "The type of command you are trying to send can't be sent in User Install format. Please use this command again in a server where Pridebot is added. \nInvite link: https://pridebot.xyz/invite",
       );
       return;
     }
@@ -163,7 +163,6 @@ module.exports = {
           title4: "Resources",
           description4: "For more information on autism and support:",
           resources: [
-            "[Autism Speaks – Resource Guide](https://www.autismspeaks.org/resource-guide)",
             "[Autistic Self Advocacy Network](https://autisticadvocacy.org/)",
             "[The Asperger/Autism Network (AANE)](https://www.aane.org/)",
           ].join("\n"),
@@ -176,7 +175,7 @@ module.exports = {
         .setLabel(o.name)
         .setDescription(o.description)
         .setValue(o.value)
-        .setEmoji(o.emoji)
+        .setEmoji(o.emoji),
     );
 
     const selectMenu = new StringSelectMenuBuilder()
@@ -259,7 +258,7 @@ module.exports = {
           {
             name: otherInfo.info.title4,
             value: `${otherInfo.info.description4}\n${otherInfo.info.resources}`,
-          }
+          },
         );
 
         const buttons = createOtherButtons(currentIndex);
@@ -277,7 +276,7 @@ module.exports = {
       {
         componentType: ComponentType.BUTTON,
         time: 60000,
-      }
+      },
     );
 
     buttonCollector.on("collect", (buttonInteraction) => {
@@ -286,7 +285,7 @@ module.exports = {
       const otherInfo = other[selectedOtherIndex];
       if (!otherInfo) {
         console.error(
-          `No other information found for index: ${selectedOtherIndex}`
+          `No other information found for index: ${selectedOtherIndex}`,
         );
         return;
       }
@@ -298,7 +297,7 @@ module.exports = {
         {
           name: otherInfo.info.title4,
           value: `${otherInfo.info.description4}\n${otherInfo.info.resources}`,
-        }
+        },
       );
 
       const updatedButtons = createOtherButtons(selectedOtherIndex);
