@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
+const cookieParser = require("cookie-parser");
 const { EmbedBuilder, ChannelType } = require("discord.js");
 const CommandUsage = require("../../mongo/models/usageSchema.js");
 const ProfileData = require("../../mongo/models/profileSchema.js");
@@ -258,6 +259,8 @@ module.exports = (client) => {
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: true, limit: "1mb" }));
   app.use(cors());
+  app.use(cookieParser());
+
   app.use(rateLimiter);
 
   app.use((req, res, next) => {

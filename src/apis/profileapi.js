@@ -3,6 +3,7 @@ const session = require("express-session");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
+const cookieParser = require("cookie-parser");
 const ProfileData = require("../../mongo/models/profileSchema.js");
 const IDLists = require("../../mongo/models/idSchema.js");
 const UserCommandUsage = require("../../mongo/models/userCommandUsageSchema.js");
@@ -26,6 +27,7 @@ module.exports = (client) => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(cors());
+  app.use(cookieParser());
 
   app.use(
     session({
@@ -87,22 +89,67 @@ module.exports = (client) => {
     );
   });
 
-  app.get("/auth/discord", passport.authenticate("discord"));
+  const COOKIE_DOMAIN = config.isBeta ? undefined : ".pridebot.xyz";
+  const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+
+  app.get("/auth/discord", (req, res, next) => {
+    const redirectTo = req.query.redirect || req.headers.referer || "/";
+    res.cookie("pridebot_auth_redirect", redirectTo, {
+      maxAge: 5 * 60 * 1000,
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      domain: COOKIE_DOMAIN,
+    });
+    passport.authenticate("discord")(req, res, next);
+  });
 
   app.get(
     "/auth/callback",
     passport.authenticate("discord", { failureRedirect: "/login" }),
     (req, res) => {
-      const token = generateToken(req.user.id, req.user.username);
-      res.redirect(`/edit?token=${token}`);
+      const { id, username, avatar } = req.user;
+      const token = generateToken(id, username, avatar);
+
+      res.cookie("pridebot_token", token, {
+        maxAge: COOKIE_MAX_AGE,
+        httpOnly: false,
+        secure: true,
+        sameSite: "lax",
+        domain: COOKIE_DOMAIN,
+      });
+
+      const redirect = req.cookies?.pridebot_auth_redirect || "/";
+      res.clearCookie("pridebot_auth_redirect", { domain: COOKIE_DOMAIN });
+      res.redirect(redirect);
     }
   );
+
+  app.get("/auth/logout", (req, res) => {
+    res.clearCookie("pridebot_token", { domain: COOKIE_DOMAIN });
+    const redirect = req.query.redirect || req.headers.referer || "/";
+    req.logout(() => {
+      res.redirect(redirect);
+    });
+  });
 
   app.get("/logout", (req, res) => {
     req.logout((err) => {
       if (err) console.error("Logout error:", err);
       res.redirect("/");
     });
+  });
+
+  app.get("/auth/me", (req, res) => {
+    const token = req.cookies?.pridebot_token;
+    if (!token) return res.status(401).json({ error: "Not logged in" });
+    try {
+      const jwt = require("jsonwebtoken");
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || "pridebot-jwt-fallback-secret");
+      res.json({ id: decoded.id, username: decoded.username, avatar: decoded.avatar });
+    } catch {
+      res.status(401).json({ error: "Invalid token" });
+    }
   });
 
   app.get("/api/profile/me", verifyUserToken, async (req, res) => {
