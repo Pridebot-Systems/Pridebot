@@ -1,10 +1,17 @@
 const express = require("express");
+const session = require("express-session");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 const ProfileData = require("../../mongo/models/profileSchema.js");
 const IDLists = require("../../mongo/models/idSchema.js");
 const UserCommandUsage = require("../../mongo/models/userCommandUsageSchema.js");
+const {
+  configureDiscordAuth,
+  verifyUserToken,
+  generateToken,
+  passport,
+} = require("../../web/assets/js/auth.js");
 require("dotenv").config();
 const { getInfo } = require("discord-hybrid-sharding");
 
@@ -21,8 +28,26 @@ module.exports = (client) => {
   app.use(cors());
 
   app.use(
+    session({
+      secret: process.env.SESSION_SECRET || "pridebot-session-secret",
+      resave: false,
+      saveUninitialized: false,
+      cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 },
+    })
+  );
+
+  app.use(passport.initialize());
+  app.use(passport.session());
+  configureDiscordAuth();
+
+  app.use(
     "/assets",
     express.static(path.join(__dirname, "..", "..", "web", "assets"))
+  );
+
+  app.use(
+    "/pfps",
+    express.static(path.join(__dirname, "..", "profilepfps"))
   );
 
   app.listen(port, () => {
@@ -50,6 +75,138 @@ module.exports = (client) => {
     res.sendFile(
       path.join(__dirname, "..", "..", "web", "profiles", "index.html")
     );
+  });
+
+  app.get("/login", (req, res) => {
+    res.redirect("/auth/discord");
+  });
+
+  app.get("/edit", (req, res) => {
+    res.sendFile(
+      path.join(__dirname, "..", "..", "web", "profiles", "edit.html")
+    );
+  });
+
+  app.get("/auth/discord", passport.authenticate("discord"));
+
+  app.get(
+    "/auth/callback",
+    passport.authenticate("discord", { failureRedirect: "/login" }),
+    (req, res) => {
+      const token = generateToken(req.user.id, req.user.username);
+      res.redirect(`/edit?token=${token}`);
+    }
+  );
+
+  app.get("/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) console.error("Logout error:", err);
+      res.redirect("/");
+    });
+  });
+
+  app.get("/api/profile/me", verifyUserToken, async (req, res) => {
+    try {
+      const profile = await ProfileData.findOne({ userId: req.userId });
+
+      if (!profile) {
+        return res.status(404).json({
+          error: "Profile not found",
+          message: "You don't have a profile yet. Create one!",
+        });
+      }
+
+      res.json(profile);
+    } catch (error) {
+      console.error(`Error fetching profile for ${req.userId}:`, error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/profile/me", verifyUserToken, async (req, res) => {
+    try {
+      const updates = req.body;
+
+      const allowedFields = [
+        "preferredName",
+        "bio",
+        "age",
+        "sexuality",
+        "otherSexuality",
+        "romanticOrientation",
+        "gender",
+        "otherGender",
+        "pronouns",
+        "otherPronouns",
+        "color",
+        "pronounpage",
+      ];
+
+      const filteredUpdates = {};
+      allowedFields.forEach((field) => {
+        if (updates[field] !== undefined) {
+          filteredUpdates[field] = updates[field];
+        }
+      });
+
+      if (
+        filteredUpdates.age &&
+        (filteredUpdates.age < 13 || filteredUpdates.age > 120)
+      ) {
+        return res
+          .status(400)
+          .json({ error: "Age must be between 13 and 120" });
+      }
+
+      if (filteredUpdates.bio && filteredUpdates.bio.length > 1024) {
+        return res
+          .status(400)
+          .json({ error: "Bio must be 1024 characters or less" });
+      }
+
+      let profile = await ProfileData.findOne({ userId: req.userId });
+
+      if (!profile) {
+        try {
+          const user = await client.users.fetch(req.userId);
+          profile = await ProfileData.create({
+            userId: req.userId,
+            username: user.username,
+            ...filteredUpdates,
+          });
+        } catch (error) {
+          console.error(`Failed to fetch user ${req.userId}:`, error);
+          profile = await ProfileData.create({
+            userId: req.userId,
+            username: req.username,
+            ...filteredUpdates,
+          });
+        }
+      } else {
+        Object.assign(profile, filteredUpdates);
+        await profile.save();
+      }
+
+      res.json({ success: true, profile });
+    } catch (error) {
+      console.error(`Error updating profile for ${req.userId}:`, error);
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  });
+
+  app.delete("/api/profile/me", verifyUserToken, async (req, res) => {
+    try {
+      const result = await ProfileData.deleteOne({ userId: req.userId });
+
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      res.json({ success: true, message: "Profile deleted successfully" });
+    } catch (error) {
+      console.error(`Error deleting profile for ${req.userId}:`, error);
+      res.status(500).json({ error: "Failed to delete profile" });
+    }
   });
 
   app.get("/getUser/:userId", async (req, res) => {
@@ -114,20 +271,23 @@ module.exports = (client) => {
 
     try {
       const userUsage = await UserCommandUsage.findOne({ userId });
-      
+
       if (!userUsage || !userUsage.commandsUsed) {
         return res.json({ totalCommands: 0, commands: [] });
       }
 
-      const totalCommands = userUsage.commandsUsed.reduce((sum, cmd) => sum + cmd.usageCount, 0);
-      
-      return res.json({ 
+      const totalCommands = userUsage.commandsUsed.reduce(
+        (sum, cmd) => sum + cmd.usageCount,
+        0
+      );
+
+      return res.json({
         totalCommands,
-        commands: userUsage.commandsUsed.map(cmd => ({
+        commands: userUsage.commandsUsed.map((cmd) => ({
           name: cmd.commandName,
           count: cmd.usageCount,
-          firstUsed: cmd.firstUsedAt
-        }))
+          firstUsed: cmd.firstUsedAt,
+        })),
       });
     } catch (error) {
       console.error(`Error fetching command usage for ${userId}:`, error);
