@@ -22,6 +22,10 @@ const idDarSchema = new mongoose.Schema({
     type: [radarEntrySchema],
     default: [],
   },
+  lesdar: {
+    type: [radarEntrySchema],
+    default: [],
+  },
   bidar: {
     type: [radarEntrySchema],
     default: [],

@@ -35,6 +35,7 @@ const userprofile = require("./commands/Profile/userprofile.js");
 const usergaydar = require("./commands/Fun/usergaydar.js");
 const usertransdar = require("./commands/Fun/usertransdar.js");
 const userqueerdar = require("./commands/Fun/userqueerdar.js");
+const userlesdar = require("./commands/Fun/userlesdar.js");
 const useravatar = require("./commands/Avatar/useravatar-view.js");
 
 module.exports = (client) => {
@@ -246,6 +247,7 @@ module.exports = (client) => {
           const handlers = {
             "User Profile": userprofile,
             "User Gaydar": usergaydar,
+            "User Lesdar": userlesdar,
             "User Transdar": usertransdar,
             "User Queerdar": userqueerdar,
             "User Avatar-view": useravatar,
