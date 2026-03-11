@@ -68,6 +68,7 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setTitle(`How lesbian is ${userName}?`)
+      // Custom value for description is a special case as request from dev friend, will allow it for this command only - Sdriver1
       .setDescription(
         `<@${userid}> is **${userid === "1201827969585393676" ? "1000000000000000000000000" : utility_functions.number_format_commas(
           meter
