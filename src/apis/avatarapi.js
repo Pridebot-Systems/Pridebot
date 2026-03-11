@@ -30,7 +30,7 @@ module.exports = (client) => {
   );
 
   app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "..", "..", "web", "index.html"));
+    res.sendFile(path.join(__dirname, "..", "..", "web", "pfp", "index.html"));
   });
 
   // Health check endpoint
@@ -156,7 +156,7 @@ module.exports = (client) => {
     
     return res
       .status(404)
-      .sendFile(path.join(__dirname, "..", "..", "web", "404.html"));
+      .sendFile(path.join(__dirname, "..", "..", "web", "pfp", "404.html"));
   });
 
   app.get("/:identifier", async (req, res) => {
@@ -169,6 +169,7 @@ module.exports = (client) => {
         "..",
         "..",
         "web",
+        "pfp",
         "webavatar.html"
       );
       let htmlContent = fs.readFileSync(htmlFilePath, "utf8");

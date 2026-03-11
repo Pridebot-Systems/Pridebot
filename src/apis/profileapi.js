@@ -461,7 +461,7 @@ module.exports = (client) => {
       if (!profile) {
         return res
           .status(404)
-          .sendFile(path.join(__dirname, "..", "..", "web", "404.html"));
+          .sendFile(path.join(__dirname, "..", "..", "web", "profiles", "404.html"));
       }
       try {
         const user = await client.users.fetch(profile.userId);
@@ -481,7 +481,7 @@ module.exports = (client) => {
       console.error(`Error looking up username ${searched}:`, error);
       return res
         .status(404)
-        .sendFile(path.join(__dirname, "..", "..", "web", "404.html"));
+        .sendFile(path.join(__dirname, "..", "..", "web", "profiles", "404.html"));
     }
   });
 };
