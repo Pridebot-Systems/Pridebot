@@ -246,7 +246,6 @@ module.exports = (client) => {
           const handlers = {
             "User Profile": userprofile,
             "User Gaydar": usergaydar,
-            "User Lesdar": userlesdar,
             "User Transdar": usertransdar,
             "User Queerdar": userqueerdar,
             "User Avatar-view": useravatar,
