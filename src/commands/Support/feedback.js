@@ -79,6 +79,7 @@ module.exports = {
           "• Improvements to existing commands\n" +
           "• Anything else on your mind!\n\n" +
           "If you have a data deletion request, please select the 'Data Delete Request' option.\n\n" +
+          "If you your feedback is related to any radar percentages, please keep in mind, they are random number generators (RNG) and have no meaning except for fun\n\n"  +
           "**Please select a category below to get started:**"
       )
       .setColor(0xff00ae);
