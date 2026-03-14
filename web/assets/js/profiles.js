@@ -31,6 +31,10 @@ const badgeImages = {
     url: "https://cdn.discordapp.com/emojis/1235074804726628465.png",
     name: "Donor",
   },
+  easteregg: {
+    url: "https://cdn.discordapp.com/emojis/1481227039137857558.png",
+    name: "Easter Egg Hunter",
+  },
 };
 
 const API_BASE_URL = "";
