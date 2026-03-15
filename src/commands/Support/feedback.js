@@ -79,6 +79,7 @@ module.exports = {
           "• Improvements to existing commands\n" +
           "• Anything else on your mind!\n\n" +
           "If you have a data deletion request, please select the 'Data Delete Request' option.\n\n" +
+          "If you your feedback is related to any radar percentages, please keep in mind, they are random number generators (RNG) and have no meaning except for fun\n\n"  +
           "**Please select a category below to get started:**"
       )
       .setColor(0xff00ae);
@@ -113,6 +114,7 @@ module.exports = {
     collector.on("collect", async (selectInteraction) => {
       const category = selectInteraction.values[0];
 
+      // Special handling for data deletion requests
       if (category === "data_delete") {
         const dataTypeSelect = new StringSelectMenuBuilder()
           .setCustomId("data_delete_type")
@@ -226,6 +228,7 @@ module.exports = {
         return;
       }
 
+      // Regular feedback modal for non-deletion requests
       const modal = new ModalBuilder()
         .setCustomId(`feedback_modal_${category}`)
         .setTitle(`${getCategoryEmoji(category)} ${getCategoryName(category)}`);
@@ -267,6 +270,7 @@ const handleFeedbackModal = async (interaction) => {
   const customIdParts = interaction.customId.split("_");
   const category = customIdParts[2];
 
+  // Handle data deletion requests
   if (category === "data" && customIdParts[3] === "delete") {
     const dataTypes = customIdParts.slice(4).join("_").split(",");
     const deletionReason =
@@ -275,6 +279,7 @@ const handleFeedbackModal = async (interaction) => {
     const confirmText =
       interaction.fields.getTextInputValue("deletion_confirm");
 
+    // Verify confirmation
     if (confirmText.toUpperCase() !== "CONFIRM") {
       const errorEmbed = new EmbedBuilder()
         .setTitle("❌ Confirmation Failed")
@@ -292,6 +297,7 @@ const handleFeedbackModal = async (interaction) => {
     }
 
     try {
+      // Save the deletion request as feedback
       const feedback = new Feedback({
         userId: interaction.user.id,
         username: interaction.user.username,
@@ -310,6 +316,7 @@ const handleFeedbackModal = async (interaction) => {
 
       await feedback.save();
 
+      // Format data types for display
       const dataTypeNames = dataTypes.map((type) => {
         const typeMap = {
           profile: "Profile Data",
@@ -354,6 +361,8 @@ const handleFeedbackModal = async (interaction) => {
         embeds: [confirmEmbed],
         ephemeral: true,
       });
+
+      // Send notification to developers
       await sendDataDeletionNotification(
         interaction.client,
         feedback,
@@ -378,6 +387,7 @@ const handleFeedbackModal = async (interaction) => {
     return;
   }
 
+  // Handle regular feedback
   const feedbackText = interaction.fields.getTextInputValue("feedback_text");
 
   try {

@@ -255,7 +255,14 @@ module.exports = (client) => {
           if (handler) await handler.execute(interaction, client);
         }
       } catch (err) {
-        await errorlogging(client, err);
+        if (err.code === 10062) {
+          console.warn(`[WARN] Unknown Interaction (10062) for ${interaction.commandName || "unknown"} — interaction expired.`);
+        } else if (err.code === 50013) {
+          console.warn(`[WARN] Missing Permissions (50013) for ${interaction.commandName || "unknown"}.`);
+          await errorlogging(client, err);
+        } else {
+          await errorlogging(client, err);
+        }
       }
     });
 

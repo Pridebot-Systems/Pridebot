@@ -1,7 +1,11 @@
 const { EmbedBuilder, DiscordAPIError } = require("discord.js");
 const {sendLog} = require("./sendlogs");
 
+const SUPPRESSED_DISCORD_CODES = [10062]; // Unknown Interaction — expected noise, not actionable
+
 const errorlogging = async (client, error, context = {}) => {
+  if (error instanceof DiscordAPIError && SUPPRESSED_DISCORD_CODES.includes(error.code)) return;
+
   const channel = client.channels.cache.get("1303936573586411540");
   if (!channel) return;
   const estDate = new Date().toLocaleString("en-US", {

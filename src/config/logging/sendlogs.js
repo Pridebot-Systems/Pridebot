@@ -36,11 +36,6 @@ async function sendLog(client, message, channelId) {
             ? { content: message }
             : { embeds: [EmbedBuilder.from(message)] };
         await channel.send(content);
-        console.log(
-          `[sendLog] Direct message sent by cluster ${
-            client.cluster?.id ?? "unknown"
-          }`
-        );
         return;
       }
     }

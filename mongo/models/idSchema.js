@@ -9,6 +9,7 @@ const idSchema = new mongoose.Schema({
   oneyear: { type: [String], default: [] },
   partner: { type: [String], default: [] },
   support: { type: [String], default: [] },
+  easteregg: { type: [String], default: [] },
 });
 
 module.exports = mongoose.model("IDLists", idSchema);

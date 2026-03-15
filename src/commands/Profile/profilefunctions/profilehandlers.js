@@ -11,6 +11,10 @@ const {
 const commandLogging = require("../../../config/logging/commandlog");
 const profileLogging = require("../../../config/logging/profilelogging");
 const chalk = require("chalk");
+const axios = require("axios");
+const path = require("path");
+const fs = require("fs");
+const config = require("../../../environment");
 
 const Profile = require("../../../../mongo/models/profileSchema");
 const IDLists = require("../../../../mongo/models/idSchema");
@@ -59,7 +63,21 @@ async function handleEdit(interaction, client) {
       updates.premiumVisible = premiumToggle;
     }
     if (attachment) {
-      updates.pfp = attachment.url;
+      try {
+        const response = await axios.get(attachment.url, { responseType: "arraybuffer" });
+        const ext = path.extname(attachment.name || ".png").split("?")[0] || ".png";
+        const filename = `${userId}${ext}`;
+        const pfpDir = path.join(__dirname, "..", "..", "..", "profilepfps");
+        if (!fs.existsSync(pfpDir)) fs.mkdirSync(pfpDir, { recursive: true });
+        fs.writeFileSync(path.join(pfpDir, filename), response.data);
+        updates.pfp = `${config.links.profile}/pfps/${filename}?t=${Date.now()}`;
+      } catch (err) {
+        console.error("Failed to save premium pfp:", err);
+        return interaction.reply({
+          content: "Failed to save your profile picture. Please try again.",
+          ephemeral: true,
+        });
+      }
     }
   } else {
     return interaction.reply({
@@ -181,7 +199,7 @@ async function handleView(interaction, client) {
     .setColor(embedColor)
     .setTitle(`${targetUser.username}'s Profile ${badgeStr}`)
     .addFields(fields)
-    .setThumbnail(profile.pfp || targetUser.displayAvatarURL())
+    .setThumbnail(getProfileThumbnail(profile, targetUser))
     .setFooter({ text: "Profile Information" })
     .setTimestamp();
 
@@ -340,6 +358,14 @@ async function handleUpdate(interaction, client) {
     );
     return interaction.reply({
       content: "High toxicity or insult detected.",
+      ephemeral: true,
+    });
+  }
+
+  const pronounpage = interaction.options.getString("pronounpage");
+  if (pronounpage && !isValidPronounPageLink(pronounpage)) {
+    return interaction.reply({
+      content: "Invalid pronoun page link.",
       ephemeral: true,
     });
   }
@@ -504,6 +530,26 @@ async function handleSetup(interaction, client) {
 }
 
 // -- Utilities --
+function getProfileThumbnail(profile, targetUser) {
+  if (profile.pfp) {
+    try {
+      const url = new URL(profile.pfp);
+      // If it's a Discord CDN URL with expiry params, check if expired
+      if (url.hostname.includes("discord") && url.searchParams.has("ex")) {
+        const expiryHex = url.searchParams.get("ex");
+        const expiryTime = parseInt(expiryHex, 16) * 1000;
+        if (Date.now() > expiryTime) {
+          return targetUser.displayAvatarURL();
+        }
+      }
+      return profile.pfp;
+    } catch {
+      return targetUser.displayAvatarURL();
+    }
+  }
+  return targetUser.displayAvatarURL();
+}
+
 function isValidPronounPageLink(link) {
   return /^https:\/\/(en\.)?pronouns\.page\/@[\w-]+$/.test(link);
 }
@@ -597,6 +643,9 @@ function collectUpdateFields(interaction) {
   if (interaction.options.getString("other_pronouns") !== null) {
     const val = interaction.options.getString("other_pronouns");
     data.otherPronouns = val === "clear" ? "" : val;
+  }
+  if (interaction.options.getString("pronounpage") !== null) {
+    data.pronounpage = interaction.options.getString("pronounpage");
   }
   return data;
 }

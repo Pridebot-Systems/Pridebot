@@ -8,24 +8,26 @@
       as="image"
       fetchpriority="high"
     />
-    <title>Pride Avatar Search | Pridebot</title>
+    <title>User's Pride Avatars | Pridebot</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
     />
-    <meta
-      name="description"
-      content="Search and discover beautiful pride avatars created with Pridebot. Enter a username or user ID to explore their pride avatar collection."
-    />
-    <meta name="theme-color" content="#FF00ea" />
-    <meta name="og:title" content="Pride Avatar Search | Pridebot" />
-    <meta
-      name="og:description"
-      content="Search and discover beautiful pride avatars created with Pridebot."
-    />
+    <meta http-equiv="Content-Language" content="en" />
+    <meta name="description" content="Pridebot Pride Avatars for user" />
+    <meta name="og:description" content="Pridebot Pride Avatars for user" />
+    <meta name="og:title" content="user's Pride Avatars" />
     <meta
       name="og:image"
       content="https://cdn.discordapp.com/attachments/1101742240944107601/1219500201765507102/pridebotlogo.webp"
+    />
+    <meta property="og:site_name" content="Pridebot" />
+    <meta name="theme-color" content="#FF00ea" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="300x250"
+      href="https://cdn.discordapp.com/emojis/1108228682184654908.png"
     />
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css" />
     <link
@@ -37,99 +39,12 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
     <link rel="stylesheet" href="assets/css/webavatar.css" />
-    <link rel="stylesheet" href="assets/css/profiles.css" />
     <link rel="stylesheet" href="assets/fonts/font-awesome.min.css" />
     <link rel="stylesheet" href="assets/fonts/ionicons.min.css" />
-    <script src="assets/js/search.js" defer></script>
-    <script src="assets/js/auth-client.js" defer></script>
-    <style>
-      .user-dropdown {
-        display: none;
-        align-items: center;
-        position: relative;
-        cursor: pointer;
-        margin-left: 20px;
-      }
-      
-      .user-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border: 2px solid var(--main-color);
-        transition: transform 0.3s ease;
-      }
-      
-      .user-avatar:hover {
-        transform: scale(1.1);
-      }
-      
-      .user-dropdown-menu {
-        display: none;
-        position: absolute;
-        top: 50px;
-        right: 0;
-        background: white;
-        border: 2px solid var(--main-color);
-        border-radius: 10px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        min-width: 200px;
-        z-index: 1000;
-      }
-      
-      .user-dropdown-menu.show {
-        display: block;
-      }
-      
-      .user-dropdown-menu a,
-      .user-dropdown-menu button {
-        display: block;
-        width: 100%;
-        padding: 12px 20px;
-        text-align: left;
-        background: none;
-        border: none;
-        color: #333;
-        text-decoration: none;
-        cursor: pointer;
-        transition: background 0.2s ease;
-        font-size: 14px;
-      }
-      
-      .user-dropdown-menu a:hover,
-      .user-dropdown-menu button:hover {
-        background: rgba(255, 0, 234, 0.1);
-      }
-      
-      .user-dropdown-menu a:first-child {
-        border-radius: 10px 10px 0 0;
-      }
-      
-      .user-dropdown-menu button:last-child {
-        border-radius: 0 0 10px 10px;
-        color: #fc8181;
-        border-top: 1px solid #e2e8f0;
-      }
-      
-      .login-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        color: white;
-        padding: 8px 20px;
-        border-radius: 20px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin-left: 20px;
-      }
-      
-      .login-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-      }
-    </style>
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg fixed-top">
+    <!-- Modern Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top" id="top">
       <div class="container">
         <a class="navbar-brand" href="https://pridebot.xyz">
           <img
@@ -141,91 +56,112 @@
           Pridebot
         </a>
         <div class="navbar-nav ms-auto">
-          <a class="nav-link" href="https://profile.pridebot.xyz">Profiles</a>
-          <a class="nav-link" href="https://pridebot.xyz/support">Support</a>
-          <button class="login-btn" id="login-btn" onclick="AuthManager.login()">
-            <i class="fas fa-sign-in-alt"></i> Login
-          </button>
-          <div class="user-dropdown" id="user-dropdown" onclick="toggleUserDropdown(event)">
-            <img class="user-avatar" id="user-avatar" src="" alt="User Avatar">
-            <div class="user-dropdown-menu" id="user-dropdown-menu">
-              <a href="/profiles/profile.html"><i class="fas fa-user"></i> My Profile</a>
-              <a href="/webavatar.html"><i class="fas fa-images"></i> My Avatars</a>
-              <button onclick="AuthManager.logout()">
-                <i class="fas fa-sign-out-alt"></i> Logout
-              </button>
-            </div>
-          </div>
+          <a class="nav-link" href="/">Search</a>
+          <a class="nav-link" href="https://discord.gg/guybqSTzdS">Support</a>
         </div>
       </div>
     </nav>
-
-    <section class="hero-section">
+    <!-- Hero Section -->
+    <section
+      class="hero-section"
+      style="min-height: 60vh; padding: 120px 0 60px"
+    >
       <div class="container">
         <div class="hero-content">
           <div class="hero-logo">
             <img
               src="https://cdn.discordapp.com/emojis/1108228682184654908.png?size=1024"
-              alt="Pridebot Logo"
+              alt="User Avatar"
               class="logo-image"
+              style="width: 120px; height: 120px"
             />
           </div>
-          <h1 class="hero-title">Find Your Pride Avatars</h1>
+          <h1 class="hero-title" style="font-size: 2.5rem">
+            <span class="user-tag">User's</span> Pride Avatars
+          </h1>
           <p class="hero-subtitle">
-            Search for your pride avatars by entering a
-            <strong>username</strong> or <strong>user ID</strong>. Need to have
-            created one in the last 30 days to show up here.
+            Explore the pride avatar collection for
+            <strong><span class="user-tag">user</span></strong
+            >. Click to view full size or download any avatar you like.
           </p>
 
-          <div class="search-container">
-            <form id="search-form" class="search-form">
-              <div class="search-input-container">
-                <i class="fas fa-search search-icon"></i>
-                <input
-                  type="text"
-                  id="search-input"
-                  class="search-input"
-                  placeholder="Enter username or user ID..."
-                  autocomplete="off"
-                />
-                <button type="submit" class="search-button">
-                  <span class="button-text">Search</span>
-                  <i class="fas fa-arrow-right button-icon"></i>
-                </button>
-              </div>
-              <div class="search-suggestions" id="search-suggestions"></div>
-            </form>
-
-            <div id="search-result" class="search-result"></div>
-          </div>
-          <div class="info-section">
-            <h3>
-              <i class="fas fa-question-circle"></i> How to find a Discord User
-              ID
-            </h3>
-            <ol>
-              <li>
-                Enable Developer Mode in Discord Settings → App Settings →
-                Advanced
-              </li>
-              <li>Right-click on a user's profile</li>
-              <li>Click "Copy User ID"</li>
-            </ol>
+          <!-- Format Selector -->
+          <div class="format-selector">
+            <button class="format-btn active" data-format="all">
+              <i class="fas fa-images"></i> All Formats
+            </button>
+            <button class="format-btn" data-format="png">
+              <i class="fas fa-file-image"></i> PNG Only
+            </button>
+            <button class="format-btn" data-format="webp">
+              <i class="fas fa-compress-alt"></i> WebP Only
+            </button>
           </div>
         </div>
       </div>
     </section>
+    <!-- Avatar Gallery -->
+    <div class="features-boxed">
+      <div class="container">
+        <div class="intro">
+          <h2 id="avatar-title" class="section-title">Pride Avatars</h2>
+        </div>
 
+        <!-- Loading State -->
+        <div id="loading-container" class="text-center" style="display: block">
+          <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <h3>Loading Avatars...</h3>
+            <p>Please wait while we fetch the avatar collection</p>
+          </div>
+        </div>
+
+        <!-- Avatar Grid -->
+        <div
+          class="row justify-content-center features"
+          id="avatar-grid"
+          style="display: none"
+        >
+          <!-- The JavaScript will dynamically populate this section -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="empty-state" style="display: none">
+          <h3>No Avatars Found</h3>
+          <p>This user hasn't generated any pride avatars yet.</p>
+          <a href="https://pridebot.xyz/commands" class="btn">
+            <i class="fas fa-plus"></i> Learn How to Create Avatars
+          </a>
+        </div>
+
+        <!-- Pagination -->
+        <div
+          class="pagination-container"
+          id="pagination-container"
+          style="display: none"
+        >
+          <!-- Pagination will be inserted here by JavaScript -->
+        </div>
+      </div>
+    </div>
     <div class="footer-dark">
-      <div class="row"></div>
+      <div class="row">
+        <div class="col item social">
+          <a class="smoothScroll" href="#top">
+            <i class="icon ion-android-arrow-up"></i>
+          </a>
+        </div>
+      </div>
       <div class="row">
         <div class="col text-center">
           <p class="copyright" style="color: var(--text-color)">
-            Pridebot © 2023-2025
+            Pridebot © 2023-2024
           </p>
           <p class="developed-by" style="color: var(--text-color)">
             Developed by
-            <a href="https://sdriver1.dev" style="color: var(--main-color)"
+            <a
+              href="https://discordapp.com/users/691506668781174824"
+              style="color: var(--main-color)"
               >Sdriver1</a
             >
           </p>
@@ -362,5 +298,10 @@
         </div>
       </div>
     </div>
+    <!-- Scripts -->
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="assets/js/webavatar.js"></script>
+    <script src="assets/js/user-nav.js" defer></script>
   </body>
 </html>

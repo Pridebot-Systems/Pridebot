@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
+const cookieParser = require("cookie-parser");
 const { EmbedBuilder, ChannelType } = require("discord.js");
 const CommandUsage = require("../../mongo/models/usageSchema.js");
 const ProfileData = require("../../mongo/models/profileSchema.js");
@@ -85,7 +86,7 @@ function validateWebhookAuth(authHeader, platform) {
 async function sendEmbedToChannel(client, embed, channelId, context = "Vote") {
   if (!client.cluster || !client.cluster.ready) {
     console.warn(
-      `[${context}] Cluster client not ready, attempting direct send...`
+      `[${context}] Cluster client not ready, attempting direct send...`,
     );
     const channel = await client.channels.fetch(channelId).catch(() => null);
     if (
@@ -113,7 +114,7 @@ async function sendEmbedToChannel(client, embed, channelId, context = "Vote") {
       await channel.send({ embeds: [embed] });
       return c.cluster?.id ?? true;
     },
-    { context: { channelId, embedJSON: embed.toJSON() } }
+    { context: { channelId, embedJSON: embed.toJSON() } },
   );
 
   const success = results.find((r) => r !== null);
@@ -133,7 +134,7 @@ async function sendVoteEmbed(client, embed, platform, userId, res) {
       client,
       embed,
       VOTE_CHANNEL_ID,
-      platform
+      platform,
     );
 
     if (!success) {
@@ -148,7 +149,7 @@ async function sendVoteEmbed(client, embed, platform, userId, res) {
 
     if (error.code === "ERR_IPC_CHANNEL_CLOSED") {
       console.warn(
-        `[${platform}] IPC channel closed, attempting direct send...`
+        `[${platform}] IPC channel closed, attempting direct send...`,
       );
       try {
         const channel = await client.channels
@@ -167,7 +168,7 @@ async function sendVoteEmbed(client, embed, platform, userId, res) {
       } catch (directError) {
         console.error(
           `[${platform}] Direct send also failed:`,
-          directError.message
+          directError.message,
         );
       }
     }
@@ -201,11 +202,11 @@ async function updateStatsCache(client) {
     const totalUsage = usages.reduce((acc, cmd) => acc + cmd.count, 0);
     const totalGuildCount = usages.reduce(
       (acc, cmd) => acc + cmd.guildCount,
-      0
+      0,
     );
     const totalUserContextCount = usages.reduce(
       (acc, cmd) => acc + cmd.userContextCount,
-      0
+      0,
     );
     const profileAmount = await ProfileData.countDocuments();
     const commandsCount = (await getRegisteredCommandsCount(client)) + 2;
@@ -247,7 +248,7 @@ module.exports = (client) => {
 
   if (clusterId !== 0) {
     console.log(
-      `Cluster ${clusterId} skipping API initialization - only cluster 0 should run APIs.`
+      `Cluster ${clusterId} skipping API initialization - only cluster 0 should run APIs.`,
     );
     return;
   }
@@ -258,6 +259,8 @@ module.exports = (client) => {
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: true, limit: "1mb" }));
   app.use(cors());
+  app.use(cookieParser());
+
   app.use(rateLimiter);
 
   app.use((req, res, next) => {
@@ -377,26 +380,42 @@ module.exports = (client) => {
   });
 
   app.get("/serverstats", cors(), async (req, res) => {
-    const prismaGuild = client.guilds.cache.get("921403338069770280");
-    let prismatotal = 0;
-    if (prismaGuild) {
-      prismatotal = prismaGuild.memberCount;
-    } else {
-      console.error("Guild with ID 921403338069770280 not found.");
-    }
-
-    const pridecordGuild = client.guilds.cache.get("1077258761443483708");
-    let pridecordtotal = 0;
-    if (pridecordGuild) {
-      pridecordtotal = pridecordGuild.memberCount;
-    } else {
-      console.error("Guild with ID 1077258761443483708 not found.");
-    }
-
     try {
+      let pridecordtotal = 0;
+      let pridecordIcon = null;
+
+      if (client.cluster && client.cluster.ready) {
+        const results = await client.cluster.broadcastEval((c) => {
+          const guild = c.guilds.cache.get("1077258761443483708");
+          if (guild) {
+            return {
+              memberCount: guild.memberCount,
+              icon: guild.iconURL({ dynamic: true, size: 512 }),
+            };
+          }
+          return null;
+        });
+
+        const found = results.find((r) => r !== null);
+        if (found) {
+          pridecordtotal = found.memberCount;
+          pridecordIcon = found.icon;
+        } else {
+          console.error(
+            "Guild with ID 1077258761443483708 not found on any cluster.",
+          );
+        }
+      } else {
+        const guild = client.guilds.cache.get("1077258761443483708");
+        if (guild) {
+          pridecordtotal = guild.memberCount;
+          pridecordIcon = guild.iconURL({ dynamic: true, size: 512 });
+        }
+      }
+
       res.json({
-        prismatotal,
         pridecordtotal,
+        pridecordIcon,
       });
     } catch (error) {
       console.error("Failed to get server stats:", error);
@@ -408,7 +427,7 @@ module.exports = (client) => {
     try {
       const votes = await Voting.findOne(
         { "votingUsers.userId": req.params.userId },
-        { "votingUsers.$": 1 }
+        { "votingUsers.$": 1 },
       );
 
       if (!votes || votes.votingUsers.length === 0) {
@@ -484,14 +503,14 @@ module.exports = (client) => {
         console.error("Failed to retrieve bot commands:", error);
         return res.status(500).send("Internal Server Error");
       }
-    }
+    },
   );
 
   app.post("/topgg-votes", async (req, res) => {
     let topgguserid = req.body.user;
     let topggbotid = req.body.bot;
     console.log(
-      `[TopGG] Vote received for user ${topgguserid}, bot ${topggbotid}`
+      `[TopGG] Vote received for user ${topgguserid}, bot ${topggbotid}`,
     );
     const voteCooldownHours = 12;
     const voteCooldownSeconds = voteCooldownHours * 3600;
@@ -507,12 +526,12 @@ module.exports = (client) => {
 
         const voting = await Voting.findOne();
         const userVoting = voting.votingUsers.find(
-          (u) => u.userId === topgguserid
+          (u) => u.userId === topgguserid,
         );
 
         const embed = new EmbedBuilder()
           .setDescription(
-            `**Thank you <@${topgguserid}> for voting for <@${topggbotid}> on [Top.gg](https://top.gg/bot/${topggbotid}/vote) <:_:1195866944482590731>** \nYou can vote again <t:${voteAvailableTimestamp}:R> \n\n**<@${topgguserid}> Top.gg Votes: ${userVoting.votingTopGG}** \n**Total Top.gg Votes: ${voting.votingAmount.TopGGTotal}**`
+            `**Thank you <@${topgguserid}> for voting for <@${topggbotid}> on [Top.gg](https://top.gg/bot/${topggbotid}/vote) <:_:1195866944482590731>** \nYou can vote again <t:${voteAvailableTimestamp}:R> \n\n**<@${topgguserid}> Top.gg Votes: ${userVoting.votingTopGG}** \n**Total Top.gg Votes: ${voting.votingAmount.TopGGTotal}**`,
           )
           .setColor("#FF00EA")
           .setThumbnail(userAvatarURL)
@@ -556,12 +575,12 @@ module.exports = (client) => {
 
         const voting = await Voting.findOne();
         const userVoting = voting.votingUsers.find(
-          (u) => u.userId === botlistuser
+          (u) => u.userId === botlistuser,
         );
 
         const embed = new EmbedBuilder()
           .setDescription(
-            `**Thank you <@${botlistuser}> for voting for <@${botlistbot}> on [Botlist.me](https://botlist.me/bots/${botlistbot}/vote) <:_:1227425669642719282>** \nYou can vote again <t:${voteAvailableTimestamp}:R>. \n\n**<@${botlistuser}> Botlist Votes: ${userVoting.votingBotList}** \n**Total Botlist Votes: ${voting.votingAmount.BotListTotal}**`
+            `**Thank you <@${botlistuser}> for voting for <@${botlistbot}> on [Botlist.me](https://botlist.me/bots/${botlistbot}/vote) <:_:1227425669642719282>** \nYou can vote again <t:${voteAvailableTimestamp}:R>. \n\n**<@${botlistuser}> Botlist Votes: ${userVoting.votingBotList}** \n**Total Botlist Votes: ${voting.votingAmount.BotListTotal}**`,
           )
           .setColor("#FF00EA")
           .setThumbnail(userAvatarURL)
@@ -605,12 +624,12 @@ module.exports = (client) => {
 
         const voting = await Voting.findOne();
         const userVoting = voting.votingUsers.find(
-          (u) => u.userId === discordsuser
+          (u) => u.userId === discordsuser,
         );
 
         const embed = new EmbedBuilder()
           .setDescription(
-            `**Thank you <@${discordsuser}> for voting for <@${discordsbot}> on [discords.com](https://discords.com/bots/bot/${discordsbot}/vote) <:_:1317259330961018930>** \nYou can vote again <t:${voteAvailableTimestamp}:R>. \n\n**<@${discordsuser}> Discords.com Votes: ${userVoting.votingDiscords}** \n**Total Discords.com Votes: ${voting.votingAmount.DiscordsTotal}**`
+            `**Thank you <@${discordsuser}> for voting for <@${discordsbot}> on [discords.com](https://discords.com/bots/bot/${discordsbot}/vote) <:_:1317259330961018930>** \nYou can vote again <t:${voteAvailableTimestamp}:R>. \n\n**<@${discordsuser}> Discords.com Votes: ${userVoting.votingDiscords}** \n**Total Discords.com Votes: ${voting.votingAmount.DiscordsTotal}**`,
           )
           .setColor("#FF00EA")
           .setThumbnail(userAvatarURL)
@@ -633,7 +652,7 @@ module.exports = (client) => {
       console.log(
         `[GitHub] Received ${githubEvent} webhook for ${
           data.repository?.name || "unknown repo"
-        }`
+        }`,
       );
       let embed = new EmbedBuilder();
 
@@ -645,7 +664,7 @@ module.exports = (client) => {
         totalCommits = await getTotalCommits(
           ownerName,
           repoName,
-          process.env.githubToken
+          process.env.githubToken,
         );
       }
 
@@ -666,7 +685,7 @@ module.exports = (client) => {
           (commit) =>
             `[\`${commit.id.slice(0, 7)}\`](${commit.url}) - **${
               commit.message
-            }**`
+            }**`,
         );
 
         const viewMoreLink = `\n[View more on GitHub](https://github.com/${ownerName}/${repoName}/commits/main/)`;
@@ -701,14 +720,14 @@ module.exports = (client) => {
         embed
           .setColor("#FF00EA")
           .setDescription(
-            `## :star: New Star \n**Thank you [${data.sender.login}](https://github.com/${data.sender.login}) for starring [${repoName}](https://github.com/${ownerName}/${repoName})**`
+            `## :star: New Star \n**Thank you [${data.sender.login}](https://github.com/${data.sender.login}) for starring [${repoName}](https://github.com/${ownerName}/${repoName})**`,
           )
           .setTimestamp();
       } else if (githubEvent === "star" && data.action === "deleted") {
         embed
           .setColor("#FF00EA")
           .setDescription(
-            `## :star: Star Removed \n**[${data.sender.login}](https://github.com/${data.sender.login}) removed their star from [${repoName}](https://github.com/${ownerName}/${repoName}) ;-;**`
+            `## :star: Star Removed \n**[${data.sender.login}](https://github.com/${data.sender.login}) removed their star from [${repoName}](https://github.com/${ownerName}/${repoName}) ;-;**`,
           )
           .setTimestamp();
       } else if (githubEvent === "pull_request" && data.action === "opened") {
@@ -734,7 +753,7 @@ module.exports = (client) => {
               name: "Changed Files",
               value: `${pr.changed_files}`,
               inline: true,
-            }
+            },
           )
           .setTimestamp();
       } else if (githubEvent === "pull_request" && data.action === "closed") {
@@ -750,7 +769,7 @@ module.exports = (client) => {
           .setTitle(
             `Pull Request ${wasMerged ? "Merged" : "Closed"}: #${pr.number} - ${
               pr.title
-            }`
+            }`,
           )
           .setURL(pr.html_url)
           .addFields(
@@ -763,7 +782,7 @@ module.exports = (client) => {
               name: "Status",
               value: wasMerged ? "✅ Merged" : "❌ Closed",
               inline: true,
-            }
+            },
           )
           .setTimestamp();
       } else if (githubEvent === "issues" && data.action === "opened") {
@@ -802,7 +821,7 @@ module.exports = (client) => {
         // Check if cluster client is available
         if (!client.cluster || !client.cluster.ready) {
           console.warn(
-            "[GitHub] Cluster client not ready, attempting direct send..."
+            "[GitHub] Cluster client not ready, attempting direct send...",
           );
           const channel = await client.channels
             .fetch("1101742377372237906")
@@ -812,7 +831,7 @@ module.exports = (client) => {
             console.log("[GitHub] Embed sent directly (no clustering)");
           } else {
             console.error(
-              "[GitHub] Failed to send embed: channel not accessible"
+              "[GitHub] Failed to send embed: channel not accessible",
             );
           }
           response.sendStatus(200);
@@ -823,7 +842,7 @@ module.exports = (client) => {
           client,
           embed,
           GITHUB_CHANNEL_ID,
-          "GitHub"
+          "GitHub",
         );
         if (!success) {
           console.error("[GitHub] Failed to send embed to channel");
@@ -832,7 +851,7 @@ module.exports = (client) => {
         console.error("[GitHub] Error processing webhook:", error);
       }
       response.sendStatus(200);
-    }
+    },
   );
 
   // Global error handler (must be last)
@@ -856,7 +875,7 @@ module.exports = (client) => {
   // Start server
   const server = app.listen(API_PORT, () => {
     console.log(
-      `✅ Bot API running on port ${API_PORT} (Cluster ${clusterId})`
+      `✅ Bot API running on port ${API_PORT} (Cluster ${clusterId})`,
     );
   });
 
@@ -877,6 +896,6 @@ module.exports = (client) => {
   setInterval(() => updateStatsCache(client), STATS_CACHE_TTL);
 
   console.log(
-    `[API] Stats cache will update every ${STATS_CACHE_TTL / 1000} seconds`
+    `[API] Stats cache will update every ${STATS_CACHE_TTL / 1000} seconds`,
   );
 };

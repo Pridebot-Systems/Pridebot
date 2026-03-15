@@ -249,6 +249,40 @@ module.exports = {
       const channel = interaction.channel;
       const cmd = interaction.commandName || interaction.customId || "unknown";
 
+      // DiscordAPIError[10062]: Unknown Interaction — interaction expired or already handled
+      if (error.code === 10062) {
+        console.warn(`[WARN] Unknown Interaction (10062) for ${cmd} — interaction expired or already responded to.`);
+        return;
+      }
+
+      // DiscordAPIError[50013]: Missing Permissions
+      if (error.code === 50013) {
+        console.warn(`[WARN] Missing Permissions (50013) for ${cmd} in ${guild ? guild.name : "DM"}.`);
+        await errorlogging(client, error, {
+          command: cmd,
+          guild: guild ? `${guild.name} (${guild.id})` : "DM or Unknown",
+          channel: channel
+            ? {
+                id: channel.id,
+                name: "name" in channel ? channel.name : "Unnamed/DM",
+                type: channel.type,
+              }
+            : "DM or Unknown",
+          user: `${interaction.user.tag} (${interaction.user.id})`,
+        });
+
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction
+            .reply({
+              content:
+                "I'm missing permissions to do that in this channel. Please make sure I have the required permissions!",
+              ephemeral: true,
+            })
+            .catch(() => {});
+        }
+        return;
+      }
+
       console.error(`[ERROR] In interaction handler for ${cmd}:`, error);
 
       await errorlogging(client, error, {
