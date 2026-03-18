@@ -27,6 +27,20 @@ module.exports = (client) => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(cors());
+  app.use(cookieParser());
+
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || "pridebot-session-secret",
+      resave: false,
+      saveUninitialized: false,
+      cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 },
+    })
+  );
+
+  app.use(passport.initialize());
+  app.use(passport.session());
+  configureDiscordAuth();
 
   app.use(
     "/assets",
