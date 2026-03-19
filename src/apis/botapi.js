@@ -442,24 +442,71 @@ module.exports = (client) => {
   });
 
   const commandsDirectory = path.join(__dirname, "..", "commands");
+
+  const EXCLUDED_ENTRIES = new Set([
+    "avatarAnalytics",
+    "avatarProcessor",
+    "profilefunctions",
+    "pronouns-v2",
+  ]);
+
+  function isExcluded(name) {
+    return EXCLUDED_ENTRIES.has(name.replace(".js", ""));
+  }
+
+  function hasSubcategories(typeDir) {
+    return fs
+      .readdirSync(typeDir)
+      .some(
+        (entry) =>
+          !isExcluded(entry) &&
+          fs.statSync(path.join(typeDir, entry)).isDirectory(),
+      );
+  }
+
+  function listCommandFiles(dir) {
+    return fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith(".js") && !isExcluded(f))
+      .map((f) => f.replace(".js", ""));
+  }
+
+  function buildCategoryMap(typeDir) {
+    const categories = {};
+    for (const entry of fs.readdirSync(typeDir)) {
+      if (isExcluded(entry)) continue;
+      const entryPath = path.join(typeDir, entry);
+      if (fs.statSync(entryPath).isDirectory()) {
+        const commands = listCommandFiles(entryPath);
+        categories[entry] = { commands, count: commands.length };
+      }
+    }
+    return categories;
+  }
+
   app.get(
-    "/commands/:command_type?/:command_name?",
+    "/commands/:command_type?/:segment1?/:segment2?",
     cors(),
     async (req, res) => {
-      const { command_type, command_name } = req.params;
+      const { command_type, segment1, segment2 } = req.params;
 
       try {
         if (!command_type) {
           const allCommandTypes = fs
             .readdirSync(commandsDirectory)
             .reduce((acc, type) => {
-              const commands = fs
-                .readdirSync(path.join(commandsDirectory, type))
-                .map((file) => file.replace(".js", ""));
-              acc[type] = {
-                commands,
-                count: commands.length,
-              };
+              const typeDir = path.join(commandsDirectory, type);
+              if (hasSubcategories(typeDir)) {
+                const categories = buildCategoryMap(typeDir);
+                const count = Object.values(categories).reduce(
+                  (sum, cat) => sum + cat.count,
+                  0,
+                );
+                acc[type] = { categories, count };
+              } else {
+                const commands = listCommandFiles(typeDir);
+                acc[type] = { commands, count: commands.length };
+              }
               return acc;
             }, {});
 
@@ -467,38 +514,65 @@ module.exports = (client) => {
         }
 
         const commandTypeDir = path.join(commandsDirectory, command_type);
-        if (!command_name) {
-          if (!fs.existsSync(commandTypeDir)) {
-            return res.status(404).send("Command type not found");
+        if (!fs.existsSync(commandTypeDir)) {
+          return res.status(404).send("Command type not found");
+        }
+
+        if (hasSubcategories(commandTypeDir)) {
+          if (!segment1) {
+            const categories = buildCategoryMap(commandTypeDir);
+            return res.json({ [command_type]: { categories } });
           }
 
-          const commands = fs
-            .readdirSync(commandTypeDir)
-            .map((file) => file.replace(".js", ""));
+          const categoryDir = path.join(commandTypeDir, segment1);
+          if (!fs.existsSync(categoryDir)) {
+            return res.status(404).send("Category not found");
+          }
+
+          if (!segment2) {
+            const commands = listCommandFiles(categoryDir);
+            return res.json({ [command_type]: { [segment1]: { commands } } });
+          }
+
+          const commandFile = path.join(categoryDir, `${segment2}.js`);
+          if (!fs.existsSync(commandFile)) {
+            return res.status(404).send("Command not found");
+          }
+
+          const commandModule = require(commandFile);
+          const commandDescription = commandModule.data?.description || "";
+          const commandUsage = await CommandUsage.findOne({
+            commandName: segment2,
+          });
+
           return res.json({
-            [command_type]: {
-              commands,
-            },
+            command_name: commandUsage ? commandUsage.commandName : segment2,
+            command_description: commandDescription,
+            command_usage: commandUsage ? commandUsage.count : 0,
+          });
+        } else {
+          if (!segment1) {
+            const commands = listCommandFiles(commandTypeDir);
+            return res.json({ [command_type]: { commands } });
+          }
+
+          const commandFile = path.join(commandTypeDir, `${segment1}.js`);
+          if (!fs.existsSync(commandFile)) {
+            return res.status(404).send("Command not found");
+          }
+
+          const commandModule = require(commandFile);
+          const commandDescription = commandModule.data?.description || "";
+          const commandUsage = await CommandUsage.findOne({
+            commandName: segment1,
+          });
+
+          return res.json({
+            command_name: commandUsage ? commandUsage.commandName : segment1,
+            command_description: commandDescription,
+            command_usage: commandUsage ? commandUsage.count : 0,
           });
         }
-
-        const commandFile = path.join(commandTypeDir, `${command_name}.js`);
-        if (!fs.existsSync(commandFile)) {
-          return res.status(404).send("Command not found");
-        }
-
-        const commandModule = require(commandFile);
-        const commandDescription = commandModule.data?.description || "";
-
-        const commandUsage = await CommandUsage.findOne({
-          commandName: command_name,
-        });
-
-        return res.json({
-          command_name: commandUsage ? commandUsage.commandName : command_name,
-          command_description: commandDescription,
-          command_usage: commandUsage ? commandUsage.count : 0,
-        });
       } catch (error) {
         console.error("Failed to retrieve bot commands:", error);
         return res.status(500).send("Internal Server Error");
