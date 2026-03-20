@@ -2,6 +2,7 @@ const CommandUsage = require("../../../mongo/models/usageSchema");
 const UserCommandUsage = require("../../../mongo/models/userCommandUsageSchema");
 const Blacklist = require("../../../mongo/models/blacklistSchema.js");
 const IDLists = require("../../../mongo/models/idSchema.js");
+const PanVSPot = require("../../../mongo/models/panvspotSchema.js");
 const {
   handleModalSubmit,
   handleRemoveWebsite,
@@ -14,7 +15,36 @@ const {
   handleQuestion3Submission,
 } = require("../../commands/Profile/profilefunctions/profileSurveyHandler.js");
 const { errorlogging } = require("../../config/logging/errorlogs.js");
-const { EmbedBuilder } = require("discord.js");
+const {
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+} = require("discord.js");
+
+function buildPanPollEmbed(pollData) {
+  return new EmbedBuilder()
+    .setTitle("Pots vs Pans Poll")
+    .setDescription("Which do you prefer?")
+    .setColor(0xff00ae)
+    .addFields(
+      { name: "Pots", value: `${pollData.pots || 0} votes`, inline: true },
+      { name: "Pans", value: `${pollData.pans || 0} votes`, inline: true },
+    );
+}
+
+function buildPanPollButtons() {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("pan_poll_pots")
+      .setLabel("Pots")
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId("pan_poll_pans")
+      .setLabel("Pans")
+      .setStyle(ButtonStyle.Success),
+  );
+}
 
 async function isBlacklisted(userId, guildId) {
   try {
@@ -243,6 +273,70 @@ module.exports = {
           `[PROFILE SURVEY] ${interaction.user.tag} - Submitted Q3 (Complete)`
         );
         await handleQuestion3Submission(interaction);
+      } else if (
+        interaction.isButton() &&
+        interaction.customId.startsWith("alter_profile_")
+      ) {
+        console.log(
+          `[ALTER PROFILE] ${interaction.user.tag} - Opened alter profile`,
+        );
+        await handleAlterProfileButton(interaction, client);
+      } else if (
+        interaction.isButton() &&
+        interaction.customId.startsWith("back_to_profile_")
+      ) {
+        console.log(
+          `[ALTER PROFILE] ${interaction.user.tag} - Back to profile`,
+        );
+        await handleBackToProfileButton(interaction, client);
+      } else if (
+        interaction.isButton() &&
+        interaction.customId.startsWith("pan_poll_")
+      ) {
+        const choice =
+          interaction.customId === "pan_poll_pots" ? "pots" : "pans";
+        const userId = interaction.user.id;
+
+        let pollDoc = await PanVSPot.findOne();
+        if (!pollDoc) {
+          pollDoc = await PanVSPot.create({});
+        }
+
+        const updatedPoll = await PanVSPot.findOneAndUpdate(
+          {
+            _id: pollDoc._id,
+            "voters.userId": { $ne: userId },
+          },
+          {
+            $inc: { [choice]: 1 },
+            $push: { voters: { userId, choice } },
+          },
+          { new: true },
+        );
+
+        if (!updatedPoll) {
+          await interaction.reply({
+            content: "You've already voted in this poll.",
+            ephemeral: true,
+          });
+          return;
+        }
+
+        const updatedPollEmbed = buildPanPollEmbed(updatedPoll);
+        const embeds = interaction.message.embeds.map((embed) =>
+          EmbedBuilder.from(embed),
+        );
+
+        if (embeds.length >= 2) {
+          embeds[1] = updatedPollEmbed;
+        } else {
+          embeds.push(updatedPollEmbed);
+        }
+
+        await interaction.update({
+          embeds,
+          components: [buildPanPollButtons()],
+        });
       }
     } catch (error) {
       const guild = interaction.guild;

@@ -1,6 +1,37 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const {
+  SlashCommandBuilder,
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+} = require("discord.js");
 const commandLogging = require("../../../config/logging/commandlog");
 const loadTranslations = require("../../../config/commandfunctions/translation");
+const PanVSPot = require("../../../../mongo/models/panvspotSchema");
+
+function buildPollEmbed(pollData) {
+  return new EmbedBuilder()
+    .setTitle("Pots vs Pans Poll")
+    .setDescription("Which do you prefer?")
+    .setColor(0xff00ae)
+    .addFields(
+      { name: "Pots", value: `${pollData.pots || 0} votes`, inline: true },
+      { name: "Pans", value: `${pollData.pans || 0} votes`, inline: true }
+    );
+}
+
+function buildPollButtons() {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("pan_poll_pots")
+      .setLabel("Pots")
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId("pan_poll_pans")
+      .setLabel("Pans")
+      .setStyle(ButtonStyle.Success)
+  );
+}
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -57,7 +88,20 @@ module.exports = {
         }
       );
 
-    await interaction.reply({ embeds: [embed] });
+
+
+    let pollData = await PanVSPot.findOne();
+    if (!pollData) {
+      pollData = await PanVSPot.create({});
+    }
+
+    const pollEmbed = buildPollEmbed(pollData);
+    const pollButtons = buildPollButtons();
+
+    await interaction.reply({
+      embeds: [embed, pollEmbed],
+      components: [pollButtons],
+    });
     await commandLogging(client, interaction);
   },
 };
