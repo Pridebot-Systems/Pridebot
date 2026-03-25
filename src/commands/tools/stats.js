@@ -106,42 +106,42 @@ module.exports = {
 
       const embed = new EmbedBuilder()
         .setDescription(
-          "# <:_:1108228682184654908> Pridebot Stats \n Here are some stats about Pridebot!"
+          "# <:Ic_Pridebot_logo:1486466870709190899> Pridebot Stats \n Here are some stats about Pridebot!"
         )
         .setColor(0xff00ae)
         .addFields(
           {
-            name: "<:_:1195874659338555462> __Servers/Users__",
+            name: "<:Ic_Pridebot_users:1486467081405988996> __Servers/Users__",
             value: botstats,
             inline: true,
           },
           {
-            name: "<:_:1191202343505645690> __Ping/Latency__",
+            name: "<:Ic_Pridebot_ping:1486467071335465000> __Ping/Latency__",
             value: ping,
             inline: true,
           },
           {
-            name: "<:_:1115832874143322122> __Usage__",
+            name: "<:Ic_Pridebot_prideutility:1486467000187355308> __Usage__",
             value: clientstats,
             inline: true,
           },
           {
-            name: "<:_:1115831076993110067> __Command/Profile__",
+            name: "<:Ic_Pridebot_prideslash:1486466997398143086> __Command/Profile__",
             value: commandstats,
             inline: true,
           },
           {
-            name: "<:_:1112602480128299079> __Versions__",
+            name: "<:Ic_Pridebot_info:1486466990586724397> __Versions__",
             value: botversion,
             inline: true,
           },
           {
-            name: "<:_:1108417509624926228> __Uptime__",
+            name: "<:Ic_Pridebot_discord:1486466874186399894> __Uptime__",
             value: up,
             inline: true,
           },
           {
-            name: "<:_:1255012892206567476> __Shard/Cluster__",
+            name: "<:Ic_Pridebot_globe:1486467164486635520> __Shard/Cluster__",
             value: shardstats,
             inline: true,
           }

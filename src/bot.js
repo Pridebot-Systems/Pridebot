@@ -21,6 +21,7 @@ const { darCommand } = require("./commands/Dev/darID.js");
 const { topServerCommand } = require("./commands/Dev/topserver.js");
 const { handleErrorModeCommand } = require("./commands/Dev/errormode.js");
 const { pfpStatsCommand } = require("./commands/Dev/pfpstats.js");
+const { emotecopyCommand } = require("./commands/Dev/emotecopy.js");
 
 const { react } = require("./config/commandfunctions/trashreact.js");
 const { errorlogging } = require("./config/logging/errorlogs");
@@ -275,6 +276,7 @@ module.exports = (client) => {
         handleErrorModeCommand(message, client);
         topServerCommand(message, client);
         pfpStatsCommand(message, client);
+        emotecopyCommand(message, client);
       } catch (err) {
         await errorlogging(client, err);
       }

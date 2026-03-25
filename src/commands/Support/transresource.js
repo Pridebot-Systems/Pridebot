@@ -55,7 +55,7 @@ module.exports = {
         {
           name: "Trans Discord Servers",
           value:
-            "- <:_:1255687924977106997> [Trans Community Center](https://discord.gg/transcc) - 8.8k+ \n- [Trans Space](https://discord.gg/trans) - 8k+ \n- [The Orchard](https://discord.gg/theorchard) - 12.2k+",
+            "- <:Ic_Pridebot_partnerblurple:1486467167733153944> [Trans Community Center](https://discord.gg/transcc) - 10k+ \n- [Trans Space](https://discord.gg/trans) - 10k+ \n- [The Orchard](https://discord.gg/theorchard) - 12k+",
           inline: false,
         }
       )

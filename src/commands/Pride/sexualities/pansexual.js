@@ -66,7 +66,7 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle(`<:_:1108823338949812355> ${translations.title}`)
+      .setTitle(`<:F_Pridebot_pan:1486466890179154170> ${translations.title}`)
       .setDescription(translations.description)
       .setColor(0xff00ae)
       .setFields(
