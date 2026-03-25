@@ -17,6 +17,7 @@ async function updateVotingStats(userId, platform) {
       votingWumpus: 0,
       votingBotList: 0,
       votingDiscords: 0,
+      votingDiscordListGG: 0,
     };
     if (platform === "TopGG") {
       userVoting.votingTopGG = 1;
@@ -30,6 +31,9 @@ async function updateVotingStats(userId, platform) {
     } else if (platform === "Discords") {
       userVoting.votingDiscords = 1;
       voting.votingAmount.DiscordsTotal += 1;
+    } else if (platform === "DiscordListGG") {
+      userVoting.votingDiscordListGG = 1;
+      voting.votingAmount.DiscordListGGTotal += 1;
     }
     voting.votingUsers.push(userVoting);
   } else {
@@ -46,6 +50,9 @@ async function updateVotingStats(userId, platform) {
     } else if (platform === "Discords") {
       userVoting.votingDiscords += 1;
       voting.votingAmount.DiscordsTotal += 1;
+    } else if (platform === "DiscordListGG") {
+      userVoting.votingDiscordListGG += 1;
+      voting.votingAmount.DiscordListGGTotal += 1;
     }
   }
 
