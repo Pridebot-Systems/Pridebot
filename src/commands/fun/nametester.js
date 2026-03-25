@@ -99,7 +99,7 @@ module.exports = {
 async function sendFlagNotification(interaction, flaggedContent) {
   const embed = new EmbedBuilder()
     .setColor("#FF00EA")
-    .setTitle("<:_:1201388588949061642> Flagged Content Detected")
+    .setTitle("<:Ic_Pridebot_trigger:1486223209559883786> Flagged Content Detected")
     .addFields(
       { name: "Username", value: interaction.user.tag, inline: true },
       { name: "User ID", value: interaction.user.id, inline: true },
@@ -119,7 +119,7 @@ async function sendFlagNotification(interaction, flaggedContent) {
 async function sendToxicNotification(interaction, toxicity, insult, name) {
   const embed = new EmbedBuilder()
     .setColor("#FF00EA")
-    .setTitle("<:_:1201388588949061642> Toxic/Insult Content Detected")
+    .setTitle("<:Ic_Pridebot_toxic:1486223002658930798> Toxic/Insult Content Detected")
     .addFields(
       { name: "Username", value: interaction.user.tag, inline: true },
       { name: "User ID", value: interaction.user.id, inline: true },
