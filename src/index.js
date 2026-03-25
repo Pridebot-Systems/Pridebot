@@ -210,6 +210,32 @@ async function postToBotlistMe(client) {
   }
 }
 
+async function postToDiscordListGG(client) {
+  try {
+    const guildCounts = await client.cluster.fetchClientValues("guilds.cache.size");
+    const serverCount = guildCounts.reduce((a, b) => a + b, 0);
+
+    const response = await fetch(
+      `https://api.discordlist.gg/v0/bots/${config.clientId}/guilds?count=${serverCount}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${config.discordlistggToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    console.log("Stats successfully posted to discordlist.gg");
+  } catch (error) {
+    console.error("Failed to post to discordlist.gg:", error);
+  }
+}
+
 if (!config.isBeta) {
   setInterval(async () => {
     try {
@@ -223,6 +249,12 @@ if (!config.isBeta) {
       console.log("Botlist.me stats posted successfully");
     } catch (err) {
       console.error("postToBotlistMe failed:", err);
+    }
+    try {
+      await postToDiscordListGG(client);
+      console.log("Discordlist.gg stats posted successfully");
+    } catch (err) {
+      console.error("postToDiscordListGG failed:", err);
     }
   }, 15 * 60 * 1000);
   console.log("Bot list stat posting enabled (15min interval)");

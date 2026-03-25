@@ -3,6 +3,7 @@ const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 const { EmbedBuilder, ChannelType } = require("discord.js");
 const CommandUsage = require("../../mongo/models/usageSchema.js");
 const ProfileData = require("../../mongo/models/profileSchema.js");
@@ -216,6 +217,7 @@ async function updateStatsCache(client) {
     const topggtoal = voting.votingAmount.TopGGTotal;
     const wumpustotal = voting.votingAmount.WumpusTotal;
     const botlisttotal = voting.votingAmount.BotListTotal;
+    const discordlistggtotal = voting.votingAmount.DiscordListGGTotal;
 
     statsCache.data = {
       totalUserCount,
@@ -233,6 +235,7 @@ async function updateStatsCache(client) {
         topggtoal,
         wumpustotal,
         botlisttotal,
+        discordlistggtotal,
       },
     };
     statsCache.lastUpdated = new Date();
@@ -321,6 +324,11 @@ module.exports = (client) => {
             path: "/discords-votes",
             method: "POST",
             description: "Discords.com vote webhook (auth required)",
+          },
+          discordlistgg: {
+            path: "/discordlistgg-votes",
+            method: "POST",
+            description: "Discordlist.gg vote webhook (JWT verified)",
           },
           github: {
             path: "/github",
@@ -716,6 +724,70 @@ module.exports = (client) => {
         res.status(500).send("Internal Server Error");
       });
   });
+
+  app.post(
+    "/discordlistgg-votes",
+    express.text({ type: "*/*" }),
+    async (req, res) => {
+      const rawBody = typeof req.body === "string" ? req.body.trim() : null;
+
+      if (!rawBody) {
+        console.warn("[DiscordListGG] No body received");
+        return res.status(400).json({ error: "Missing body" });
+      }
+
+      let payload;
+      try {
+        payload = jwt.verify(rawBody, config.discordlistggWebhookSecret, {
+          algorithms: ["HS256"],
+        });
+      } catch (err) {
+        console.warn("[DiscordListGG] JWT verification failed:", err.message);
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const userId = payload.user_id;
+      const botId = payload.bot_id;
+      const isTest = payload.is_test === true;
+
+      if (!userId || !botId) {
+        return res
+          .status(400)
+          .json({ error: "Missing required fields: userId, botId" });
+      }
+
+      const voteCooldownSeconds = VOTE_COOLDOWN_HOURS * 3600;
+      const voteAvailableTimestamp =
+        Math.floor(Date.now() / 1000) + voteCooldownSeconds;
+
+      client.users
+        .fetch(userId)
+        .then(async (user) => {
+          const userAvatarURL = user.displayAvatarURL();
+
+          if (!isTest) await updateVotingStats(userId, "DiscordListGG");
+
+          const voting = await Voting.findOne();
+          const userVoting = voting.votingUsers.find(
+            (u) => u.userId === userId,
+          );
+
+          const embed = new EmbedBuilder()
+            .setDescription(
+              `**Thank you <@${userId}> for voting for <@${botId}> on [Discordlist.gg](https://discordlist.gg/bot/${botId}/vote) <:Ic_Pridebot_DL:1486467161215209703>** \nYou can vote again <t:${voteAvailableTimestamp}:R>. \n\n**<@${userId}> Discordlist.gg Votes: ${userVoting.votingDiscordListGG}** \n**Total Discordlist.gg Votes: ${voting.votingAmount.DiscordListGGTotal}**`,
+            )
+            .setColor("#FF00EA")
+            .setThumbnail(userAvatarURL)
+            .setTimestamp();
+
+          await sendVoteEmbed(client, embed, "DiscordListGG", userId, res);
+        })
+        .catch((error) => {
+          console.error("Error fetching user from Discord:", error);
+          res.status(500).send("Internal Server Error");
+        });
+    },
+  );
 
   app.post(
     "/github",
