@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <link
       rel="preload"
-      href="https://cdn.discordapp.com/attachments/1101742240944107601/1219500201765507102/pridebotlogo.webp"
+      href="https://pridebot.xyz/pridebotlogo.png"
       as="image"
       fetchpriority="high"
     />
@@ -17,17 +17,14 @@
     <meta name="description" content="View user profile on Pridebot" />
     <meta name="og:description" content="View user profile on Pridebot" />
     <meta name="og:title" content="User Profile | Pridebot" />
-    <meta
-      name="og:image"
-      content="https://cdn.discordapp.com/attachments/1101742240944107601/1219500201765507102/pridebotlogo.webp"
-    />
+    <meta name="og:image" content="https://pridebot.xyz/pridebotlogo.png" />
     <meta property="og:site_name" content="Pridebot" />
     <meta name="theme-color" content="#FF00ea" />
     <link
       rel="icon"
       type="image/png"
       sizes="300x250"
-      href="https://cdn.discordapp.com/emojis/1108228682184654908.png"
+      href="https://pridebot.xyz/pridebotlogo.png"
     />
     <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css" />
     <link
@@ -51,7 +48,7 @@
         cursor: pointer;
         margin-left: 20px;
       }
-      
+
       .user-avatar-nav {
         width: 36px;
         height: 36px;
@@ -59,11 +56,11 @@
         border: 2px solid var(--main-color);
         transition: transform 0.3s ease;
       }
-      
+
       .user-avatar-nav:hover {
         transform: scale(1.1);
       }
-      
+
       .user-dropdown-menu {
         display: none;
         position: absolute;
@@ -76,11 +73,11 @@
         min-width: 200px;
         z-index: 1000;
       }
-      
+
       .user-dropdown-menu.show {
         display: block;
       }
-      
+
       .user-dropdown-menu a,
       .user-dropdown-menu button {
         display: block;
@@ -95,22 +92,22 @@
         transition: background 0.2s ease;
         font-size: 14px;
       }
-      
+
       .user-dropdown-menu a:hover,
       .user-dropdown-menu button:hover {
         background: rgba(255, 0, 234, 0.1);
       }
-      
+
       .user-dropdown-menu a:first-child {
         border-radius: 10px 10px 0 0;
       }
-      
+
       .user-dropdown-menu button:last-child {
         border-radius: 0 0 10px 10px;
         color: #fc8181;
         border-top: 1px solid #e2e8f0;
       }
-      
+
       .login-btn {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border: none;
@@ -122,12 +119,12 @@
         transition: all 0.3s ease;
         margin-left: 20px;
       }
-      
+
       .login-btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
       }
-      
+
       .edit-profile-btn {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border: none;
@@ -141,12 +138,12 @@
         margin-top: 15px;
         display: none;
       }
-      
+
       .edit-profile-btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
       }
-      
+
       .edit-profile-btn i {
         margin-right: 8px;
       }
@@ -157,7 +154,7 @@
       <div class="container">
         <a class="navbar-brand" href="https://pridebot.xyz">
           <img
-            src="https://cdn.discordapp.com/emojis/1108228682184654908.png?size=128"
+            src="https://pridebot.xyz/pridebotlogo.png?size=128"
             width="28"
             height="28"
             alt="Pridebot"
@@ -176,14 +173,31 @@
         <div class="navbar-nav" id="nav-menu">
           <a class="nav-link" href="https://profile.pridebot.xyz">Search</a>
           <a class="nav-link" href="https://pridebot.xyz/support">Support</a>
-          <button class="login-btn" id="login-btn" onclick="AuthManager.login()">
+          <button
+            class="login-btn"
+            id="login-btn"
+            onclick="AuthManager.login()"
+          >
             <i class="fas fa-sign-in-alt"></i> Login
           </button>
-          <div class="user-dropdown" id="user-dropdown" onclick="toggleUserDropdown(event)">
-            <img class="user-avatar-nav" id="user-avatar" src="" alt="User Avatar">
+          <div
+            class="user-dropdown"
+            id="user-dropdown"
+            onclick="toggleUserDropdown(event)"
+          >
+            <img
+              class="user-avatar-nav"
+              id="user-avatar"
+              src=""
+              alt="User Avatar"
+            />
             <div class="user-dropdown-menu" id="user-dropdown-menu">
-              <a href="/profiles/profile.html"><i class="fas fa-user"></i> My Profile</a>
-              <a href="/webavatar.html"><i class="fas fa-images"></i> My Avatars</a>
+              <a href="/profiles/profile.html"
+                ><i class="fas fa-user"></i> My Profile</a
+              >
+              <a href="/webavatar.html"
+                ><i class="fas fa-images"></i> My Avatars</a
+              >
               <button onclick="AuthManager.logout()">
                 <i class="fas fa-sign-out-alt"></i> Logout
               </button>
@@ -208,7 +222,7 @@
             <div class="profile-avatar-container">
               <img
                 id="profile-avatar"
-                src="https://cdn.discordapp.com/emojis/1108228682184654908.png?size=512"
+                src="https://pridebot.xyz/pridebotlogo.png?size=512"
                 alt="User Avatar"
                 class="profile-avatar"
               />
@@ -218,7 +232,11 @@
               <h1 class="profile-name" id="profile-name">Loading...</h1>
               <p class="profile-username" id="profile-username">@username</p>
               <div class="profile-pronouns" id="profile-pronouns"></div>
-              <button class="edit-profile-btn" id="edit-profile-btn" onclick="window.location.href='edit.html'">
+              <button
+                class="edit-profile-btn"
+                id="edit-profile-btn"
+                onclick="window.location.href = 'edit.html'"
+              >
                 <i class="fas fa-edit"></i> Edit Profile
               </button>
             </div>
@@ -479,29 +497,35 @@
     <script src="../assets/js/profiles.js"></script>
     <script>
       // Check if viewing own profile
-      document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener("DOMContentLoaded", () => {
         const urlParams = new URLSearchParams(window.location.search);
-        const profileUserId = urlParams.get('userId');
-        const token = localStorage.getItem('pridebot_token');
-        
+        const profileUserId = urlParams.get("userId");
+        const token = localStorage.getItem("pridebot_token");
+
         if (token && profileUserId) {
           try {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
-              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
+            const base64Url = token.split(".")[1];
+            const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+            const jsonPayload = decodeURIComponent(
+              atob(base64)
+                .split("")
+                .map((c) => {
+                  return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+                })
+                .join(""),
+            );
             const decoded = JSON.parse(jsonPayload);
-            
+
             if (decoded.userId === profileUserId) {
-              document.getElementById('edit-profile-btn').style.display = 'inline-block';
+              document.getElementById("edit-profile-btn").style.display =
+                "inline-block";
             }
           } catch (error) {
-            console.error('Error checking profile ownership:', error);
+            console.error("Error checking profile ownership:", error);
           }
         }
       });
-      
+
       document
         .getElementById("nav-toggle")
         .addEventListener("click", function () {

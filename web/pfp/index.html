@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <link
       rel="preload"
-      href="https://cdn.discordapp.com/attachments/1101742240944107601/1219500201765507102/pridebotlogo.webp"
+      href="https://pridebot.xyz/pridebotlogo.png"
       as="image"
       fetchpriority="high"
     />
@@ -23,10 +23,7 @@
       name="og:description"
       content="Search and discover beautiful pride avatars created with Pridebot."
     />
-    <meta
-      name="og:image"
-      content="https://cdn.discordapp.com/attachments/1101742240944107601/1219500201765507102/pridebotlogo.webp"
-    />
+    <meta name="og:image" content="https://pridebot.xyz/pridebotlogo.png" />
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css" />
     <link
       rel="stylesheet"
@@ -50,7 +47,7 @@
         cursor: pointer;
         margin-left: 20px;
       }
-      
+
       .user-avatar {
         width: 36px;
         height: 36px;
@@ -58,11 +55,11 @@
         border: 2px solid var(--main-color);
         transition: transform 0.3s ease;
       }
-      
+
       .user-avatar:hover {
         transform: scale(1.1);
       }
-      
+
       .user-dropdown-menu {
         display: none;
         position: absolute;
@@ -75,11 +72,11 @@
         min-width: 200px;
         z-index: 1000;
       }
-      
+
       .user-dropdown-menu.show {
         display: block;
       }
-      
+
       .user-dropdown-menu a,
       .user-dropdown-menu button {
         display: block;
@@ -94,22 +91,22 @@
         transition: background 0.2s ease;
         font-size: 14px;
       }
-      
+
       .user-dropdown-menu a:hover,
       .user-dropdown-menu button:hover {
         background: rgba(255, 0, 234, 0.1);
       }
-      
+
       .user-dropdown-menu a:first-child {
         border-radius: 10px 10px 0 0;
       }
-      
+
       .user-dropdown-menu button:last-child {
         border-radius: 0 0 10px 10px;
         color: #fc8181;
         border-top: 1px solid #e2e8f0;
       }
-      
+
       .login-btn {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border: none;
@@ -121,7 +118,7 @@
         transition: all 0.3s ease;
         margin-left: 20px;
       }
-      
+
       .login-btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
@@ -133,7 +130,7 @@
       <div class="container">
         <a class="navbar-brand" href="https://pridebot.xyz">
           <img
-            src="https://cdn.discordapp.com/emojis/1108228682184654908.png?size=128"
+            src="https://pridebot.xyz/pridebotlogo.png?size=128"
             width="32"
             height="32"
             alt="Pridebot"
@@ -143,14 +140,31 @@
         <div class="navbar-nav ms-auto">
           <a class="nav-link" href="https://profile.pridebot.xyz">Profiles</a>
           <a class="nav-link" href="https://pridebot.xyz/support">Support</a>
-          <button class="login-btn" id="login-btn" onclick="AuthManager.login()">
+          <button
+            class="login-btn"
+            id="login-btn"
+            onclick="AuthManager.login()"
+          >
             <i class="fas fa-sign-in-alt"></i> Login
           </button>
-          <div class="user-dropdown" id="user-dropdown" onclick="toggleUserDropdown(event)">
-            <img class="user-avatar" id="user-avatar" src="" alt="User Avatar">
+          <div
+            class="user-dropdown"
+            id="user-dropdown"
+            onclick="toggleUserDropdown(event)"
+          >
+            <img
+              class="user-avatar"
+              id="user-avatar"
+              src=""
+              alt="User Avatar"
+            />
             <div class="user-dropdown-menu" id="user-dropdown-menu">
-              <a href="/profiles/profile.html"><i class="fas fa-user"></i> My Profile</a>
-              <a href="/webavatar.html"><i class="fas fa-images"></i> My Avatars</a>
+              <a href="/profiles/profile.html"
+                ><i class="fas fa-user"></i> My Profile</a
+              >
+              <a href="/webavatar.html"
+                ><i class="fas fa-images"></i> My Avatars</a
+              >
               <button onclick="AuthManager.logout()">
                 <i class="fas fa-sign-out-alt"></i> Logout
               </button>
@@ -165,7 +179,7 @@
         <div class="hero-content">
           <div class="hero-logo">
             <img
-              src="https://cdn.discordapp.com/emojis/1108228682184654908.png?size=1024"
+              src="https://pridebot.xyz/pridebotlogo.png?size=1024"
               alt="Pridebot Logo"
               class="logo-image"
             />
