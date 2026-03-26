@@ -106,7 +106,7 @@ module.exports = {
 
       const embed = new EmbedBuilder()
         .setDescription(
-          "# <:Ic_Pridebot_logo:1486466870709190899> Pridebot Stats \n Here are some stats about Pridebot!"
+          "# <:Lg_Pridebot_pride:1486524439423225946> Pridebot Stats \n Here are some stats about Pridebot!"
         )
         .setColor(0xff00ae)
         .addFields(
