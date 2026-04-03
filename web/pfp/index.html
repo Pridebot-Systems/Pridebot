@@ -140,36 +140,6 @@
         <div class="navbar-nav ms-auto">
           <a class="nav-link" href="https://profile.pridebot.xyz">Profiles</a>
           <a class="nav-link" href="https://pridebot.xyz/support">Support</a>
-          <button
-            class="login-btn"
-            id="login-btn"
-            onclick="AuthManager.login()"
-          >
-            <i class="fas fa-sign-in-alt"></i> Login
-          </button>
-          <div
-            class="user-dropdown"
-            id="user-dropdown"
-            onclick="toggleUserDropdown(event)"
-          >
-            <img
-              class="user-avatar"
-              id="user-avatar"
-              src=""
-              alt="User Avatar"
-            />
-            <div class="user-dropdown-menu" id="user-dropdown-menu">
-              <a href="/profiles/profile.html"
-                ><i class="fas fa-user"></i> My Profile</a
-              >
-              <a href="/webavatar.html"
-                ><i class="fas fa-images"></i> My Avatars</a
-              >
-              <button onclick="AuthManager.logout()">
-                <i class="fas fa-sign-out-alt"></i> Logout
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </nav>
