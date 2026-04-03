@@ -6,6 +6,8 @@ const PanVSPot = require("../../../mongo/models/panvspotSchema.js");
 const {
   handleModalSubmit,
   handleRemoveWebsite,
+  handleAlterProfileButton,
+  handleBackToProfileButton,
 } = require("../../commands/Profile/profilefunctions/profilehandlers.js");
 const { handleFeedbackModal } = require("../../commands/Support/feedback.js");
 const {
@@ -84,7 +86,7 @@ async function trackUserCommandUsage(userId, commandName) {
       await newUserUsage.save();
     } else {
       const existingCommand = userUsage.commandsUsed.find(
-        (cmd) => cmd.commandName === commandName
+        (cmd) => cmd.commandName === commandName,
       );
 
       if (existingCommand) {
@@ -113,7 +115,7 @@ async function checkAndShowFeedbackPrompt(interaction, userId) {
     const uniqueCommandsUsed = userUsage.commandsUsed.length;
     const totalUsageCount = userUsage.commandsUsed.reduce(
       (sum, cmd) => sum + cmd.usageCount,
-      0
+      0,
     );
 
     if (uniqueCommandsUsed >= 2 || totalUsageCount >= 3) {
@@ -125,7 +127,7 @@ async function checkAndShowFeedbackPrompt(interaction, userId) {
       const feedbackPromptEmbed = new EmbedBuilder()
         .setTitle("Help Improve PrideBot!")
         .setDescription(
-          "Hey there! We noticed you've been using PrideBot quite a bit and we'd love to hear your thoughts!\n\n Use the `/feedback` command to share your suggestions, report bugs, or just let us know what you think."
+          "Hey there! We noticed you've been using PrideBot quite a bit and we'd love to hear your thoughts!\n\n Use the `/feedback` command to share your suggestions, report bugs, or just let us know what you think.",
         )
         .setColor(0xff00ae)
         .setFooter({
@@ -141,7 +143,7 @@ async function checkAndShowFeedbackPrompt(interaction, userId) {
         } catch (error) {
           console.error(
             "[FEEDBACK PROMPT] Failed to send feedback prompt:",
-            error
+            error,
           );
         }
       }, 2000);
@@ -189,7 +191,7 @@ module.exports = {
           const usageData = await CommandUsage.findOneAndUpdate(
             { commandName },
             { $inc: { count: 1 } },
-            { upsert: true, new: true }
+            { upsert: true, new: true },
           );
           if (interaction.guild) usageData.guildCount += 1;
           else usageData.userContextCount += 1;
@@ -206,7 +208,7 @@ module.exports = {
         interaction.customId === "customWebsiteModal"
       ) {
         console.log(
-          `[MODAL SUBMIT] ${interaction.user.tag} - ${interaction.customId}`
+          `[MODAL SUBMIT] ${interaction.user.tag} - ${interaction.customId}`,
         );
         await handleModalSubmit(interaction, client);
       } else if (
@@ -214,7 +216,7 @@ module.exports = {
         interaction.customId === "removeWebsiteSelect"
       ) {
         console.log(
-          `[SELECT MENU] ${interaction.user.tag} - ${interaction.customId}`
+          `[SELECT MENU] ${interaction.user.tag} - ${interaction.customId}`,
         );
         await handleRemoveWebsite(interaction, client);
       } else if (
@@ -222,7 +224,7 @@ module.exports = {
         interaction.customId.startsWith("feedback_modal_")
       ) {
         console.log(
-          `[FEEDBACK MODAL] ${interaction.user.tag} - ${interaction.customId}`
+          `[FEEDBACK MODAL] ${interaction.user.tag} - ${interaction.customId}`,
         );
         await handleFeedbackModal(interaction);
       } else if (
@@ -230,7 +232,7 @@ module.exports = {
         interaction.customId.startsWith("profile_survey_yes_")
       ) {
         console.log(
-          `[PROFILE SURVEY] ${interaction.user.tag} - Accepted survey`
+          `[PROFILE SURVEY] ${interaction.user.tag} - Accepted survey`,
         );
         await handleProfileSurveyResponse(interaction);
       } else if (
@@ -238,39 +240,33 @@ module.exports = {
         interaction.customId.startsWith("profile_survey_no_")
       ) {
         console.log(
-          `[PROFILE SURVEY] ${interaction.user.tag} - Declined survey`
+          `[PROFILE SURVEY] ${interaction.user.tag} - Declined survey`,
         );
         await handleProfileSurveyResponse(interaction);
       } else if (
         interaction.isModalSubmit() &&
         interaction.customId.startsWith("profile_survey_q1_")
       ) {
-        console.log(
-          `[PROFILE SURVEY] ${interaction.user.tag} - Submitted Q1`
-        );
+        console.log(`[PROFILE SURVEY] ${interaction.user.tag} - Submitted Q1`);
         await handleQuestion1Submission(interaction);
       } else if (
         interaction.isButton() &&
         interaction.customId.startsWith("profile_survey_q2_yes_")
       ) {
-        console.log(
-          `[PROFILE SURVEY] ${interaction.user.tag} - Q2: Yes`
-        );
+        console.log(`[PROFILE SURVEY] ${interaction.user.tag} - Q2: Yes`);
         await handleQuestion2Response(interaction);
       } else if (
         interaction.isButton() &&
         interaction.customId.startsWith("profile_survey_q2_no_")
       ) {
-        console.log(
-          `[PROFILE SURVEY] ${interaction.user.tag} - Q2: No`
-        );
+        console.log(`[PROFILE SURVEY] ${interaction.user.tag} - Q2: No`);
         await handleQuestion2Response(interaction);
       } else if (
         interaction.isModalSubmit() &&
         interaction.customId.startsWith("profile_survey_q3_")
       ) {
         console.log(
-          `[PROFILE SURVEY] ${interaction.user.tag} - Submitted Q3 (Complete)`
+          `[PROFILE SURVEY] ${interaction.user.tag} - Submitted Q3 (Complete)`,
         );
         await handleQuestion3Submission(interaction);
       } else if (
@@ -345,13 +341,17 @@ module.exports = {
 
       // DiscordAPIError[10062]: Unknown Interaction — interaction expired or already handled
       if (error.code === 10062) {
-        console.warn(`[WARN] Unknown Interaction (10062) for ${cmd} — interaction expired or already responded to.`);
+        console.warn(
+          `[WARN] Unknown Interaction (10062) for ${cmd} — interaction expired or already responded to.`,
+        );
         return;
       }
 
       // DiscordAPIError[50013]: Missing Permissions
       if (error.code === 50013) {
-        console.warn(`[WARN] Missing Permissions (50013) for ${cmd} in ${guild ? guild.name : "DM"}.`);
+        console.warn(
+          `[WARN] Missing Permissions (50013) for ${cmd} in ${guild ? guild.name : "DM"}.`,
+        );
         await errorlogging(client, error, {
           command: cmd,
           guild: guild ? `${guild.name} (${guild.id})` : "DM or Unknown",
