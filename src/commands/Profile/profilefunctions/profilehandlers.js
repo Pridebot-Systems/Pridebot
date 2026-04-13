@@ -27,21 +27,19 @@ const {
 } = require("../../../config/detection/containDisallow");
 const { scanText } = require("../../../config/detection/perspective");
 
-async function handleEdit(interaction, client) {
+async function handleDisplay(interaction, client) {
   const userId = interaction.user.id;
   const colorInput = interaction.options.getString("color");
   const badgeToggle = interaction.options.getBoolean("badgetoggle");
-  const premiumToggle = interaction.options.getBoolean("premiumtoggle");
-  const attachment = interaction.options.getAttachment("premiumpicture");
 
   const originalProfile = await Profile.findOne({ userId });
   if (!originalProfile) {
     return interaction.reply({
-      content:
-        "You don’t have a profile yet. Use `/profile setup` to create one.",
+      content: "You don’t have a profile yet. Use `/profile setup` to create one.",
       ephemeral: true,
     });
   }
+
   const updates = {};
 
   if (colorInput) {
@@ -58,31 +56,9 @@ async function handleEdit(interaction, client) {
     updates.badgesVisible = badgeToggle;
   }
 
-  if (originalProfile.premiumMember == true) {
-    if (premiumToggle !== null) {
-      updates.premiumVisible = premiumToggle;
-    }
-    if (attachment) {
-      try {
-        const response = await axios.get(attachment.url, { responseType: "arraybuffer" });
-        const ext = path.extname(attachment.name || ".png").split("?")[0] || ".png";
-        const filename = `${userId}${ext}`;
-        const pfpDir = path.join(__dirname, "..", "..", "..", "profilepfps");
-        if (!fs.existsSync(pfpDir)) fs.mkdirSync(pfpDir, { recursive: true });
-        fs.writeFileSync(path.join(pfpDir, filename), response.data);
-        updates.pfp = `${config.links.profile}/pfps/${filename}?t=${Date.now()}`;
-      } catch (err) {
-        console.error("Failed to save premium pfp:", err);
-        return interaction.reply({
-          content: "Failed to save your profile picture. Please try again.",
-          ephemeral: true,
-        });
-      }
-    }
-  } else {
+  if (Object.keys(updates).length === 0) {
     return interaction.reply({
-      content:
-        "You need to be a premium user to use this command. \nYou can get premium by donating to the bot at https://pridebot.xyz/premium",
+      content: "No changes provided.",
       ephemeral: true,
     });
   }
@@ -94,19 +70,13 @@ async function handleEdit(interaction, client) {
   );
 
   await commandLogging(client, interaction);
-  await profileLogging(
-    client,
-    interaction,
-    "edited",
-    originalProfile,
-    updatedProfile
-  );
+  await profileLogging(client, interaction, "edited", originalProfile, updatedProfile);
 
-  let responseMessage = "Your profile has been updated successfully!";
+  let responseMessage = "Display settings updated!";
   if (colorInput && badgeToggle !== null) {
-    responseMessage += " Color and badge visibility have been updated.";
+    responseMessage = "Profile color and badge visibility updated.";
   } else if (colorInput) {
-    responseMessage += " Color has been updated.";
+    responseMessage = "Profile color updated!";
   } else if (badgeToggle !== null) {
     responseMessage = badgeToggle
       ? "Badges are now visible on your profile."
@@ -248,12 +218,46 @@ async function handleView(interaction, client) {
 }
 
 async function handlePremium(interaction, client) {
-  const action = interaction.options.getString("website");
   const userId = interaction.user.id;
+  const action = interaction.options.getString("website");
+  const premiumToggle = interaction.options.getBoolean("premiumtoggle");
+  const attachment = interaction.options.getAttachment("premiumpicture");
+
   let profile = (await Profile.findOne({ userId })) || new Profile({ userId });
-  profile.premiumMember = true;
+  if (!profile.premiumMember) profile.premiumMember = true;
   if (!profile.premiumSince) profile.premiumSince = new Date();
   await profile.save();
+
+  const updates = {};
+  const messages = [];
+
+  if (premiumToggle !== null) {
+    updates.premiumVisible = premiumToggle;
+    messages.push(premiumToggle ? "Premium days are now visible on your profile." : "Premium days are now hidden from your profile.");
+  }
+
+  if (attachment) {
+    try {
+      const response = await axios.get(attachment.url, { responseType: "arraybuffer" });
+      const ext = path.extname(attachment.name || ".png").split("?")[0] || ".png";
+      const filename = `${userId}${ext}`;
+      const pfpDir = path.join(__dirname, "..", "..", "..", "profilepfps");
+      if (!fs.existsSync(pfpDir)) fs.mkdirSync(pfpDir, { recursive: true });
+      fs.writeFileSync(path.join(pfpDir, filename), response.data);
+      updates.pfp = `${config.links.profile}/pfps/${filename}?t=${Date.now()}`;
+      messages.push("Profile picture updated.");
+    } catch (err) {
+      console.error("Failed to save premium pfp:", err);
+      return interaction.reply({
+        content: "Failed to save your profile picture. Please try again.",
+        ephemeral: true,
+      });
+    }
+  }
+
+  if (Object.keys(updates).length > 0) {
+    await Profile.findOneAndUpdate({ userId }, { $set: updates });
+  }
 
   if (action === "add") {
     const lastSite = profile.customWebsites.slice(-1)[0] || {};
@@ -286,10 +290,7 @@ async function handlePremium(interaction, client) {
   if (action === "remove") {
     const sites = profile.customWebsites || [];
     if (sites.length === 0) {
-      return interaction.reply({
-        content: "No websites to remove.",
-        ephemeral: true,
-      });
+      return interaction.reply({ content: "No websites to remove.", ephemeral: true });
     }
     const options = sites.map((ws) => ({ label: ws.label, value: ws.url }));
     const menu = new StringSelectMenuBuilder()
@@ -297,12 +298,14 @@ async function handlePremium(interaction, client) {
       .setPlaceholder("Select a website to remove")
       .addOptions(options);
     const row = new ActionRowBuilder().addComponents(menu);
-    return interaction.reply({
-      content: "Choose a website to remove:",
-      components: [row],
-      ephemeral: true,
-    });
+    return interaction.reply({ content: "Choose a website to remove:", components: [row], ephemeral: true });
   }
+
+  if (messages.length > 0) {
+    return interaction.reply({ content: messages.join(" "), ephemeral: true });
+  }
+
+  return interaction.reply({ content: "No changes provided.", ephemeral: true });
 }
 
 async function handleUpdate(interaction, client) {
@@ -718,7 +721,7 @@ async function handleRemoveWebsite(interaction, client) {
 }
 
 module.exports = {
-  handleEdit,
+  handleDisplay,
   handleView,
   handleUpdate,
   handleSetup,

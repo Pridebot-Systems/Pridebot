@@ -10,7 +10,7 @@ const {
   stringOptionWithChoices,
 } = require("./profilefunctions/profilehelper");
 const {
-  handleEdit,
+  handleDisplay,
   handleView,
   handleUpdate,
   handleSetup,
@@ -170,13 +170,13 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand
-        .setName("edit")
-        .setDescription("Edit part of your profile")
+        .setName("display")
+        .setDescription("Edit your profile's display settings")
         .addStringOption((option) =>
           option
             .setName("color")
             .setDescription(
-              "Enter in valid hex code for custom color for your profile (#{your code}"
+              "Enter a valid hex code for your profile color (e.g. #FF00EA)"
             )
             .setRequired(false)
         )
@@ -186,35 +186,31 @@ module.exports = {
             .setDescription("Toggle badge visibility on your profile")
             .setRequired(false)
         )
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("premium")
+        .setDescription("Manage premium features for your profile")
+        .addStringOption((option) =>
+          option
+            .setName("website")
+            .setDescription("Add/remove a custom website button from your profile")
+            .addChoices(
+              { name: "add", value: "add" },
+              { name: "remove", value: "remove" }
+            )
+            .setRequired(false)
+        )
         .addBooleanOption((option) =>
           option
             .setName("premiumtoggle")
-            .setDescription(
-              "*PREMIUM ONLY* Toggle premium days on your profile"
-            )
+            .setDescription("Toggle premium days display on your profile")
             .setRequired(false)
         )
         .addAttachmentOption((option) =>
           option
             .setName("premiumpicture")
-            .setDescription(
-              "*PREMIUM ONLY* Upload a custom pfp for your profile"
-            )
-            .setRequired(false)
-        )
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName("premium")
-        .setDescription("Manage premium feature for your profile")
-        .addStringOption((option) =>
-          option
-            .setName("website")
-            .setDescription("Add/remove a website from your profile")
-            .addChoices(
-              { name: "add", value: "add" },
-              { name: "remove", value: "remove" }
-            )
+            .setDescription("Upload a custom profile picture")
             .setRequired(false)
         )
     ),
@@ -226,8 +222,8 @@ module.exports = {
     const isPremiumUser = idListsData.donor.includes(interaction.user.id);
 
     switch (subcommand) {
-      case "edit":
-        return handleEdit(interaction, client);
+      case "display":
+        return handleDisplay(interaction, client);
       case "view":
         return handleView(interaction, client);
       case "update":
