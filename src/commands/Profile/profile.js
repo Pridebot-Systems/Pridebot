@@ -186,6 +186,12 @@ module.exports = {
             .setDescription("Toggle badge visibility on your profile")
             .setRequired(false)
         )
+        .addBooleanOption((option) =>
+          option
+            .setName("agetoggle")
+            .setDescription("Toggle age visibility on your profile")
+            .setRequired(false)
+        )
     )
     .addSubcommand((subcommand) =>
       subcommand

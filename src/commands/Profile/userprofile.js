@@ -75,12 +75,8 @@ module.exports = {
           inline: true,
         },
       ];
-      if (profile.age !== undefined && profile.age !== null) {
-        profileFields.push({
-          name: "Age",
-          value: profile.age === 0 ? "N/A" : profile.age.toString(),
-          inline: true,
-        });
+      if (profile.ageVisible !== false && profile.age && profile.age !== 0) {
+        profileFields.push({ name: "Age", value: profile.age.toString(), inline: true });
       }
       if (profile.bio) {
         profileFields.push({

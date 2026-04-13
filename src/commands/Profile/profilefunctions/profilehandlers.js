@@ -31,6 +31,7 @@ async function handleDisplay(interaction, client) {
   const userId = interaction.user.id;
   const colorInput = interaction.options.getString("color");
   const badgeToggle = interaction.options.getBoolean("badgetoggle");
+  const ageToggle = interaction.options.getBoolean("agetoggle");
 
   const originalProfile = await Profile.findOne({ userId });
   if (!originalProfile) {
@@ -55,6 +56,9 @@ async function handleDisplay(interaction, client) {
   if (badgeToggle !== null) {
     updates.badgesVisible = badgeToggle;
   }
+  if (ageToggle !== null) {
+    updates.ageVisible = ageToggle;
+  }
 
   if (Object.keys(updates).length === 0) {
     return interaction.reply({
@@ -72,18 +76,12 @@ async function handleDisplay(interaction, client) {
   await commandLogging(client, interaction);
   await profileLogging(client, interaction, "edited", originalProfile, updatedProfile);
 
-  let responseMessage = "Display settings updated!";
-  if (colorInput && badgeToggle !== null) {
-    responseMessage = "Profile color and badge visibility updated.";
-  } else if (colorInput) {
-    responseMessage = "Profile color updated!";
-  } else if (badgeToggle !== null) {
-    responseMessage = badgeToggle
-      ? "Badges are now visible on your profile."
-      : "Badges are now hidden from your profile.";
-  }
+  const confirmations = [];
+  if (colorInput) confirmations.push("Profile color updated.");
+  if (badgeToggle !== null) confirmations.push(badgeToggle ? "Badges are now visible." : "Badges are now hidden.");
+  if (ageToggle !== null) confirmations.push(ageToggle ? "Age is now visible." : "Age is now hidden.");
 
-  return interaction.reply({ content: responseMessage, ephemeral: true });
+  return interaction.reply({ content: confirmations.join(" ") || "Display settings updated!", ephemeral: true });
 }
 
 async function handleView(interaction, client) {
@@ -128,11 +126,9 @@ async function handleView(interaction, client) {
     value: profile.preferredName || "Not set",
     inline: true,
   });
-  fields.push({
-    name: "Age",
-    value: profile.age === 0 ? "N/A" : String(profile.age || "Not set"),
-    inline: true,
-  });
+  if (profile.ageVisible !== false && profile.age && profile.age !== 0) {
+    fields.push({ name: "Age", value: String(profile.age), inline: true });
+  }
   fields.push({
     name: "Commands Run",
     value: totalCommands.toString(),
@@ -487,11 +483,9 @@ async function handleSetup(interaction, client) {
     value: newProfile.preferredName || "Not set",
     inline: true,
   });
-  fields.push({
-    name: "Age",
-    value: newProfile.age === 0 ? "N/A" : String(newProfile.age),
-    inline: true,
-  });
+  if (newProfile.age && newProfile.age !== 0) {
+    fields.push({ name: "Age", value: String(newProfile.age), inline: true });
+  }
   if (newProfile.bio)
     fields.push({
       name: "Bio",

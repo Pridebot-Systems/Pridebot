@@ -30,6 +30,7 @@ const profileSchema = new mongoose.Schema(
     pfp: { type: String },
 
     badgesVisible: { type: Boolean, default: true },
+    ageVisible: { type: Boolean, default: true },
     premiumVisible: { type: Boolean, default: true },
 
     pronounpage: { type: String },
