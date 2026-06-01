@@ -238,13 +238,32 @@ class AvatarProcessor {
 
     const cacheKey = `${userID}-${flagName}${flagName2 ? "-" + flagName2 : ""}`;
 
-    // Check cache first
+    // 1. Check in-memory cache (fastest, same-cluster hits)
     const cached = processedAvatarCache.get(cacheKey);
     if (cached) {
       return cached;
     }
 
-    // Prevent duplicate processing
+    // 2. Check disk cache (works across all clusters/shards)
+    const diskPath = path.join(
+      __dirname, "../../pfps",
+      userID.toLowerCase(),
+      `${flagName}${flagName2 || ""}.png`
+    );
+    try {
+      const stat = await fs.stat(diskPath);
+      const age = Date.now() - stat.mtimeMs;
+      if (age < 24 * 60 * 60 * 1000) {
+        const buffer = await fs.readFile(diskPath);
+        const result = { buffer, processingTime: 0, fileSize: buffer.length, cacheKey, fromDiskCache: true };
+        processedAvatarCache.set(cacheKey, result);
+        return result;
+      }
+    } catch {
+      // File doesn't exist yet, fall through to generation
+    }
+
+    // 3. Prevent duplicate processing
     if (this.processing.has(cacheKey)) {
       return await this.processing.get(cacheKey);
     }
@@ -472,12 +491,14 @@ class AvatarProcessor {
   }
 }
 
+// Create singleton instance
+const avatarProcessor = new AvatarProcessor();
+
 // Process avatar generation jobs (only if queue is available)
 if (avatarQueue) {
   avatarQueue.process("generate", async (job) => {
     const { avatarURL, flagName, flagName2, userID } = job.data;
-    const processor = new AvatarProcessor();
-    return await processor.generateAvatar(
+    return await avatarProcessor.generateAvatar(
       avatarURL,
       flagName,
       flagName2,
@@ -485,9 +506,6 @@ if (avatarQueue) {
     );
   });
 }
-
-// Create singleton instance
-const avatarProcessor = new AvatarProcessor();
 
 module.exports = {
   avatarProcessor,

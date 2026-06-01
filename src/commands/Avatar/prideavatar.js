@@ -80,21 +80,19 @@ module.exports = {
         await avatarProcessor.initialize();
       }
 
-      await interaction.editReply("Creating your pride avatar...");
-
       // Generate avatar using optimized processor
       let avatarData;
       try {
         avatarData = await avatarProcessor.generateAvatar(
-          avatarURL, 
-          flagName, 
-          flagName2, 
+          avatarURL,
+          flagName,
+          flagName2,
           pfpuser.id,
           pfpuser.username
         );
       } catch (error) {
         console.error(`Avatar generation failed for user ${pfpuser.id}:`, error);
-        
+
         if (error.message.includes('Failed to download user avatar')) {
           await interaction.editReply({
             content: "❌ Unable to download your avatar. Please ensure your Discord avatar is set and try again.",
@@ -114,34 +112,19 @@ module.exports = {
         return;
       }
 
-      // Save avatar files
       const fileName = `${flagName}${flagName2 ? flagName2 : ""}.png`;
-      let savedPaths;
-      try {
-        savedPaths = await avatarProcessor.saveAvatar(avatarData, pfpuser.id, fileName, pfpuser.username);
-      } catch (error) {
-        console.error(`Error saving avatar for user ${pfpuser.id}:`, error);
-        await interaction.editReply({
-          content: "❌ Error saving your avatar. Please try again.",
-          ephemeral: true
-        });
-        return;
-      }
-
       const timestamp = Date.now();
       const imageURL = `https://pfp.pridebot.xyz/${pfpuser.id}/${fileName}`;
       const imageURLWithTime = `${imageURL}?time=${timestamp}`;
 
       const embed = new EmbedBuilder()
         .setTitle(`${username}'s ${flagName}${flagName2 ? " & " + flagName2 : ""} Avatar`)
-        .setImage(imageURLWithTime)
+        .setImage(`attachment://avatar.png`)
         .setFooter({
           text: "For more flags use /avatar-list | Images deleted after 30 days",
         })
         .setColor("#FF00EA")
         .setTimestamp();
-
-
 
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
@@ -159,12 +142,12 @@ module.exports = {
       );
 
       await commandLogging(client, interaction);
-      
+
       const totalTime = Date.now() - startTime;
       if (totalTime > 2000) {
         console.log(`Slow avatar command: ${totalTime}ms for ${pfpuser.id}`);
       }
-      
+
       logAvatarGeneration({
         userID: pfpuser.id,
         username: username,
@@ -172,15 +155,22 @@ module.exports = {
         flagName2: flagName2,
         processingTime: avatarData.processingTime,
         fileSize: avatarData.fileSize,
-        cacheHit: avatarData.processingTime < 100,
+        cacheHit: avatarData.fromDiskCache === true || avatarData.processingTime < 100,
         totalCommandTime: totalTime
       }).catch(error => {
         console.error('Failed to log avatar generation analytics:', error);
       });
-      
+
+      // Save to disk in the background (skip if already served from disk cache)
+      if (!avatarData.fromDiskCache) {
+        avatarProcessor.saveAvatar(avatarData, pfpuser.id, fileName, pfpuser.username)
+          .catch(err => console.error(`Error saving avatar for user ${pfpuser.id}:`, err));
+      }
+
       await interaction.editReply({
         content: `Your pride avatar is ready!`,
         embeds: [embed],
+        files: [{ attachment: avatarData.buffer, name: 'avatar.png' }],
         components: [row]
       });
 
