@@ -13,6 +13,7 @@ const initializePremiumApi = require("./apis/premiumapi");
 const cron = require("node-cron");
 const { deleteOldFiles } = require("./config/botfunctions/cleanup");
 const { updatePfpStatsCache } = require("./commands/Dev/pfpstats.js");
+const CommandUsage = require("../mongo/models/usageSchema.js");
 
 const { idCommand } = require("./commands/Dev/id.js");
 const { blacklistCommand } = require("./commands/Dev/blacklist.js");
@@ -49,21 +50,6 @@ module.exports = (client) => {
         require(`./functions/${folder}/${file}`)(client);
       }
     }
-
-    cron.schedule("0 0 * * *", () => {
-      console.log("🧹 Running daily cleanup...");
-      deleteOldFiles(client, "1360270874933989386");
-    });
-
-    cron.schedule("0 */3 * * *", async () => {
-      console.log("📊 Running scheduled PFP stats update...");
-      try {
-        await updatePfpStatsCache();
-        console.log("✅ PFP stats cache updated successfully");
-      } catch (error) {
-        console.error("❌ Failed to update PFP stats cache:", error);
-      }
-    });
 
     client.on(Events.GuildCreate, (guild) => {
       try {
@@ -132,15 +118,24 @@ module.exports = (client) => {
           });
 
           if (specialDay) {
-            await client.user.setPresence({
-              status: "online",
-              activities: [
-                {
-                  type: specialDay.activityType,
-                  name: specialDay.message,
+            await client.cluster.broadcastEval(
+              async (c, { activity }) => {
+                if (c.user) {
+                  await c.user.setPresence({
+                    status: "online",
+                    activities: [activity],
+                  });
+                }
+              },
+              {
+                context: {
+                  activity: {
+                    type: specialDay.activityType,
+                    name: specialDay.message,
+                  },
                 },
-              ],
-            });
+              }
+            );
             return;
           }
 
@@ -157,11 +152,12 @@ module.exports = (client) => {
           const totalGuilds = results.reduce((acc, r) => acc + r.guildCount, 0);
           const totalUsers = results.reduce((acc, r) => acc + r.userCount, 0);
 
-          const CommandUsage = require("../mongo/models/usageSchema.js");
           let totalUsage = 0;
           try {
-            const usages = await CommandUsage.find({});
-            totalUsage = usages.reduce((acc, u) => acc + u.count, 0);
+            const [result] = await CommandUsage.aggregate([
+              { $group: { _id: null, total: { $sum: "$count" } } },
+            ]);
+            totalUsage = result?.total ?? 0;
           } catch (err) {
             console.error("[PRESENCE] Command usage fetch error:", err);
           }
@@ -179,6 +175,10 @@ module.exports = (client) => {
               type: 0,
               name: `with ${totalUsage.toLocaleString()} commands`,
             },
+            {
+              type: 3,
+              name: `over all Pride Month celebrations!`,
+            }
           ];
 
           const presence = presences[client.presenceIndex];
@@ -187,10 +187,18 @@ module.exports = (client) => {
             console.error("[PRESENCE] client.user is undefined!");
             return;
           }
-          await client.user.setPresence({
-            status: "online",
-            activities: [presence],
-          });
+
+          await client.cluster.broadcastEval(
+            async (c, { status, activity }) => {
+              if (c.user) {
+                await c.user.setPresence({
+                  status,
+                  activities: [activity],
+                });
+              }
+            },
+            { context: { status: "online", activity: presence } }
+          );
 
           client.presenceIndex = (client.presenceIndex + 1) % presences.length;
         } catch (err) {
@@ -200,7 +208,6 @@ module.exports = (client) => {
 
       if (clusterId === 0) {
         try {
-          await client.shard?.broadcastEval(() => true);
           await new Promise((res) => setTimeout(res, 5000));
 
           await client.updatePresence();
@@ -215,6 +222,21 @@ module.exports = (client) => {
         } catch (err) {
           console.error("[READY] Failed to start presence updates:", err);
         }
+
+        cron.schedule("0 0 * * *", () => {
+          console.log("🧹 Running daily cleanup...");
+          deleteOldFiles(client, "1360270874933989386");
+        });
+
+        cron.schedule("0 */3 * * *", async () => {
+          console.log("📊 Running scheduled PFP stats update...");
+          try {
+            await updatePfpStatsCache();
+            console.log("✅ PFP stats cache updated successfully");
+          } catch (error) {
+            console.error("❌ Failed to update PFP stats cache:", error);
+          }
+        });
 
         try {
           initializeAvatarApi(client);

@@ -1,10 +1,9 @@
 require("dotenv").config();
 const config = require("./environment");
 const { connect } = require("mongoose");
-const { Client, GatewayIntentBits } = require("discord.js");
+const { Client, EmbedBuilder, GatewayIntentBits } = require("discord.js");
 const { ClusterClient, getInfo } = require("discord-hybrid-sharding");
 const { AutoPoster } = require("topgg-autoposter");
-const BotlistMeClient = require("botlist.me.js");
 const fs = require("fs");
 const path = require("path");
 
@@ -30,24 +29,24 @@ const markShuttingDown = () => {
 };
 
 process.on("SIGINT", () => {
-  markShuttingDown;
+  markShuttingDown();
   logShutdownTime();
   process.exit();
 });
 
 process.on("SIGTERM", () => {
   console.log("Received SIGTERM, shutting down...");
-  markShuttingDown;
+  markShuttingDown();
   logShutdownTime();
   process.exit();
 });
 process.on("exit", (code) => {
   console.log("Process exiting with code:", code);
-  markShuttingDown;
+  markShuttingDown();
 });
 process.on("beforeExit", (code) => {
   console.log("⚠️ beforeExit called with code:", code);
-  markShuttingDown;
+  markShuttingDown();
 });
 
 process.on("disconnect", markShuttingDown);
@@ -58,10 +57,8 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.GuildMessageTyping,
     GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.DirectMessages,
-    GatewayIntentBits.DirectMessageTyping,
     GatewayIntentBits.DirectMessageReactions,
   ],
 });
@@ -174,7 +171,7 @@ if (!config.isBeta) {
       shardCount: client.cluster.info.TOTAL_SHARDS,
     };
   };
-  ap.on("error", (err) => {});
+  ap.on("error", (err) => console.error("[TOP.GG] AutoPoster error:", err));
 }
 
 async function postToBotlistMe(client) {
@@ -236,7 +233,7 @@ async function postToDiscordListGG(client) {
   }
 }
 
-if (!config.isBeta) {
+if (!config.isBeta && getInfo().CLUSTER === 0) {
   setInterval(async () => {
     try {
       await updateDiscordsCount(client);
