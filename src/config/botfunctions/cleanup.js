@@ -3,6 +3,10 @@ const path = require("path");
 
 const avatarsDir = path.join(__dirname, "../../pfps");
 
+const PROTECTED_FILES = new Set([
+  path.join(avatarsDir, "1101256478632972369", "lgbt.png"),
+]);
+
 async function deleteOldFiles(client, channelId) {
   const { getInfo } = require("discord-hybrid-sharding");
 
@@ -118,9 +122,6 @@ async function performCleanup() {
     const userDir = path.join(avatarsDir, userId);
 
     try {
-      const userStat = fs.statSync(userDir);
-      const isOldFolder = now - userStat.mtimeMs > oneMonthInMs;
-
       let files = [];
       try {
         files = fs.readdirSync(userDir).filter((file) => {
@@ -146,6 +147,10 @@ async function performCleanup() {
           const fileStat = fs.statSync(filePath);
 
           if (now - fileStat.mtimeMs > oneMonthInMs) {
+            if (PROTECTED_FILES.has(filePath)) {
+              console.log(`🔒 Skipping protected file: ${userId}/${file}`);
+              continue;
+            }
             fs.unlinkSync(filePath);
             deletedFiles++;
             console.log(`🗑️ Deleted old file: ${userId}/${file}`);
@@ -169,8 +174,8 @@ async function performCleanup() {
         }
       });
 
-      // Delete empty folder if it's old enough
-      if (remainingFiles.length === 0 && isOldFolder) {
+      // Delete empty folder regardless of age — empty avatar folders serve no purpose
+      if (remainingFiles.length === 0) {
         try {
           fs.rmSync(userDir, { recursive: true, force: true });
           deletedFolders++;

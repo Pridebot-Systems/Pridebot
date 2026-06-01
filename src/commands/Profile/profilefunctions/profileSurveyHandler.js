@@ -54,13 +54,16 @@ async function checkAndShowProfileFeedbackSurvey(interaction, userId) {
 
     setTimeout(async () => {
       try {
+        if (!interaction.replied && !interaction.deferred) return;
         await interaction.followUp({
           embeds: [surveyEmbed],
           components: [row],
           ephemeral: true,
         });
       } catch (error) {
-        console.error("[PROFILE SURVEY] Failed to send survey prompt:", error);
+        if (error.code !== 10062) {
+          console.error("[PROFILE SURVEY] Failed to send survey prompt:", error);
+        }
       }
     }, 2000);
   } catch (error) {

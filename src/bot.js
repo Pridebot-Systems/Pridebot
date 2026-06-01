@@ -6,6 +6,7 @@ const config = require("./environment");
 
 const initializeApi = require("./apis/botapi");
 const initializeAvatarApi = require("./apis/avatarapi");
+const { avatarProcessor } = require("./commands/Avatar/avatarProcessor");
 const initializeGoogleApi = require("./apis/googleapi");
 const initializeProfileApi = require("./apis/profileapi");
 const initializePremiumApi = require("./apis/premiumapi");
@@ -237,6 +238,10 @@ module.exports = (client) => {
             console.error("❌ Failed to update PFP stats cache:", error);
           }
         });
+
+        avatarProcessor.initialize().catch(err =>
+          console.error("❌ Failed to pre-initialize avatar processor:", err)
+        );
 
         try {
           initializeAvatarApi(client);
