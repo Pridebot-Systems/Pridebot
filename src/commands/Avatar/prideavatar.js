@@ -155,17 +155,15 @@ module.exports = {
         flagName2: flagName2,
         processingTime: avatarData.processingTime,
         fileSize: avatarData.fileSize,
-        cacheHit: avatarData.fromDiskCache === true || avatarData.processingTime < 100,
+        cacheHit: false,
         totalCommandTime: totalTime
       }).catch(error => {
         console.error('Failed to log avatar generation analytics:', error);
       });
 
-      // Save to disk in the background (skip if already served from disk cache)
-      if (!avatarData.fromDiskCache) {
-        avatarProcessor.saveAvatar(avatarData, pfpuser.id, fileName, pfpuser.username)
-          .catch(err => console.error(`Error saving avatar for user ${pfpuser.id}:`, err));
-      }
+      // Save to disk in the background so download buttons work
+      avatarProcessor.saveAvatar(avatarData, pfpuser.id, fileName, pfpuser.username)
+        .catch(err => console.error(`Error saving avatar for user ${pfpuser.id}:`, err));
 
       await interaction.editReply({
         content: `Your pride avatar is ready!`,

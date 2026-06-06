@@ -7,8 +7,6 @@ const Queue = require("bull");
 
 // Cache configurations
 const flagCache = new NodeCache({ stdTTL: 3600, checkperiod: 600 }); // 1 hour cache, check every 10 minutes
-const avatarCache = new NodeCache({ stdTTL: 600, checkperiod: 120 }); // 10 minute cache, check every 2 minutes
-const processedAvatarCache = new NodeCache({ stdTTL: 1800, checkperiod: 300 }); // 30 minute cache for final results
 
 // Background processing queue (with fallback if Redis is not available)
 let avatarQueue;
@@ -184,43 +182,33 @@ class AvatarProcessor {
     return flagBuffer;
   }
 
-  // Download and cache user avatar
+  // Download user avatar fresh every time so avatar changes are always reflected
   async getUserAvatar(avatarURL, userID) {
-    const cacheKey = `avatar-${userID}`;
-    let avatarBuffer = avatarCache.get(cacheKey);
+    try {
+      const response = await axios.get(avatarURL, {
+        responseType: "arraybuffer",
+        timeout: 10000,
+        headers: {
+          "User-Agent": "Pridebot/1.0 (Discord Bot)",
+        },
+      });
 
-    if (!avatarBuffer) {
-      try {
-        const response = await axios.get(avatarURL, {
-          responseType: "arraybuffer",
-          timeout: 10000,
-          headers: {
-            "User-Agent": "Pridebot/1.0 (Discord Bot)",
+      return await sharp(response.data)
+        .resize(412, 412)
+        .composite([
+          {
+            input: Buffer.from(
+              `<svg><circle cx="206" cy="206" r="206" fill="white"/></svg>`
+            ),
+            blend: "dest-in",
           },
-        });
-
-        // Process avatar into circular format immediately
-        avatarBuffer = await sharp(response.data)
-          .resize(412, 412)
-          .composite([
-            {
-              input: Buffer.from(
-                `<svg><circle cx="206" cy="206" r="206" fill="white"/></svg>`
-              ),
-              blend: "dest-in",
-            },
-          ])
-          .png()
-          .toBuffer();
-
-        avatarCache.set(cacheKey, avatarBuffer);
-      } catch (error) {
-        console.error(`Error downloading avatar for user ${userID}:`, error);
-        throw new Error("Failed to download user avatar");
-      }
+        ])
+        .png()
+        .toBuffer();
+    } catch (error) {
+      console.error(`Error downloading avatar for user ${userID}:`, error);
+      throw new Error("Failed to download user avatar");
     }
-
-    return avatarBuffer;
   }
 
   // Optimized single-pass avatar generation
@@ -238,32 +226,8 @@ class AvatarProcessor {
 
     const cacheKey = `${userID}-${flagName}${flagName2 ? "-" + flagName2 : ""}`;
 
-    // 1. Check in-memory cache (fastest, same-cluster hits)
-    const cached = processedAvatarCache.get(cacheKey);
-    if (cached) {
-      return cached;
-    }
+    // Prevent duplicate simultaneous processing for the same user+flag combo
 
-    // 2. Check disk cache (works across all clusters/shards)
-    const diskPath = path.join(
-      __dirname, "../../pfps",
-      userID.toLowerCase(),
-      `${flagName}${flagName2 || ""}.png`
-    );
-    try {
-      const stat = await fs.stat(diskPath);
-      const age = Date.now() - stat.mtimeMs;
-      if (age < 24 * 60 * 60 * 1000) {
-        const buffer = await fs.readFile(diskPath);
-        const result = { buffer, processingTime: 0, fileSize: buffer.length, cacheKey, fromDiskCache: true };
-        processedAvatarCache.set(cacheKey, result);
-        return result;
-      }
-    } catch {
-      // File doesn't exist yet, fall through to generation
-    }
-
-    // 3. Prevent duplicate processing
     if (this.processing.has(cacheKey)) {
       return await this.processing.get(cacheKey);
     }
@@ -278,9 +242,7 @@ class AvatarProcessor {
     this.processing.set(cacheKey, processingPromise);
 
     try {
-      const result = await processingPromise;
-      processedAvatarCache.set(cacheKey, result);
-      return result;
+      return await processingPromise;
     } finally {
       this.processing.delete(cacheKey);
     }

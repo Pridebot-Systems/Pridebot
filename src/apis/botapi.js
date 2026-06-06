@@ -85,46 +85,19 @@ function validateWebhookAuth(authHeader, platform) {
 }
 
 async function sendEmbedToChannel(client, embed, channelId, context = "Vote") {
-  if (!client.cluster || !client.cluster.ready) {
-    console.warn(
-      `[${context}] Cluster client not ready, attempting direct send...`,
-    );
+  try {
     const channel = await client.channels.fetch(channelId).catch(() => null);
-    if (
-      channel &&
-      (channel.type === ChannelType.GuildText || channel.isTextBased())
-    ) {
-      await channel.send({ embeds: [embed] });
-      console.log(`[${context}] Embed sent directly (no clustering)`);
-      return true;
+    if (!channel || !channel.isTextBased()) {
+      console.error(`[${context}] Embed send failed: channel ${channelId} not accessible`);
+      return false;
     }
-    console.error(`[${context}] Failed to send embed: channel not accessible`);
+    await channel.send({ embeds: [embed] });
+    console.log(`[${context}] Embed sent successfully`);
+    return true;
+  } catch (error) {
+    console.error(`[${context}] Embed send failed:`, error.message);
     return false;
   }
-
-  const results = await client.cluster.broadcastEval(
-    async (c, { channelId, embedJSON }) => {
-      const { EmbedBuilder, ChannelType } = require("discord.js");
-      const channel = await c.channels.fetch(channelId).catch(() => null);
-      if (
-        !channel ||
-        (channel.type !== ChannelType.GuildText && !channel.isTextBased())
-      )
-        return null;
-      const embed = new EmbedBuilder(embedJSON);
-      await channel.send({ embeds: [embed] });
-      return c.cluster?.id ?? true;
-    },
-    { context: { channelId, embedJSON: embed.toJSON() } },
-  );
-
-  const success = results.find((r) => r !== null);
-  if (!success) {
-    console.error(`[${context}] Embed send failed: no cluster had access.`);
-    return false;
-  }
-  console.log(`[${context}] Embed sent successfully by cluster:`, success);
-  return true;
 }
 
 async function sendVoteEmbed(client, embed, platform, userId, res) {
