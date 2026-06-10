@@ -3,6 +3,7 @@ Dev
 node_modules
 pfps
 archive
+backup
 
 # Bot Files
 .env
