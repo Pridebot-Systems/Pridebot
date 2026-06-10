@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const commandLogging = require("../../config/logging/commandlog");
+const loadTranslations = require("../../config/commandfunctions/translation");
 const utility_functions = {
   chance: function (probability) {
     return Math.random() < probability;
@@ -27,7 +28,9 @@ module.exports = {
     ),
 
   async execute(interaction, client) {
-    await interaction.deferReply(); 
+    await interaction.deferReply();
+
+    const t = loadTranslations(interaction.locale, "Fun", "match");
     const user1 = interaction.options.getUser("user1");
     let user2 = interaction.options.getUser("user2");
 
@@ -35,27 +38,34 @@ module.exports = {
       user2 = interaction.user;
     }
 
-    let description;
-    if (utility_functions.chance(0.01)) {
-      description = `<@${user1.id}> and <@${user2.id}> are **perfectly compatible**!`;
-    } else if (utility_functions.chance(0.01)) {
-      description = `<@${user1.id}> and <@${user2.id}> are **not compatible at all**!`;
-    } else {
-      description = `<@${user1.id}> and <@${user2.id}> are **${Math.floor(
-        Math.random() * 101
-      )}%** compatible!`;
-    }
-
     const user1name = user1.username;
     const user2name = user2.username;
 
+    let description;
+    if (utility_functions.chance(0.01)) {
+      description = t.description_perfect
+        .replace("{{mention1}}", `<@${user1.id}>`)
+        .replace("{{mention2}}", `<@${user2.id}>`);
+    } else if (utility_functions.chance(0.01)) {
+      description = t.description_none
+        .replace("{{mention1}}", `<@${user1.id}>`)
+        .replace("{{mention2}}", `<@${user2.id}>`);
+    } else {
+      description = t.description_percent
+        .replace("{{mention1}}", `<@${user1.id}>`)
+        .replace("{{mention2}}", `<@${user2.id}>`)
+        .replace("{{percent}}", Math.floor(Math.random() * 101));
+    }
+
     const embed = new EmbedBuilder()
-      .setTitle(`How compatible is ${user1name} and ${user2name}?`)
+      .setTitle(
+        t.title
+          .replace("{{user1}}", user1name)
+          .replace("{{user2}}", user2name)
+      )
       .setDescription(description)
       .setColor(0xff00ae)
-      .setFooter({
-        text: "The bot has 99.99% accuracy rate on checking users compatibility",
-      });
+      .setFooter({ text: t.footer });
 
       try {
         await interaction.editReply({ embeds: [embed] }); // Edit the deferred reply

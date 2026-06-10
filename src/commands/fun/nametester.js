@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const commandLogging = require("../../config/logging/commandlog");
+const loadTranslations = require("../../config/commandfunctions/translation");
 const {
   containsDisallowedContent,
 } = require("../../config/detection/containDisallow");
@@ -21,6 +22,7 @@ module.exports = {
     ),
 
   async execute(interaction, client) {
+    const t = loadTranslations(interaction.locale, "Fun", "nametester");
     const name = interaction.options.getString("name");
     const public = interaction.options.getBoolean("public");
     const username = interaction.user.username;
@@ -31,7 +33,7 @@ module.exports = {
       if (result) {
         await sendFlagNotification(interaction, name, "Name");
         return interaction.reply({
-          content: "The preferred name contains disallowed content.",
+          content: t.error_disallowed,
           ephemeral: true,
         });
       }
@@ -51,41 +53,40 @@ module.exports = {
         );
         await sendToxicNotification(interaction, toxicity, insult, name);
         return interaction.reply({
-          content:
-            "One of your test have been flagged for high toxicity or insult.",
+          content: t.error_toxic,
           ephemeral: true,
         });
       }
     } else {
       return interaction.reply({
-        content: "There was an error analyzing your message. Please try again.",
+        content: t.error_analyzing,
         ephemeral: true,
       });
     }
 
     const embed = new EmbedBuilder()
-      .setTitle("Name Tester")
-      .setDescription(`Explore new names!`)
+      .setTitle(t.title)
+      .setDescription(t.description)
       .setFields(
         {
-          name: "Subject of the sentence",
-          value: `**${name}** is walking down the street on a nice sunny day.`,
+          name: t.field_subject_name,
+          value: t.field_subject_value.replace("{{name}}", name),
         },
         {
-          name: "Object of the sentence",
-          value: `The dog is chasing **${name}** down the street.`,
+          name: t.field_object_name,
+          value: t.field_object_value.replace("{{name}}", name),
         },
         {
-          name: "Possessive Determiner",
-          value: `The ball belongs to **${name}**.`,
+          name: t.field_possessive_det_name,
+          value: t.field_possessive_det_value.replace("{{name}}", name),
         },
         {
-          name: "Possessive Pronoun",
-          value: `The ball is **${name}'s**.`,
+          name: t.field_possessive_pro_name,
+          value: t.field_possessive_pro_value.replace("{{name}}", name),
         },
         {
-          name: "Being talked too",
-          value: `Hey **${name}**, how are you doing today?`,
+          name: t.field_talking_name,
+          value: t.field_talking_value.replace("{{name}}", name),
         }
       )
       .setColor(0xff00ae)

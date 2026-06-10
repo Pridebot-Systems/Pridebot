@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const commandLogging = require("../../config/logging/commandlog");
+const loadTranslations = require("../../config/commandfunctions/translation");
 const chalk = require("chalk");
 
 const {
@@ -51,6 +52,7 @@ module.exports = {
     ),
 
   async execute(interaction, client) {
+    const t = loadTranslations(interaction.locale, "Fun", "pronountester");
     const subject = interaction.options.getString("subject");
     const object = interaction.options.getString("object");
     const possessiveDeterminer = interaction.options.getString("possessive");
@@ -72,64 +74,35 @@ module.exports = {
       const result = await containsDisallowedContent(subject, username);
       if (result) {
         await sendFlagNotification(interaction, subject, "Subject Pronoun");
-        return interaction.reply({
-          content: "The preferred name contains disallowed content.",
-          ephemeral: true,
-        });
+        return interaction.reply({ content: t.error_disallowed, ephemeral: true });
       }
     }
     if (object) {
       const result = await containsDisallowedContent(object, username);
       if (result) {
         await sendFlagNotification(interaction, object, "Object Pronoun");
-        return interaction.reply({
-          content: "The preferred name contains disallowed content.",
-          ephemeral: true,
-        });
+        return interaction.reply({ content: t.error_disallowed, ephemeral: true });
       }
     }
     if (possessiveDeterminer) {
-      const result = await containsDisallowedContent(
-        possessiveDeterminer,
-        username
-      );
+      const result = await containsDisallowedContent(possessiveDeterminer, username);
       if (result) {
-        await sendFlagNotification(
-          interaction,
-          possessiveDeterminer,
-          "Possessive Determiner"
-        );
-        return interaction.reply({
-          content: "The preferred name contains disallowed content.",
-          ephemeral: true,
-        });
+        await sendFlagNotification(interaction, possessiveDeterminer, "Possessive Determiner");
+        return interaction.reply({ content: t.error_disallowed, ephemeral: true });
       }
     }
     if (possessivePronoun) {
-      const result = await containsDisallowedContent(
-        possessivePronoun,
-        username
-      );
+      const result = await containsDisallowedContent(possessivePronoun, username);
       if (result) {
-        await sendFlagNotification(
-          interaction,
-          possessivePronoun,
-          "Possessive Pronoun"
-        );
-        return interaction.reply({
-          content: "The preferred name contains disallowed content.",
-          ephemeral: true,
-        });
+        await sendFlagNotification(interaction, possessivePronoun, "Possessive Pronoun");
+        return interaction.reply({ content: t.error_disallowed, ephemeral: true });
       }
     }
     if (reflexive) {
       const result = await containsDisallowedContent(reflexive, username);
       if (result) {
         await sendFlagNotification(interaction, reflexive, "Reflexive Pronoun");
-        return interaction.reply({
-          content: "The preferred name contains disallowed content.",
-          ephemeral: true,
-        });
+        return interaction.reply({ content: t.error_disallowed, ephemeral: true });
       }
     }
 
@@ -143,66 +116,52 @@ module.exports = {
             ).toFixed(2)}% \nInsult: ${(insult * 100).toFixed(
               2
             )}% \nContent: "${
-              subject ||
-              object ||
-              possessiveDeterminer ||
-              possessivePronoun ||
-              reflexive
+              subject || object || possessiveDeterminer || possessivePronoun || reflexive
             }"`
           )
         );
         await sendToxicNotification(
-          interaction,
-          toxicity,
-          insult,
-          subject,
-          object,
-          possessiveDeterminer,
-          possessivePronoun,
-          reflexive
+          interaction, toxicity, insult,
+          subject, object, possessiveDeterminer, possessivePronoun, reflexive
         );
-        return interaction.reply({
-          content:
-            "One or more of your test have been flagged for high toxicity or insult.",
-          ephemeral: true,
-        });
+        return interaction.reply({ content: t.error_toxic, ephemeral: true });
       }
     } else {
-      return interaction.reply({
-        content: "There was an error analyzing your message. Please try again.",
-        ephemeral: true,
-      });
+      return interaction.reply({ content: t.error_analyzing, ephemeral: true });
     }
+
+    const subjectCap = subject.charAt(0).toUpperCase() + subject.slice(1);
+    const possessiveDetCap = possessiveDeterminer.charAt(0).toUpperCase() + possessiveDeterminer.slice(1);
 
     const embed = new EmbedBuilder()
       .setColor(0xff00ae)
       .setTitle(
-        `Testing Pronouns: ${
-          subject.charAt(0).toUpperCase() + subject.slice(1)
-        }/${object.charAt(0).toUpperCase() + object.slice(1)}/${
-          possessiveDeterminer.charAt(0).toUpperCase() +
-          possessiveDeterminer.slice(1)
-        }`
+        t.title
+          .replace("{{subject}}", subjectCap)
+          .replace("{{object}}", object.charAt(0).toUpperCase() + object.slice(1))
+          .replace("{{possessive}}", possessiveDetCap)
       )
-      .setDescription(
-        "Explore new pronouns! If you want to learn more about specific pronouns, use </pronouns:1273988656956309648>."
-      )
+      .setDescription(t.description)
       .addFields(
         {
-          name: "__Examples__:",
-          value: `**${
-            subject.charAt(0).toUpperCase() + subject.slice(1)
-          }** is going to the store.\nI saw **${object}** at the party.\n**${
-            possessiveDeterminer.charAt(0).toUpperCase() +
-            possessiveDeterminer.slice(1)
-          }** car is parked outside.\nThe book is **${possessivePronoun}**.\n${
-            subject.charAt(0).toUpperCase() + subject.slice(1)
-          } prepared the meal **${reflexive}**.`,
+          name: t.field_examples_name,
+          value: t.field_examples_value
+            .replace("{{subject_cap}}", subjectCap)
+            .replace("{{object}}", object)
+            .replace("{{possessive_det_cap}}", possessiveDetCap)
+            .replace("{{possessive_pro}}", possessivePronoun)
+            .replace("{{subject_cap}}", subjectCap)
+            .replace("{{reflexive}}", reflexive),
           inline: true,
         },
         {
-          name: "__Full Pronoun Set__:",
-          value: `**Subject Pronoun** - ${subject}\n**Object Pronoun** - ${object}\n**Possessive Determiner** - ${possessiveDeterminer}\n**Possessive Pronoun** - ${possessivePronoun}\n**Reflexive Pronoun** - ${reflexive}`,
+          name: t.field_full_set_name,
+          value: t.field_full_set_value
+            .replace("{{subject}}", subject)
+            .replace("{{object}}", object)
+            .replace("{{possessive_det}}", possessiveDeterminer)
+            .replace("{{possessive_pro}}", possessivePronoun)
+            .replace("{{reflexive}}", reflexive),
           inline: true,
         }
       )

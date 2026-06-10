@@ -5,6 +5,7 @@ const {
 } = require("discord.js");
 const DarList = require("../../../mongo/models/idDarSchema");
 const darlogging = require("../../config/logging/darlog");
+const loadTranslations = require("../../config/commandfunctions/translation");
 
 const utility_functions = {
   chance: function (probability) {
@@ -21,6 +22,7 @@ module.exports = {
     .setType(ApplicationCommandType.User),
 
   async execute(interaction, client) {
+    const t = loadTranslations(interaction.locale, "Fun", "queerdar");
     const targetUser = interaction.targetUser;
     const userName = targetUser.username;
     const userid = targetUser.id;
@@ -61,16 +63,14 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle(`How queer is ${userName}?`)
+      .setTitle(t.title.replace("{{username}}", userName))
       .setDescription(
-        `<@${userid}> is **${utility_functions.number_format_commas(
-          meter
-        )}% queer!**`
+        t.description
+          .replace("{{mention}}", `<@${userid}>`)
+          .replace("{{meter}}", utility_functions.number_format_commas(meter))
       )
       .setColor(0xff00ae)
-      .setFooter({
-        text: "The bot has 99.99% accuracy rate on checking users queerness",
-      });
+      .setFooter({ text: t.footer });
     await interaction.reply({ embeds: [embed] });
     await darlogging(client, "User Queerdar", userName, meter, userid);
   },

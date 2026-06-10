@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const commandLogging = require("../../config/logging/commandlog");
 const darlogging = require("../../config/logging/darlog");
 const DarList = require("../../../mongo/models/idDarSchema");
+const loadTranslations = require("../../config/commandfunctions/translation");
 
 const utility_functions = {
   chance: function (probability) {
@@ -24,8 +25,9 @@ module.exports = {
     ),
 
   async execute(interaction, client) {
-    await interaction.deferReply(); 
+    await interaction.deferReply();
 
+    const t = loadTranslations(interaction.locale, "Fun", "rizzdar");
     const targetUser =
       interaction.options.getUser("target") || interaction.user;
     const userName = targetUser.username;
@@ -67,16 +69,14 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle(`How much rizz does ${userName} have?`)
+      .setTitle(t.title.replace("{{username}}", userName))
       .setDescription(
-        `<@${userid}> has **${utility_functions.number_format_commas(
-          meter
-        )}% rizz!**`
+        t.description
+          .replace("{{mention}}", `<@${userid}>`)
+          .replace("{{meter}}", utility_functions.number_format_commas(meter))
       )
       .setColor(0xff69b4)
-      .setFooter({
-        text: "The bot has 99.99% accuracy rate on checking users rizz",
-      });
+      .setFooter({ text: t.footer });
 
     try {
       await interaction.editReply({ embeds: [embed] }); // Edit the deferred reply

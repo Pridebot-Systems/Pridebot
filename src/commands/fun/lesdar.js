@@ -2,6 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const commandLogging = require("../../config/logging/commandlog");
 const darlogging = require("../../config/logging/darlog");
 const DarList = require("../../../mongo/models/idDarSchema");
+const loadTranslations = require("../../config/commandfunctions/translation");
 
 const utility_functions = {
   chance: function (probability) {
@@ -24,8 +25,9 @@ module.exports = {
     ),
 
   async execute(interaction, client) {
-    await interaction.deferReply(); 
+    await interaction.deferReply();
 
+    const t = loadTranslations(interaction.locale, "Fun", "lesdar");
     const targetUser =
       interaction.options.getUser("target") || interaction.user;
     const userName = targetUser.username;
@@ -66,18 +68,20 @@ module.exports = {
       meter = Math.floor(Math.random() * 101); 
     }
 
+    const meterDisplay = userid === "1201827969585393676"
+      ? "1000000000000000000000000"
+      : utility_functions.number_format_commas(meter);
+
     const embed = new EmbedBuilder()
-      .setTitle(`How lesbian is ${userName}?`)
+      .setTitle(t.title.replace("{{username}}", userName))
       // Custom value for description is a special case as request from dev friend, will allow it for this command only - Sdriver1
       .setDescription(
-        `<@${userid}> is **${userid === "1201827969585393676" ? "1000000000000000000000000" : utility_functions.number_format_commas(
-          meter
-        )}% lesbian!**`
+        t.description
+          .replace("{{mention}}", `<@${userid}>`)
+          .replace("{{meter}}", meterDisplay)
       )
       .setColor(0xff00ae)
-      .setFooter({
-        text: "The bot has 99.99% accuracy rate on checking users lesbianness",
-      });
+      .setFooter({ text: t.footer });
 
     try {
       await interaction.editReply({ embeds: [embed] }); // Edit the deferred reply
