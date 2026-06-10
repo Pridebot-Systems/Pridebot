@@ -1,0 +1,7 @@
+{
+  "title": "How compatible is {{user1}} and {{user2}}?",
+  "description_perfect": "{{mention1}} and {{mention2}} are **perfectly compatible**!",
+  "description_none": "{{mention1}} and {{mention2}} are **not compatible at all**!",
+  "description_percent": "{{mention1}} and {{mention2}} are **{{percent}}%** compatible!",
+  "footer": "The bot has 99.99% accuracy rate on checking users compatibility"
+}

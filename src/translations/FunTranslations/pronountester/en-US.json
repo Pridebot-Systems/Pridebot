@@ -1,0 +1,11 @@
+{
+  "title": "Testing Pronouns: {{subject}}/{{object}}/{{possessive}}",
+  "description": "Explore new pronouns! If you want to learn more about specific pronouns, use </pronouns:1273988656956309648>.",
+  "field_examples_name": "__Examples__:",
+  "field_examples_value": "**{{subject_cap}}** is going to the store.\nI saw **{{object}}** at the party.\n**{{possessive_det_cap}}** car is parked outside.\nThe book is **{{possessive_pro}}**.\n{{subject_cap}} prepared the meal **{{reflexive}}**.",
+  "field_full_set_name": "__Full Pronoun Set__:",
+  "field_full_set_value": "**Subject Pronoun** - {{subject}}\n**Object Pronoun** - {{object}}\n**Possessive Determiner** - {{possessive_det}}\n**Possessive Pronoun** - {{possessive_pro}}\n**Reflexive Pronoun** - {{reflexive}}",
+  "error_disallowed": "The preferred name contains disallowed content.",
+  "error_toxic": "One or more of your test have been flagged for high toxicity or insult.",
+  "error_analyzing": "There was an error analyzing your message. Please try again."
+}

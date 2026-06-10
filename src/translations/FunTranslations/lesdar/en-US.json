@@ -1,0 +1,5 @@
+{
+  "title": "How lesbian is {{username}}?",
+  "description": "{{mention}} is **{{meter}}% lesbian!**",
+  "footer": "The bot has 99.99% accuracy rate on checking users lesbianness"
+}

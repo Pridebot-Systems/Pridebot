@@ -1,0 +1,17 @@
+{
+  "title": "Name Tester",
+  "description": "Explore new names!",
+  "field_subject_name": "Subject of the sentence",
+  "field_subject_value": "**{{name}}** is walking down the street on a nice sunny day.",
+  "field_object_name": "Object of the sentence",
+  "field_object_value": "The dog is chasing **{{name}}** down the street.",
+  "field_possessive_det_name": "Possessive Determiner",
+  "field_possessive_det_value": "The ball belongs to **{{name}}**.",
+  "field_possessive_pro_name": "Possessive Pronoun",
+  "field_possessive_pro_value": "The ball is **{{name}}'s**.",
+  "field_talking_name": "Being talked too",
+  "field_talking_value": "Hey **{{name}}**, how are you doing today?",
+  "error_disallowed": "The preferred name contains disallowed content.",
+  "error_toxic": "One of your test have been flagged for high toxicity or insult.",
+  "error_analyzing": "There was an error analyzing your message. Please try again."
+}
