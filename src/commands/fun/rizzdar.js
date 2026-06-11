@@ -34,7 +34,7 @@ module.exports = {
     const userName = targetUser.username;
     const userid = targetUser.id;
 
-    const { min, max, fixed, useDarList } = await getDarResult(interaction.user.id, "rizzdar");
+    const { min, max, fixed, useDarList } = await getDarResult(userid, "rizzdar");
 
     let meter;
     try {
