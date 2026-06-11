@@ -33,6 +33,11 @@ module.exports = (client) => {
     24609755: "Pridebot LGBTQ++",
   };
 
+  const tierSlugs = {
+    22606797: "supporter",
+    24609755: "lgbtqpp",
+  };
+
   function verifyPatreonSignature(payload, signature) {
     if (!process.env.PateronWebhookSecret) {
       console.warn("PATREON_WEBHOOK_SECRET not set, skipping verification");
@@ -112,6 +117,7 @@ module.exports = (client) => {
           let profile = await ProfileData.findOne({ userId: discordId });
           if (profile) {
             profile.premiumMember = true;
+            profile.premiumTier = tierSlugs[tierId] || null;
             if (!profile.premiumSince) {
               profile.premiumSince = new Date();
             }
@@ -124,6 +130,7 @@ module.exports = (client) => {
               username: patronName,
               premiumMember: true,
               premiumSince: new Date(),
+              premiumTier: tierSlugs[tierId] || null,
             });
             await profile.save();
             console.log(
@@ -249,7 +256,16 @@ module.exports = (client) => {
           const profile = await ProfileData.findOne({ userId: discordId });
           if (profile) {
             const isActive = pledgeCents > 0;
+            const newTier = isActive ? (tierSlugs[tierId] || null) : null;
+
+            // If downgrading from lgbtqpp to a lower tier, reset the custom range
+            if (profile.premiumTier === "lgbtqpp" && newTier !== "lgbtqpp") {
+              profile.darRangeMin = 0;
+              profile.darRangeMax = 100;
+            }
+
             profile.premiumMember = isActive;
+            profile.premiumTier = newTier;
             if (isActive && !profile.premiumSince) {
               profile.premiumSince = new Date();
             }
@@ -328,7 +344,12 @@ module.exports = (client) => {
         try {
           const profile = await ProfileData.findOne({ userId: discordId });
           if (profile) {
+            if (profile.premiumTier === "lgbtqpp") {
+              profile.darRangeMin = 0;
+              profile.darRangeMax = 100;
+            }
             profile.premiumMember = false;
+            profile.premiumTier = null;
             await profile.save();
             console.log(
               `Pledge cancelled: Premium removed for user ${discordId} (${patronName})`
