@@ -167,9 +167,12 @@ module.exports = (client) => {
           if (idList) {
             if (!idList.donor.includes(discordId)) {
               idList.donor.push(discordId);
-              await idList.save();
-              console.log(`Added ${discordId} to donor list`);
             }
+            if (tierSlugs[tierId] === "lgbtqpp" && !idList.donorplus.includes(discordId)) {
+              idList.donorplus.push(discordId);
+            }
+            await idList.save();
+            console.log(`Added ${discordId} to donor list`);
           }
         } catch (dbError) {
           console.error("Error updating profile:", dbError);
@@ -283,8 +286,10 @@ module.exports = (client) => {
             const isActive = pledgeCents > 0;
             const newTier = isActive ? (tierSlugs[tierId] || null) : null;
 
+            const wasLgbtqpp = profile.premiumTier === "lgbtqpp";
+
             // If downgrading from lgbtqpp to a lower tier, reset the custom range
-            if (profile.premiumTier === "lgbtqpp" && newTier !== "lgbtqpp") {
+            if (wasLgbtqpp && newTier !== "lgbtqpp") {
               profile.darRangeMin = 0;
               profile.darRangeMax = 100;
             }
@@ -305,13 +310,17 @@ module.exports = (client) => {
             if (idList) {
               if (isActive && !idList.donor.includes(discordId)) {
                 idList.donor.push(discordId);
-                await idList.save();
-                console.log(`Added ${discordId} to donor list`);
-              } else if (!isActive && idList.donor.includes(discordId)) {
+              } else if (!isActive) {
                 idList.donor = idList.donor.filter((id) => id !== discordId);
-                await idList.save();
-                console.log(`Removed ${discordId} from donor list`);
               }
+
+              if (newTier === "lgbtqpp" && !idList.donorplus.includes(discordId)) {
+                idList.donorplus.push(discordId);
+              } else if (newTier !== "lgbtqpp") {
+                idList.donorplus = idList.donorplus.filter((id) => id !== discordId);
+              }
+
+              await idList.save();
             }
           } else {
             console.log(
@@ -387,10 +396,11 @@ module.exports = (client) => {
           }
 
           const idList = await IDLists.findOne();
-          if (idList && idList.donor.includes(discordId)) {
+          if (idList) {
             idList.donor = idList.donor.filter((id) => id !== discordId);
+            idList.donorplus = idList.donorplus.filter((id) => id !== discordId);
             await idList.save();
-            console.log(`Removed ${discordId} from donor list`);
+            console.log(`Removed ${discordId} from donor/donorplus lists`);
           }
         } catch (dbError) {
           console.error(
