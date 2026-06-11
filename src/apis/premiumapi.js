@@ -82,6 +82,29 @@ module.exports = (client) => {
     }
   });
 
+  async function fetchDiscordIdFromPatreon(memberId) {
+    const token = process.env.PATREON_CREATOR_ACCESS_TOKEN;
+    if (!token || !memberId) return null;
+    try {
+      const url = `https://www.patreon.com/api/oauth2/v2/members/${memberId}?include=user&fields%5Buser%5D=social_connections,full_name`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        console.warn(`[PATREON] API fetch failed: ${res.status}`);
+        return null;
+      }
+      const json = await res.json();
+      const user = json.included?.find((i) => i.type === "user");
+      const id = user?.attributes?.social_connections?.discord?.user_id || null;
+      if (id) console.log(`[PATREON] Fetched Discord ID ${id} via API for member ${memberId}`);
+      return id;
+    } catch (err) {
+      console.error("[PATREON] fetchDiscordIdFromPatreon error:", err);
+      return null;
+    }
+  }
+
   async function handlePledgeCreate(client, payload) {
     try {
       const data = payload.data;
@@ -102,8 +125,9 @@ module.exports = (client) => {
         patron?.attributes?.vanity ||
         "Unknown Patron";
 
-      const discordId =
+      let discordId =
         patron?.attributes?.social_connections?.discord?.user_id || null;
+      if (!discordId) discordId = await fetchDiscordIdFromPatreon(data.id);
 
       const tier = included.find(
         (item) => item.type === "tier" && item.id === tierId
@@ -242,8 +266,9 @@ module.exports = (client) => {
         (item) => item.type === "user" && item.id === patronId
       );
       const patronName = patron?.attributes?.full_name || "Unknown Patron";
-      const discordId =
-        patron?.attributes?.social_connections?.discord?.user_id;
+      let discordId =
+        patron?.attributes?.social_connections?.discord?.user_id || null;
+      if (!discordId) discordId = await fetchDiscordIdFromPatreon(data.id);
 
       const tier = included.find(
         (item) => item.type === "tier" && item.id === tierId
@@ -337,8 +362,9 @@ module.exports = (client) => {
         (item) => item.type === "user" && item.id === patronId
       );
       const patronName = patron?.attributes?.full_name || "Unknown Patron";
-      const discordId =
-        patron?.attributes?.social_connections?.discord?.user_id;
+      let discordId =
+        patron?.attributes?.social_connections?.discord?.user_id || null;
+      if (!discordId) discordId = await fetchDiscordIdFromPatreon(data.id);
 
       if (discordId) {
         try {
