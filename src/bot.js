@@ -24,6 +24,7 @@ const { topServerCommand } = require("./commands/Dev/topserver.js");
 const { handleErrorModeCommand } = require("./commands/Dev/errormode.js");
 const { pfpStatsCommand } = require("./commands/Dev/pfpstats.js");
 const { emotecopyCommand } = require("./commands/Dev/emotecopy.js");
+const { setPremiumCommand } = require("./commands/Dev/setpremium.js");
 
 const { react } = require("./config/commandfunctions/trashreact.js");
 const { errorlogging } = require("./config/logging/errorlogs");
@@ -304,6 +305,7 @@ module.exports = (client) => {
         topServerCommand(message, client);
         pfpStatsCommand(message, client);
         emotecopyCommand(message, client);
+        setPremiumCommand(message, client);
       } catch (err) {
         await errorlogging(client, err);
       }

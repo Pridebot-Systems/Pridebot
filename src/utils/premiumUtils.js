@@ -26,20 +26,28 @@ async function hasFeature(userId, feature) {
   }
 }
 
-async function getDarResult(userId) {
+function getFixedValueLimit(tier) {
+  if (tier === "lgbtqpp") return 3;
+  if (tier === "supporter") return 1;
+  return 0;
+}
+
+async function getDarResult(userId, commandName) {
   try {
     const profile = await ProfileData.findOne({ userId });
     const tier = profile?.premiumTier;
     const tierFeatures = TIER_FEATURES[tier] || [];
     const mode = profile?.darMode || "rng";
 
-    if (mode === "fixed" && tierFeatures.includes("darFixedValue") && profile.darFixedValue !== null && profile.darFixedValue !== undefined) {
-      return { min: profile.darFixedValue, max: profile.darFixedValue, fixed: true, useDarList: false };
+    if (mode === "fixed" && tierFeatures.includes("darFixedValue")) {
+      const fixedValue = profile?.darFixedValues?.get(commandName) ?? null;
+      if (fixedValue !== null && fixedValue !== undefined) {
+        return { min: fixedValue, max: fixedValue, fixed: true, useDarList: false };
+      }
     }
     if (mode === "range" && tier === "lgbtqpp") {
       return { min: profile.darRangeMin, max: profile.darRangeMax, fixed: false, useDarList: false };
     }
-    // Premium users in rng mode get a fresh roll every time; free users keep DarList consistency
     return { min: 0, max: 100, fixed: false, useDarList: !tier };
   } catch (err) {
     console.error("[PREMIUM] getDarResult error:", err);
@@ -69,4 +77,4 @@ async function addDarHistory(userId, command, result) {
   }
 }
 
-module.exports = { getTier, hasFeature, getDarResult, applyDarRange, addDarHistory };
+module.exports = { getTier, hasFeature, getDarResult, applyDarRange, addDarHistory, getFixedValueLimit };

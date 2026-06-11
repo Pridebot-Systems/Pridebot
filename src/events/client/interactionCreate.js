@@ -4,7 +4,7 @@ const Blacklist = require("../../../mongo/models/blacklistSchema.js");
 const IDLists = require("../../../mongo/models/idSchema.js");
 const PanVSPot = require("../../../mongo/models/panvspotSchema.js");
 const ProfileData = require("../../../mongo/models/profileSchema.js");
-const { hasFeature, getDarResult } = require("../../utils/premiumUtils.js");
+const { hasFeature, getFixedValueLimit } = require("../../utils/premiumUtils.js");
 const {
   handleModalSubmit,
   handleRemoveWebsite,
@@ -28,6 +28,8 @@ const {
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
 } = require("discord.js");
 
 function timeAgo(date) {
@@ -266,7 +268,9 @@ module.exports = {
               .setDescription("Fixed value mode requires the **Pridebot Supporter** tier or above.\n\n[**View premium plans**](https://pridebot.xyz/premium)");
             return await interaction.reply({ embeds: [embed], ephemeral: true });
           }
-          if (profile.darFixedValue === null || profile.darFixedValue === undefined) {
+          const fixedValuesMap = profile.darFixedValues || new Map();
+          const setCount = [...fixedValuesMap.values()].filter(v => v !== null && v !== undefined).length;
+          if (setCount === 0) {
             const embed = new EmbedBuilder()
               .setColor(0xff66cc)
               .setDescription("Set a fixed value first using the **Set dar value** button, then switch to this mode.");
@@ -440,22 +444,65 @@ module.exports = {
       ) {
         const profile = await getOrCreateProfile(interaction.user.id, interaction.user.username);
         const tier = profile.premiumTier;
+        const limit = getFixedValueLimit(tier);
+        const fixedValuesMap = profile.darFixedValues || new Map();
+        const setCount = [...fixedValuesMap.values()].filter(v => v !== null && v !== undefined).length;
+
+        const DAR_COMMANDS = ["gaydar", "transdar", "lesdar", "bidar", "rizzdar", "queerdar"];
+        const options = DAR_COMMANDS.map(cmd => {
+          const current = fixedValuesMap.get(cmd);
+          const hasVal = current !== null && current !== undefined;
+          return new StringSelectMenuOptionBuilder()
+            .setLabel(cmd.charAt(0).toUpperCase() + cmd.slice(1))
+            .setDescription(hasVal ? `Currently: ${current}% — select to edit or clear` : "Not set")
+            .setValue(cmd);
+        });
+
+        const selectMenu = new StringSelectMenuBuilder()
+          .setCustomId("premium_value_command_select")
+          .setPlaceholder(`Select a dar command (${setCount}/${limit} slots used)`)
+          .addOptions(options);
+
+        await interaction.reply({
+          embeds: [new EmbedBuilder().setColor(0xff66cc).setDescription(`**Set a fixed dar value**\nChoose which dar command to configure. Leave the value blank to clear it.\nSlots: **${setCount}/${limit}** used.`)],
+          components: [new ActionRowBuilder().addComponents(selectMenu)],
+          ephemeral: true,
+        });
+      } else if (
+        interaction.isStringSelectMenu() &&
+        interaction.customId === "premium_value_command_select"
+      ) {
+        const commandName = interaction.values[0];
+        const profile = await getOrCreateProfile(interaction.user.id, interaction.user.username);
+        const tier = profile.premiumTier;
+        const limit = getFixedValueLimit(tier);
+        const fixedValuesMap = profile.darFixedValues || new Map();
+        const currentVal = fixedValuesMap.get(commandName);
+        const hasCurrentVal = currentVal !== null && currentVal !== undefined;
+        const setCount = [...fixedValuesMap.values()].filter(v => v !== null && v !== undefined).length;
+
+        if (!hasCurrentVal && setCount >= limit) {
+          const embed = new EmbedBuilder()
+            .setColor(0xff66cc)
+            .setDescription(`You've used all **${limit}** fixed value slot${limit !== 1 ? "s" : ""} for your tier. Clear an existing one first.`);
+          return await interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+
         const maxVal = tier === "lgbtqpp" ? 500 : 100;
         const minVal = tier === "lgbtqpp" ? -500 : 0;
-        const placeholder = `Enter a number (${minVal} to ${maxVal}), or leave blank to clear`;
+        const label = commandName.charAt(0).toUpperCase() + commandName.slice(1);
 
         const modal = new ModalBuilder()
-          .setCustomId("premium_value_modal")
-          .setTitle("Set your dar value");
+          .setCustomId(`premium_value_modal:${commandName}`)
+          .setTitle(`Set fixed value — ${label}`);
 
         modal.addComponents(
           new ActionRowBuilder().addComponents(
             new TextInputBuilder()
               .setCustomId("fixed_value")
-              .setLabel("Fixed dar result")
+              .setLabel(`Fixed result (${minVal} to ${maxVal}), blank to clear`)
               .setStyle(TextInputStyle.Short)
-              .setPlaceholder(placeholder)
-              .setValue(profile.darFixedValue !== null && profile.darFixedValue !== undefined ? String(profile.darFixedValue) : "")
+              .setValue(hasCurrentVal ? String(currentVal) : "")
               .setRequired(false)
           )
         );
@@ -463,8 +510,9 @@ module.exports = {
         await interaction.showModal(modal);
       } else if (
         interaction.isModalSubmit() &&
-        interaction.customId === "premium_value_modal"
+        interaction.customId.startsWith("premium_value_modal:")
       ) {
+        const commandName = interaction.customId.split(":")[1];
         const raw = interaction.fields.getTextInputValue("fixed_value").trim();
         const profile = await getOrCreateProfile(interaction.user.id, interaction.user.username);
         const tier = profile.premiumTier;
@@ -474,17 +522,20 @@ module.exports = {
           const embed = new EmbedBuilder()
             .setTitle("Premium feature")
             .setColor(0xff66cc)
-            .setDescription("A fixed dar value requires the **Pridebot Supporter** tier or above.\n\n[**View premium plans**](https://pridebot.xyz/premium)");
+            .setDescription("Fixed dar values require the **Pridebot Supporter** tier or above.\n\n[**View premium plans**](https://pridebot.xyz/premium)");
           return await interaction.reply({ embeds: [embed], ephemeral: true });
         }
 
+        const label = commandName.charAt(0).toUpperCase() + commandName.slice(1);
+
         if (raw === "") {
-          profile.darFixedValue = null;
+          profile.darFixedValues.delete(commandName);
+          profile.markModified("darFixedValues");
           await profile.save();
           const embed = new EmbedBuilder()
             .setTitle("Dar value cleared")
             .setColor(0xff66cc)
-            .setDescription("Your dar results will now use your range settings.");
+            .setDescription(`Fixed value for **${label}** has been cleared.`);
           return await interaction.reply({ embeds: [embed], ephemeral: true });
         }
 
@@ -505,13 +556,14 @@ module.exports = {
           return await interaction.reply({ embeds: [embed], ephemeral: true });
         }
 
-        profile.darFixedValue = val;
+        profile.darFixedValues.set(commandName, val);
+        profile.markModified("darFixedValues");
         await profile.save();
 
         const embed = new EmbedBuilder()
           .setTitle("Dar value set")
           .setColor(0xff66cc)
-          .setDescription(`Your dar commands will now always return **${val}%**.\nLeave the field blank and submit to clear it.`);
+          .setDescription(`**${label}** will now always return **${val}%** when in fixed mode.\nLeave the field blank to clear it.`);
         await interaction.reply({ embeds: [embed], ephemeral: true });
       } else if (
         interaction.isButton() &&

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require("discord.js");
-const { getTier, hasFeature, getDarResult } = require("../../utils/premiumUtils");
+const { hasFeature, getFixedValueLimit } = require("../../utils/premiumUtils");
 const ProfileData = require("../../../mongo/models/profileSchema");
 
 const TIER_DISPLAY = {
@@ -57,13 +57,16 @@ async function handleManage(interaction) {
     const hasFixedValue = await hasFeature(userId, "darFixedValue");
     const hasDarRange = await hasFeature(userId, "darRange");
 
-    const fixedValue = profile?.darFixedValue ?? null;
     const currentMode = profile?.darMode || "rng";
+    const fixedValuesMap = profile?.darFixedValues || new Map();
+    const fixedEntries = [...fixedValuesMap.entries()].filter(([, v]) => v !== null && v !== undefined);
+    const fixedCount = fixedEntries.length;
+    const fixedLimit = getFixedValueLimit(tier);
 
     const darModeDisplay = {
       rng: "🎲 Random (0–100)",
       range: `📊 Custom range (${profile?.darRangeMin ?? 0}–${profile?.darRangeMax ?? 100})`,
-      fixed: fixedValue !== null ? `🔒 Fixed value (${fixedValue}%)` : "🔒 Fixed value (none set)",
+      fixed: fixedCount > 0 ? `🔒 Fixed (${fixedCount}/${fixedLimit} set)` : "🔒 Fixed value (none set)",
     };
 
     const fields = [
@@ -76,7 +79,10 @@ async function handleManage(interaction) {
       fields.push({ name: "Dar range", value: `${profile?.darRangeMin ?? 0} to ${profile?.darRangeMax ?? 100}` });
     }
     if (hasFixedValue) {
-      fields.push({ name: "Dar value", value: fixedValue !== null ? `${fixedValue}` : "Not set" });
+      const fixedDisplay = fixedCount === 0
+        ? "None set"
+        : fixedEntries.map(([cmd, v]) => `**${cmd}**: ${v}%`).join("\n");
+      fields.push({ name: `Dar fixed values (${fixedCount}/${fixedLimit})`, value: fixedDisplay });
     }
 
     fields.push(
@@ -132,7 +138,7 @@ async function handleManage(interaction) {
         .setDefault(currentMode === "range"),
       new StringSelectMenuOptionBuilder()
         .setLabel("🔒 Fixed value")
-        .setDescription(hasFixedValue ? (fixedValue !== null ? `Always returns ${fixedValue}%` : "Set a fixed value first") : "Supporter+ tier required")
+        .setDescription(hasFixedValue ? (fixedCount > 0 ? `${fixedCount}/${fixedLimit} commands set` : "Set a fixed value first") : "Supporter+ tier required")
         .setValue("fixed")
         .setDefault(currentMode === "fixed"),
     ];
