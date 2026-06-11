@@ -48,7 +48,7 @@ async function getDarResult(userId, commandName) {
     if (mode === "range" && tier === "lgbtqpp") {
       return { min: profile.darRangeMin, max: profile.darRangeMax, fixed: false, useDarList: false };
     }
-    return { min: 0, max: 100, fixed: false, useDarList: !tier };
+    return { min: 0, max: 100, fixed: false, useDarList: false };
   } catch (err) {
     console.error("[PREMIUM] getDarResult error:", err);
     return { min: 0, max: 100, fixed: false, useDarList: true };
