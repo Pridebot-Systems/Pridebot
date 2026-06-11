@@ -5,7 +5,6 @@ const supportedLanguages = [
   "id", // Indonesian
   "da", // Danish
   "de", // German
-  "en-GB", // English (UK)
   "en-US", // English (US)
   "es-ES", // Spanish (Spain)
   "es-419", // Spanish (Latin America)
@@ -40,15 +39,16 @@ function getCategoryFolder(category) {
   switch (category) {
     case "Pride": return "PrideTranslations";
     case "Terms": return "TermsTranslations";
-    case "Fun":   return "FunTranslations";
+    case "Fun": return "FunTranslations";
     case "Support": return "SupportTranslations";
-    default:      return category;
+    default: return category;
   }
 }
 
 function loadTranslations(language, category, commandName) {
   const folder = getCategoryFolder(category);
-  const lang = supportedLanguages.includes(language) ? language : "en-US";
+  const normalized = language === "en-GB" ? "en-US" : language;
+  const lang = supportedLanguages.includes(normalized) ? normalized : "en-US";
   const base = path.join(__dirname, "..", "..", "translations", folder, commandName);
   const filePath = path.join(base, `${lang}.json`);
   const defaultPath = path.join(base, "en-US.json");
