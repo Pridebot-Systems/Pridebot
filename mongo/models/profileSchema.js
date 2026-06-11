@@ -37,6 +37,13 @@ const profileSchema = new mongoose.Schema(
 
     premiumMember: { type: Boolean, default: false },
     premiumSince: { type: Date },
+    premiumTier: { type: String, default: null },
+    darMode: { type: String, default: "rng" },
+    darRangeMin: { type: Number, default: 0 },
+    darRangeMax: { type: Number, default: 100 },
+    darFixedValue: { type: Number, default: null },
+    darHistory: { type: Array, default: [] },
+    animatedAvatar: { type: Boolean, default: false },
     customWebsites: { type: [socialLinkSchema], default: [] },
     customAvatars: { type: [avatarSchema], default: [] },
   },
