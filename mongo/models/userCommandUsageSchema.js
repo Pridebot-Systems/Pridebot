@@ -32,6 +32,14 @@ const userCommandUsageSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    premiumPromptsShown: {
+      type: [String],
+      default: [],
+    },
+    premiumPromptShownAt: {
+      type: Date,
+      required: false,
+    },
   },
   { timestamps: true }
 );

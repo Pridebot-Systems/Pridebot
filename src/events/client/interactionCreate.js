@@ -4,7 +4,7 @@ const Blacklist = require("../../../mongo/models/blacklistSchema.js");
 const IDLists = require("../../../mongo/models/idSchema.js");
 const PanVSPot = require("../../../mongo/models/panvspotSchema.js");
 const ProfileData = require("../../../mongo/models/profileSchema.js");
-const { hasFeature, getFixedValueLimit } = require("../../utils/premiumUtils.js");
+const { hasFeature, getFixedValueLimit, getTier } = require("../../utils/premiumUtils.js");
 const {
   handleModalSubmit,
   handleRemoveWebsite,
@@ -146,7 +146,7 @@ async function checkAndShowFeedbackPrompt(interaction, userId) {
       0,
     );
 
-    if (uniqueCommandsUsed >= 2 || totalUsageCount >= 3) {
+    if (uniqueCommandsUsed >= 5 || totalUsageCount >= 12) {
       userUsage.feedbackPromptShown = true;
       userUsage.feedbackPromptShownAt = new Date();
       await userUsage.save();
@@ -178,6 +178,74 @@ async function checkAndShowFeedbackPrompt(interaction, userId) {
     }
   } catch (error) {
     console.error("[FEEDBACK PROMPT] Failed to check feedback prompt:", error);
+  }
+}
+
+async function checkAndShowPremiumPrompt(interaction, userId) {
+  try {
+    const userUsage = await UserCommandUsage.findOne({ userId });
+
+    if (!userUsage) return;
+
+    // Don't promote premium to users who already have a tier
+    const tier = await getTier(userId);
+    if (tier) return;
+
+    const uniqueCommandsUsed = userUsage.commandsUsed.length;
+    const totalUsageCount = userUsage.commandsUsed.reduce(
+      (sum, cmd) => sum + cmd.usageCount,
+      0,
+    );
+
+    const shown = userUsage.premiumPromptsShown || [];
+    const reached = [];
+    if (uniqueCommandsUsed >= 4) reached.push("unique4");
+    if (totalUsageCount >= 6) reached.push("total6");
+    if (totalUsageCount >= 25) reached.push("total25");
+    if (totalUsageCount >= 50) reached.push("total50");
+
+    const newlyReached = reached.filter((m) => !shown.includes(m));
+    if (newlyReached.length === 0) return;
+
+    // Create premium promotion embed
+    const premiumPromptEmbed = new EmbedBuilder()
+      .setTitle("✨ Unlock PrideBot Premium!")
+      .setDescription(
+        "Enjoying PrideBot? Take it further with **Premium**!\n\n" +
+          "• Custom dar ranges & fixed values\n" +
+          "• Dar history tracking\n" +
+          "• Animated avatars & social links\n" +
+          "• Exclusive premium badges\n\n" +
+          "[**View premium plans**](https://pridebot.xyz/premium)",
+      )
+      .setColor(0xff00ae)
+      .setFooter({
+        text: "Thanks for supporting PrideBot!",
+      });
+
+    setTimeout(async () => {
+      try {
+        if (!interaction.replied && !interaction.deferred) return;
+        await interaction.followUp({
+          embeds: [premiumPromptEmbed],
+          ephemeral: true,
+        });
+      } catch (error) {
+        if (error.code !== 10062) {
+          console.error(
+            "[PREMIUM PROMPT] Failed to send premium prompt:",
+            error,
+          );
+        }
+      }
+    }, 2500);
+
+    // Mark every reached milestone as shown so none re-fires later
+    userUsage.premiumPromptsShown = [...shown, ...newlyReached];
+    userUsage.premiumPromptShownAt = new Date();
+    await userUsage.save();
+  } catch (error) {
+    console.error("[PREMIUM PROMPT] Failed to check premium prompt:", error);
   }
 }
 
@@ -231,6 +299,9 @@ module.exports = {
         await command.execute(interaction, client, { userId, guildId });
         if (commandName !== "feedback") {
           await checkAndShowFeedbackPrompt(interaction, userId);
+        }
+        if (commandName !== "premium") {
+          await checkAndShowPremiumPrompt(interaction, userId);
         }
       } else if (
         interaction.isModalSubmit() &&
