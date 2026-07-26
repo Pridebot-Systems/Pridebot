@@ -112,7 +112,7 @@ module.exports = {
         return;
       }
 
-      const fileName = `${flagName}${flagName2 ? flagName2 : ""}.png`;
+      const fileName = `${flagName}${flagName2 ?? ""}.png`;
       const timestamp = Date.now();
       const imageURL = `https://pfp.pridebot.xyz/${pfpuser.id}/${fileName}`;
       const imageURLWithTime = `${imageURL}?time=${timestamp}`;
@@ -174,11 +174,11 @@ module.exports = {
 
     } catch (error) {
       console.error("Unexpected error in pride avatar command:", error);
-      
+
       const errorMessage = error.code === 'ENOENT' 
         ? "❌ Avatar system files are missing. Please contact support."
         : "❌ An unexpected error occurred. Please try again later.";
-        
+
       try {
         await interaction.editReply({
           content: errorMessage,

@@ -25,16 +25,16 @@ module.exports = {
       });
 
     // Add each column as a field
-    columns.forEach((column, index) => {
+    for (let index = 0; index < columns.length; index++) {
       embed.addFields({
         name: `Flags ${index * flagsPerColumn + 1}-${Math.min(
           (index + 1) * flagsPerColumn,
           validFlags.length
         )}`,
-        value: column.join(", "),
+        value: columns[index].join(", "),
         inline: true,
       });
-    });
+    }
 
     // Add usage examples
     embed.addFields({

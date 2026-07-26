@@ -73,7 +73,7 @@ module.exports = {
     return "Other";
   },
 
-  async execute(interaction, client) {
+  async execute(interaction) {
     const idLists = await IDLists.findOne();
     const devUsers = idLists ? idLists.devs : [];
 
@@ -131,7 +131,7 @@ module.exports = {
       );
 
       let commandList = categoryCommands
-        .map((cmd, index) => {
+        .map((cmd) => {
           const percentage = ((cmd.count / totalUsage) * 100).toFixed(2);
           return `**${cmd.commandName}**: ${cmd.count} (${percentage}%)`;
         })

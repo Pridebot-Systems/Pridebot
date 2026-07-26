@@ -10,8 +10,6 @@ const {
 } = require("discord.js");
 const commandLogging = require("../../../config/logging/commandlog");
 const profileLogging = require("../../../config/logging/profilelogging");
-const chalk = require("chalk");
-const axios = require("axios");
 const path = require("path");
 const fs = require("fs");
 const config = require("../../../environment");
@@ -45,7 +43,7 @@ async function handleDisplay(interaction, client) {
 
   if (colorInput) {
     const color = colorInput.startsWith("#") ? colorInput : `#${colorInput}`;
-    if (!/^#([0-9A-F]{3,6})$/i.test(color)) {
+    if (!/^#([\dA-F]{3,6})$/i.test(color)) {
       return interaction.reply({
         content: "Please enter a valid hex code for the color.",
         ephemeral: true,
@@ -112,12 +110,9 @@ async function handleView(interaction, client) {
   }
 
   let badgeStr = "";
+
   if (profile.badgesVisible && idLists) {
-    for (const [key, emoji] of Object.entries(badgeMap)) {
-      if (Array.isArray(idLists[key]) && idLists[key].includes(userId)) {
-        badgeStr += emoji;
-      }
-    }
+    badgeStr = Object.entries(badgeMap).reduce((acc, [key, emoji]) => acc + (Array.isArray(idLists[key]) && idLists[key].includes(userId) ? emoji : ""), "");
   }
 
   const fields = [];
@@ -142,7 +137,7 @@ async function handleView(interaction, client) {
   if (profile.bio)
     fields.push({
       name: "Bio",
-      value: profile.bio.replace(/\\n/g, "\n"),
+      value: profile.bio.replaceAll("\\n", "\n"),
       inline: false,
     });
 
@@ -197,10 +192,10 @@ async function handleView(interaction, client) {
   }
 
   await commandLogging(client, interaction);
-  
+
   // Trigger profile feedback survey
   await checkAndShowProfileFeedbackSurvey(interaction, interaction.user.id);
-  
+
   if (row.components.length > 0) {
     return interaction.reply({
       embeds: [embed],
@@ -213,7 +208,7 @@ async function handleView(interaction, client) {
   }
 }
 
-async function handlePremium(interaction, client) {
+async function handlePremium(interaction) {
   const userId = interaction.user.id;
   const action = interaction.options.getString("website");
   const premiumToggle = interaction.options.getBoolean("premiumtoggle");
@@ -234,12 +229,12 @@ async function handlePremium(interaction, client) {
 
   if (attachment) {
     try {
-      const response = await axios.get(attachment.url, { responseType: "arraybuffer" });
+      const response = await fetch(attachment.url);
       const ext = path.extname(attachment.name || ".png").split("?")[0] || ".png";
       const filename = `${userId}${ext}`;
       const pfpDir = path.join(__dirname, "..", "..", "..", "profilepfps");
       if (!fs.existsSync(pfpDir)) fs.mkdirSync(pfpDir, { recursive: true });
-      fs.writeFileSync(path.join(pfpDir, filename), response.data);
+      fs.writeFileSync(path.join(pfpDir, filename), await response.arrayBuffer());
       updates.pfp = `${config.links.profile}/pfps/${filename}?t=${Date.now()}`;
       messages.push("Profile picture updated.");
     } catch (err) {
@@ -255,46 +250,48 @@ async function handlePremium(interaction, client) {
     await Profile.findOneAndUpdate({ userId }, { $set: updates });
   }
 
-  if (action === "add") {
-    const lastSite = profile.customWebsites.slice(-1)[0] || {};
-    const labelPh = lastSite.label || "e.g. My Blog";
-    const urlPh = lastSite.url || "https://example.com";
-    const modal = new ModalBuilder()
-      .setCustomId("customWebsiteModal")
-      .setTitle("Add Custom Website");
-    modal.addComponents(
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId("websiteLabel")
-          .setLabel("Button Label")
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder(labelPh)
-          .setRequired(true)
-      ),
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder()
-          .setCustomId("websiteUrl")
-          .setLabel("Website URL")
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder(urlPh)
-          .setRequired(true)
-      )
-    );
-    return interaction.showModal(modal);
-  }
-
-  if (action === "remove") {
-    const sites = profile.customWebsites || [];
-    if (sites.length === 0) {
-      return interaction.reply({ content: "No websites to remove.", ephemeral: true });
+  switch (action) {
+    case "add": {
+      const lastSite = profile.customWebsites.slice(-1)[0] || {};
+      const labelPh = lastSite.label || "e.g. My Blog";
+      const urlPh = lastSite.url || "https://example.com";
+      const modal = new ModalBuilder()
+        .setCustomId("customWebsiteModal")
+        .setTitle("Add Custom Website");
+      modal.addComponents(
+        new ActionRowBuilder().addComponents(
+          new TextInputBuilder()
+            .setCustomId("websiteLabel")
+            .setLabel("Button Label")
+            .setStyle(TextInputStyle.Short)
+            .setPlaceholder(labelPh)
+            .setRequired(true)
+        ),
+        new ActionRowBuilder().addComponents(
+          new TextInputBuilder()
+            .setCustomId("websiteUrl")
+            .setLabel("Website URL")
+            .setStyle(TextInputStyle.Short)
+            .setPlaceholder(urlPh)
+            .setRequired(true)
+        )
+      );
+      return interaction.showModal(modal);
     }
-    const options = sites.map((ws) => ({ label: ws.label, value: ws.url }));
-    const menu = new StringSelectMenuBuilder()
-      .setCustomId("removeWebsiteSelect")
-      .setPlaceholder("Select a website to remove")
-      .addOptions(options);
-    const row = new ActionRowBuilder().addComponents(menu);
-    return interaction.reply({ content: "Choose a website to remove:", components: [row], ephemeral: true });
+
+    case "remove": {
+      const sites = profile.customWebsites || [];
+      if (sites.length === 0) {
+        return interaction.reply({ content: "No websites to remove.", ephemeral: true });
+      }
+      const options = sites.map((ws) => ({ label: ws.label, value: ws.url }));
+      const menu = new StringSelectMenuBuilder()
+        .setCustomId("removeWebsiteSelect")
+        .setPlaceholder("Select a website to remove")
+        .addOptions(options);
+      const row = new ActionRowBuilder().addComponents(menu);
+      return interaction.reply({ content: "Choose a website to remove:", components: [row], ephemeral: true });
+    }
   }
 
   if (messages.length > 0) {
@@ -395,9 +392,9 @@ async function handleUpdate(interaction, client) {
     originalProfile,
     updatedProfile
   );
-  
+
   await checkAndShowProfileFeedbackSurvey(interaction, interaction.user.id);
-  
+
   return interaction.reply({
     content: "Profile updated successfully!",
     ephemeral: true,
@@ -489,7 +486,7 @@ async function handleSetup(interaction, client) {
   if (newProfile.bio)
     fields.push({
       name: "Bio",
-      value: newProfile.bio.replace(/\\n/g, "\n"),
+      value: newProfile.bio.replaceAll("\\n", "\n"),
       inline: false,
     });
   fields.push(
@@ -518,7 +515,7 @@ async function handleSetup(interaction, client) {
   await commandLogging(client, interaction);
   await profileLogging(client, interaction, "created", null, newProfile);
   await checkAndShowProfileFeedbackSurvey(interaction, interaction.user.id);
-  
+
   return interaction.reply({
     content: "Profile created successfully!",
     embeds: [embed],
@@ -552,8 +549,7 @@ function isValidPronounPageLink(link) {
 }
 
 async function ageCheck(interaction, age, cmd) {
-  if (age === 0) return true;
-  if (age !== null && (age < 13 || age > 99)) {
+  if (age !== null && age !== 0 && (age < 13 || age > 99)) {
     const embed = new EmbedBuilder()
       .setColor("#FF0000")
       .setTitle("🚨 Illegal Age")

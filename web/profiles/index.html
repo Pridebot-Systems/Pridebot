@@ -305,11 +305,11 @@
         .addEventListener("click", function () {
           document.getElementById("nav-menu").classList.toggle("active");
         });
-      document.querySelectorAll("#nav-menu .nav-link").forEach((link) => {
+      for (const link of document.querySelectorAll("#nav-menu .nav-link")) {
         link.addEventListener("click", () => {
           document.getElementById("nav-menu").classList.remove("active");
         });
-      });
+      }
     </script>
 
     <style>

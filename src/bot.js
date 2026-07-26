@@ -1,5 +1,4 @@
 const fs = require("fs");
-const path = require("path");
 const { Events } = require("discord.js");
 const { getInfo } = require("discord-hybrid-sharding");
 const config = require("./environment");

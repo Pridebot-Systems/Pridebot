@@ -319,33 +319,39 @@ module.exports = {
         const userId = interaction.user.id;
         const profile = await getOrCreateProfile(userId, interaction.user.username);
 
-        if (selected === "range") {
-          const canRange = await hasFeature(userId, "darRange");
-          if (!canRange) {
-            const embed = new EmbedBuilder()
-              .setTitle("LGBTQ++ feature")
-              .setColor(0xff66cc)
-              .setDescription("Custom range mode requires the **Pridebot LGBTQ++** tier.\n\n[**View premium plans**](https://pridebot.xyz/premium)");
-            return await interaction.reply({ embeds: [embed], ephemeral: true });
-          }
-        }
+        switch (selected) {
+          case "range": {
+            const canRange = await hasFeature(userId, "darRange");
+            if (!canRange) {
+              const embed = new EmbedBuilder()
+                .setTitle("LGBTQ++ feature")
+                .setColor(0xff66cc)
+                .setDescription("Custom range mode requires the **Pridebot LGBTQ++** tier.\n\n[**View premium plans**](https://pridebot.xyz/premium)");
+              return await interaction.reply({ embeds: [embed], ephemeral: true });
+            }
 
-        if (selected === "fixed") {
-          const canFixed = await hasFeature(userId, "darFixedValue");
-          if (!canFixed) {
-            const embed = new EmbedBuilder()
-              .setTitle("Supporter feature")
-              .setColor(0xff66cc)
-              .setDescription("Fixed value mode requires the **Pridebot Supporter** tier or above.\n\n[**View premium plans**](https://pridebot.xyz/premium)");
-            return await interaction.reply({ embeds: [embed], ephemeral: true });
+            break;
           }
-          const fixedValuesMap = profile.darFixedValues || new Map();
-          const setCount = [...fixedValuesMap.values()].filter(v => v !== null && v !== undefined).length;
-          if (setCount === 0) {
-            const embed = new EmbedBuilder()
-              .setColor(0xff66cc)
-              .setDescription("Set a fixed value first using the **Set dar value** button, then switch to this mode.");
-            return await interaction.reply({ embeds: [embed], ephemeral: true });
+
+          case "fixed": {
+            const canFixed = await hasFeature(userId, "darFixedValue");
+            if (!canFixed) {
+              const embed = new EmbedBuilder()
+                .setTitle("Supporter feature")
+                .setColor(0xff66cc)
+                .setDescription("Fixed value mode requires the **Pridebot Supporter** tier or above.\n\n[**View premium plans**](https://pridebot.xyz/premium)");
+              return await interaction.reply({ embeds: [embed], ephemeral: true });
+            }
+            const fixedValuesMap = profile.darFixedValues || new Map();
+            const setCount = [...fixedValuesMap.values()].filter(v => v !== null && v !== undefined).length;
+            if (setCount === 0) {
+              const embed = new EmbedBuilder()
+                .setColor(0xff66cc)
+                .setDescription("Set a fixed value first using the **Set dar value** button, then switch to this mode.");
+              return await interaction.reply({ embeds: [embed], ephemeral: true });
+            }
+
+            break;
           }
         }
 
@@ -524,7 +530,7 @@ module.exports = {
           const current = fixedValuesMap.get(cmd);
           const hasVal = current !== null && current !== undefined;
           return new StringSelectMenuOptionBuilder()
-            .setLabel(cmd.charAt(0).toUpperCase() + cmd.slice(1))
+            .setLabel(cmd[0].toUpperCase() + cmd.slice(1))
             .setDescription(hasVal ? `Currently: ${current}% — select to edit or clear` : "Not set")
             .setValue(cmd);
         });
@@ -561,7 +567,7 @@ module.exports = {
 
         const maxVal = tier === "lgbtqpp" ? 500 : 100;
         const minVal = tier === "lgbtqpp" ? -500 : 0;
-        const label = commandName.charAt(0).toUpperCase() + commandName.slice(1);
+        const label = commandName[0].toUpperCase() + commandName.slice(1);
 
         const modal = new ModalBuilder()
           .setCustomId(`premium_value_modal:${commandName}`)
@@ -597,7 +603,7 @@ module.exports = {
           return await interaction.reply({ embeds: [embed], ephemeral: true });
         }
 
-        const label = commandName.charAt(0).toUpperCase() + commandName.slice(1);
+        const label = commandName[0].toUpperCase() + commandName.slice(1);
 
         if (raw === "") {
           profile.darFixedValues.delete(commandName);

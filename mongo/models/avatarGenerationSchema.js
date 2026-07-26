@@ -78,7 +78,7 @@ avatarGenerationSchema.statics.getPopularFlags = async function(limit = 10) {
 
 avatarGenerationSchema.statics.getPerformanceStats = async function(hours = 24) {
   const since = new Date(Date.now() - (hours * 60 * 60 * 1000));
-  
+
   return this.aggregate([
     { $match: { generatedAt: { $gte: since } } },
     {

@@ -75,13 +75,7 @@ setInterval(() => {
 }, RATE_LIMIT_WINDOW);
 
 function validateWebhookAuth(authHeader, platform) {
-  if (platform === "botlist" && authHeader !== config.botlistauth) {
-    return false;
-  }
-  if (platform === "discords" && authHeader !== config.discordsauth) {
-    return false;
-  }
-  return true;
+  return (platform === "botlist" && authHeader === config.botlistauth) || (platform === "discords" && authHeader === config.discordsauth);
 }
 
 async function sendEmbedToChannel(client, embed, channelId, context = "Vote") {
@@ -199,7 +193,7 @@ async function updateStatsCache(client) {
     const totalUserCount = results.reduce((acc, r) => acc + r.userCount, 0);
 
     const ping = client.ws.ping;
-    const UserInstallCount = await getApproximateUserInstallCount(client);
+    const UserInstallCount = await getApproximateUserInstallCount();
     const usages = await CommandUsage.find({}).sort({ count: -1 });
     const totalUsage = usages.reduce((acc, cmd) => acc + cmd.count, 0);
     const totalGuildCount = usages.reduce(
@@ -487,8 +481,7 @@ module.exports = (client) => {
 
   function buildCategoryMap(typeDir) {
     const categories = {};
-    for (const entry of fs.readdirSync(typeDir)) {
-      if (isExcluded(entry)) continue;
+    for (const entry of fs.readdirSync(typeDir).filter(entry => !isExcluded(entry))) {
       const entryPath = path.join(typeDir, entry);
       if (fs.statSync(entryPath).isDirectory()) {
         const commands = listCommandFiles(entryPath);
@@ -875,147 +868,193 @@ module.exports = (client) => {
       let commitTens = totalCommits.toString().slice(-2, -1) || "0";
       let commitOnes = totalCommits.toString().slice(-1);
 
-      if (
-        githubEvent === "push" &&
-        Array.isArray(data.commits) &&
-        data.commits.some((c) => c.message === "Update README [skip ci]")
-      ) {
-        console.log("Skipping README update");
-        return;
-      } else if (githubEvent === "push") {
-        const commitCount = data.commits.length;
-        const commitStrings = data.commits.map(
-          (commit) =>
-            `[\`${commit.id.slice(0, 7)}\`](${commit.url}) - **${
-              commit.message
-            }**`,
-        );
+      switch (githubEvent) {
+        case "push": {
+          if (Array.isArray(data.commits) && data.commits.some((c) => c.message === "Update README [skip ci]")) {
+            console.log("Skipping README update");
+          } else {
+            const commitCount = data.commits.length;
+            const commitStrings = data.commits.map(
+              (commit) =>
+                `[\`${commit.id.slice(0, 7)}\`](${commit.url}) - **${
+                  commit.message
+                }**`,
+            );
 
-        const viewMoreLink = `\n[View more on GitHub](https://github.com/${ownerName}/${repoName}/commits/main/)`;
-        let commitMessages = commitStrings.join("\n");
+            const viewMoreLink = `\n[View more on GitHub](https://github.com/${ownerName}/${repoName}/commits/main/)`;
+            let commitMessages = commitStrings.join("\n");
 
-        if (commitMessages.length + viewMoreLink.length > 1024) {
-          while (
-            commitStrings.length > 0 &&
-            commitStrings.join("\n").length + viewMoreLink.length > 1024
-          ) {
-            commitStrings.pop();
+            if (commitMessages.length + viewMoreLink.length > 1024) {
+              while (
+                commitStrings.length > 0 &&
+                commitStrings.join("\n").length + viewMoreLink.length > 1024
+              ) {
+                commitStrings.pop();
+              }
+              commitMessages = commitStrings.join("\n") + viewMoreLink;
+            }
+
+            const title = `${commitCount} New ${repoName} ${
+              commitCount > 1 ? "Commits" : "Commit"
+            } (# ${commitHundreds}${commitTens}${commitOnes})`;
+            const fieldname = `${commitCount > 1 ? "Commits" : "Commit"}`;
+
+            embed
+              .setColor("#FF00EA")
+              .setAuthor({
+                name: `${data.sender.login}`,
+                iconURL: `${data.sender.avatar_url}`,
+                url: `${data.sender.html_url}`,
+              })
+              .setTitle(title)
+              .setTimestamp()
+              .addFields({ name: fieldname, value: commitMessages });
           }
-          commitMessages = commitStrings.join("\n") + viewMoreLink;
+
+          break;
         }
 
-        const title = `${commitCount} New ${repoName} ${
-          commitCount > 1 ? "Commits" : "Commit"
-        } (# ${commitHundreds}${commitTens}${commitOnes})`;
-        const fieldname = `${commitCount > 1 ? "Commits" : "Commit"}`;
+        case "star": {
+          switch (data.action) {
+            case "created": {
+              embed
+                .setColor("#FF00EA")
+                .setDescription(
+                  `## :star: New Star \n**Thank you [${data.sender.login}](https://github.com/${data.sender.login}) for starring [${repoName}](https://github.com/${ownerName}/${repoName})**`,
+                )
+                .setTimestamp();
 
-        embed
-          .setColor("#FF00EA")
-          .setAuthor({
-            name: `${data.sender.login}`,
-            iconURL: `${data.sender.avatar_url}`,
-            url: `${data.sender.html_url}`,
-          })
-          .setTitle(title)
-          .setTimestamp()
-          .addFields({ name: fieldname, value: commitMessages });
-      } else if (githubEvent === "star" && data.action === "created") {
-        embed
-          .setColor("#FF00EA")
-          .setDescription(
-            `## :star: New Star \n**Thank you [${data.sender.login}](https://github.com/${data.sender.login}) for starring [${repoName}](https://github.com/${ownerName}/${repoName})**`,
-          )
-          .setTimestamp();
-      } else if (githubEvent === "star" && data.action === "deleted") {
-        embed
-          .setColor("#FF00EA")
-          .setDescription(
-            `## :star: Star Removed \n**[${data.sender.login}](https://github.com/${data.sender.login}) removed their star from [${repoName}](https://github.com/${ownerName}/${repoName}) ;-;**`,
-          )
-          .setTimestamp();
-      } else if (githubEvent === "pull_request" && data.action === "opened") {
-        const pr = data.pull_request;
-        embed
-          .setColor("#FF00EA")
-          .setAuthor({
-            name: `${data.sender.login}`,
-            iconURL: `${data.sender.avatar_url}`,
-            url: `${data.sender.html_url}`,
-          })
-          .setTitle(`New Pull Request: #${pr.number} - ${pr.title}`)
-          .setURL(pr.html_url)
-          .setDescription(pr.body || "No description provided")
-          .addFields(
-            {
-              name: "Branch",
-              value: `${pr.head.ref} → ${pr.base.ref}`,
-              inline: true,
-            },
-            { name: "Commits", value: `${pr.commits}`, inline: true },
-            {
-              name: "Changed Files",
-              value: `${pr.changed_files}`,
-              inline: true,
-            },
-          )
-          .setTimestamp();
-      } else if (githubEvent === "pull_request" && data.action === "closed") {
-        const pr = data.pull_request;
-        const wasMerged = pr.merged;
-        embed
-          .setColor("#FF00EA")
-          .setAuthor({
-            name: `${data.sender.login}`,
-            iconURL: `${data.sender.avatar_url}`,
-            url: `${data.sender.html_url}`,
-          })
-          .setTitle(
-            `Pull Request ${wasMerged ? "Merged" : "Closed"}: #${pr.number} - ${
-              pr.title
-            }`,
-          )
-          .setURL(pr.html_url)
-          .addFields(
-            {
-              name: "Branch",
-              value: `${pr.head.ref} → ${pr.base.ref}`,
-              inline: true,
-            },
-            {
-              name: "Status",
-              value: wasMerged ? "✅ Merged" : "❌ Closed",
-              inline: true,
-            },
-          )
-          .setTimestamp();
-      } else if (githubEvent === "issues" && data.action === "opened") {
-        const issue = data.issue;
-        embed
-          .setColor("#FF00EA")
-          .setAuthor({
-            name: `${data.sender.login}`,
-            iconURL: `${data.sender.avatar_url}`,
-            url: `${data.sender.html_url}`,
-          })
-          .setTitle(`New Issue: #${issue.number} - ${issue.title}`)
-          .setURL(issue.html_url)
-          .setDescription(issue.body || "No description provided")
-          .setTimestamp();
-      } else if (githubEvent === "issues" && data.action === "closed") {
-        const issue = data.issue;
-        embed
-          .setColor("#FF00EA")
-          .setAuthor({
-            name: `${data.sender.login}`,
-            iconURL: `${data.sender.avatar_url}`,
-            url: `${data.sender.html_url}`,
-          })
-          .setTitle(`Issue Closed: #${issue.number} - ${issue.title}`)
-          .setURL(issue.html_url)
-          .setTimestamp();
-      } else {
-        console.log(`[GitHub] Unhandled event type: ${githubEvent}`);
-        return;
+              break;
+            }
+
+            case "deleted": {
+              embed
+                .setColor("#FF00EA")
+                .setDescription(
+                  `## :star: Star Removed \n**[${data.sender.login}](https://github.com/${data.sender.login}) removed their star from [${repoName}](https://github.com/${ownerName}/${repoName}) ;-;**`,
+                )
+                .setTimestamp();
+
+              break;
+            }
+          }
+
+          break;
+        }
+
+        case "pull_request": {
+          switch (data.action) {
+            case "opened": {
+              const pr = data.pull_request;
+              embed
+                .setColor("#FF00EA")
+                .setAuthor({
+                  name: `${data.sender.login}`,
+                  iconURL: `${data.sender.avatar_url}`,
+                  url: `${data.sender.html_url}`,
+                })
+                .setTitle(`New Pull Request: #${pr.number} - ${pr.title}`)
+                .setURL(pr.html_url)
+                .setDescription(pr.body || "No description provided")
+                .addFields(
+                  {
+                    name: "Branch",
+                    value: `${pr.head.ref} → ${pr.base.ref}`,
+                    inline: true,
+                  },
+                  { name: "Commits", value: `${pr.commits}`, inline: true },
+                  {
+                    name: "Changed Files",
+                    value: `${pr.changed_files}`,
+                    inline: true,
+                  },
+                )
+                .setTimestamp();
+
+              break;
+            }
+
+            case "closed": {
+              const pr = data.pull_request;
+              const wasMerged = pr.merged;
+              embed
+                .setColor("#FF00EA")
+                .setAuthor({
+                  name: `${data.sender.login}`,
+                  iconURL: `${data.sender.avatar_url}`,
+                  url: `${data.sender.html_url}`,
+                })
+                .setTitle(
+                  `Pull Request ${wasMerged ? "Merged" : "Closed"}: #${pr.number} - ${
+                    pr.title
+                  }`,
+                )
+                .setURL(pr.html_url)
+                .addFields(
+                  {
+                    name: "Branch",
+                    value: `${pr.head.ref} → ${pr.base.ref}`,
+                    inline: true,
+                  },
+                  {
+                    name: "Status",
+                    value: wasMerged ? "✅ Merged" : "❌ Closed",
+                    inline: true,
+                  },
+                )
+                .setTimestamp();
+
+              break;
+            }
+          }
+
+          break;
+        }
+
+        case "issues": {
+          switch (data.action) {
+            case "opened": {
+              const issue = data.issue;
+              embed
+                .setColor("#FF00EA")
+                .setAuthor({
+                  name: `${data.sender.login}`,
+                  iconURL: `${data.sender.avatar_url}`,
+                  url: `${data.sender.html_url}`,
+                })
+                .setTitle(`New Issue: #${issue.number} - ${issue.title}`)
+                .setURL(issue.html_url)
+                .setDescription(issue.body || "No description provided")
+                .setTimestamp();
+
+              break;
+            }
+
+            case "closed": {
+              const issue = data.issue;
+              embed
+                .setColor("#FF00EA")
+                .setAuthor({
+                  name: `${data.sender.login}`,
+                  iconURL: `${data.sender.avatar_url}`,
+                  url: `${data.sender.html_url}`,
+                })
+                .setTitle(`Issue Closed: #${issue.number} - ${issue.title}`)
+                .setURL(issue.html_url)
+                .setTimestamp();
+
+              break;
+            }
+          }
+
+          break;
+        }
+
+        default: {
+          console.log(`[GitHub] Unhandled event type: ${githubEvent}`);
+
+          break;
+        }
       }
 
       try {
@@ -1058,7 +1097,7 @@ module.exports = (client) => {
   );
 
   // Global error handler (must be last)
-  app.use((err, req, res, next) => {
+  app.use((err, req, res) => {
     console.error("[API] Unhandled error:", err);
     res.status(500).json({
       error: "Internal Server Error",

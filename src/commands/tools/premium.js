@@ -34,13 +34,21 @@ module.exports = {
       sub.setName("history").setDescription("View your recent dar command history")
     ),
 
-  async execute(interaction, client) {
+  async execute(interaction) {
     const subcommand = interaction.options.getSubcommand();
 
-    if (subcommand === "manage") {
-      await handleManage(interaction);
-    } else if (subcommand === "history") {
-      await handleHistory(interaction);
+    switch (subcommand) {
+      case "manage": {
+        await handleManage(interaction);
+
+        break;
+      }
+
+      case "history": {
+        await handleHistory(interaction);
+
+        break;
+      }
     }
   },
 };

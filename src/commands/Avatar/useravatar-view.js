@@ -52,7 +52,7 @@ module.exports = {
         )
         .setColor("#FF00EA");
 
-      pageFiles.forEach((file) => {
+      for (const file of pageFiles) {
         const flagName = file.replace(".png", "");
         const imageURL = `https://pfp.pridebot.xyz/${pfpuser.id}/${file}`;
         embed.addFields({
@@ -60,7 +60,7 @@ module.exports = {
           value: `[Link to avatar](${imageURL})`,
           inline: true,
         });
-      });
+      }
 
       embed.setFooter({
         text: `Page ${page + 1} of ${Math.ceil(files.length / avatarsPerPage)}`,

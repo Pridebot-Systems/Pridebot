@@ -24,7 +24,7 @@ module.exports = {
   async execute(interaction, client) {
     const t = loadTranslations(interaction.locale, "Fun", "nametester");
     const name = interaction.options.getString("name");
-    const public = interaction.options.getBoolean("public");
+    const isPublic = interaction.options.getBoolean("public");
     const username = interaction.user.username;
     const scoreupdate = await scanText(name);
 
@@ -92,7 +92,7 @@ module.exports = {
       .setColor(0xff00ae)
       .setTimestamp();
 
-    await interaction.reply({ embeds: [embed], ephemeral: !public });
+    await interaction.reply({ embeds: [embed], ephemeral: !isPublic });
     await commandLogging(client, interaction);
   },
 };

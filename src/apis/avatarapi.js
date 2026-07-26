@@ -50,7 +50,7 @@ module.exports = (client) => {
 
     try {
       // Only try to fetch from Discord if it looks like a user ID (numeric)
-      if (/^\d+$/.test(userId)) {
+      if (/^\d{17,20}$/.test(userId)) {
         const user = await client.users.fetch(userId);
         return res.json({
           id: user.id,
@@ -93,7 +93,7 @@ module.exports = (client) => {
         cluster: getInfo().CLUSTER,
         cache: stats,
       });
-    } catch (error) {
+    } catch {
       res.status(500).json({ error: "Cache stats unavailable" });
     }
   });
@@ -152,7 +152,7 @@ module.exports = (client) => {
           });
         }
       }
-    } catch (error) {
+    } catch {
       // Directory doesn't exist or access denied
     }
 
@@ -177,9 +177,9 @@ module.exports = (client) => {
       let htmlContent = fs.readFileSync(htmlFilePath, "utf8");
 
       const capitalizedUsername =
-        username.charAt(0).toUpperCase() + username.slice(1);
+        username[0].toUpperCase() + username.slice(1);
 
-      htmlContent = htmlContent.replace(/{user.tag}/g, capitalizedUsername);
+      htmlContent = htmlContent.replaceAll("{user.tag}", capitalizedUsername);
       htmlContent = htmlContent.replace(
         /<meta name="og:title" content=".*" \/>/,
         `<meta name="og:title" content="${capitalizedUsername}'s Pride Avatars" />`,
@@ -201,7 +201,7 @@ module.exports = (client) => {
     }
 
     // If it looks like a user ID, try to fetch from Discord
-    if (/^\d+$/.test(identifier)) {
+    if (/^\d{17,20}$/.test(identifier)) {
       try {
         const user = await client.users.fetch(identifier);
         return serveHtmlWithUserInfo(user.username);
@@ -261,7 +261,7 @@ module.exports = (client) => {
         stats = await fsPromises.stat(testPath);
         imagePath = testPath;
         break; // Found the file, stop searching
-      } catch (error) {
+      } catch {
         // File doesn't exist with this identifier, try next
         continue;
       }

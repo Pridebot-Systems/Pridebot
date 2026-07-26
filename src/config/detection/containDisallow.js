@@ -18,8 +18,8 @@ async function containsDisallowedContent(input, username) {
       );
       const inputWords = sanitizedInput.split(/\s+/);
 
-      inputWords.forEach((word) => {
-        blockedTerms.forEach((term) => {
+      for (const word of inputWords) {
+        for (const term of blockedTerms) {
           if (word === term) {
             console.log(
               chalk.yellowBright.bold(
@@ -28,8 +28,8 @@ async function containsDisallowedContent(input, username) {
             );
             foundDisallowed = true;
           }
-        });
-      });
+        }
+      }
     }
   } catch (error) {
     console.error("Error fetching blocked terms:", error);

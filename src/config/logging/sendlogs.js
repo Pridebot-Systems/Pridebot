@@ -49,7 +49,7 @@ async function sendLog(client, message, channelId) {
   }
 
   try {
-    const results = await client.cluster.broadcastEval(
+    await client.cluster.broadcastEval(
       async (c, { message, channelId, guildId }) => {
         if (!c.guilds.cache.has(guildId)) return null;
         const { EmbedBuilder } = require("discord.js");

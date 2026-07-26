@@ -115,7 +115,6 @@ const profileLogging = async (
     return;
   }
 
-  const diffs = [];
   const checkField = (key, displayName) => {
     const oldVal = originalProfile[key] ?? null;
     const newVal = updatedProfile[key] ?? null;

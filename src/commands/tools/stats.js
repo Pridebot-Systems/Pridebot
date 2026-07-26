@@ -69,7 +69,7 @@ module.exports = {
 
       const approximateUserInstallCount =
         stats.UserInstallCount ??
-        (await getApproximateUserInstallCount(client));
+        (await getApproximateUserInstallCount());
       const CommandsCount = stats.commandsCount ?? 0;
       const profileAmount = stats.profileAmount ?? 0;
       const totalUsage = stats.totalUsage ?? 0;

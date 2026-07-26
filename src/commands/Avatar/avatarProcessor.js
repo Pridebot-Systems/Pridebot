@@ -1,12 +1,14 @@
 const sharp = require("sharp");
-const axios = require("axios");
 const fs = require("fs").promises;
 const path = require("path");
 const NodeCache = require("node-cache");
 const Queue = require("bull");
+const { Timeout } = require("../../utils/timeout");
 
 // Cache configurations
 const flagCache = new NodeCache({ stdTTL: 3600, checkperiod: 600 }); // 1 hour cache, check every 10 minutes
+const avatarCache = new NodeCache({ stdTTL: 600, checkperiod: 120 }); // 10 minute cache, check every 2 minutes
+const processedAvatarCache = new NodeCache({ stdTTL: 1800, checkperiod: 300 }); // 30 minute cache for final results
 
 // Background processing queue (with fallback if Redis is not available)
 let avatarQueue;
@@ -197,26 +199,63 @@ class AvatarProcessor {
   // Download user avatar fresh every time so avatar changes are always reflected
   async getUserAvatar(avatarURL, userID) {
     try {
-      const response = await axios.get(avatarURL, {
-        responseType: "arraybuffer",
-        timeout: 10000,
+      const ab = new AbortController();
+      const timeout = new Timeout(ab, 10000);
+
+      const response = await fetch(avatarURL, {
         headers: {
-          "User-Agent": "Pridebot/1.0 (Discord Bot)",
+          "User-Agent": "Pridebot/1.0 (Discord Bot)"
         },
+        signal: ab.signal
       });
 
-      return await sharp(response.data)
-        .resize(412, 412)
-        .composite([
-          {
-            input: Buffer.from(
-              `<svg><circle cx="206" cy="206" r="206" fill="white"/></svg>`
-            ),
-            blend: "dest-in",
-          },
-        ])
-        .png()
-        .toBuffer();
+      const reader = response.body?.getReader();
+
+      const chunks = [];
+      let total = 0;
+
+      if (reader) {
+        let data;
+
+        while (
+          (data = await Promise.race([reader.read(), timeout.promise])) !== null
+        ) {
+          if (data.done) {
+            const rawResult = new Uint8Array(total);
+            let offset = 0;
+
+            for (const chunk of chunks) {
+              rawResult.set(chunk, offset);
+
+              offset += chunk.length;
+            }
+
+            return await sharp(rawResult)
+              .resize(412, 412)
+              .composite([
+                {
+                  input: Buffer.from(
+                    `<svg><circle cx="206" cy="206" r="206" fill="white"/></svg>`
+                  ),
+                  blend: "dest-in",
+                },
+              ])
+              .png()
+              .toBuffer();
+          }
+
+          chunks.push(data.value);
+          total += data.value.length;
+        }
+
+        try {
+          reader.cancel();
+        } catch {}
+
+        throw new Error("Request timed out");
+      }
+
+      throw new Error("Response body is null or undefined");
     } catch (error) {
       console.error(`Error downloading avatar for user ${userID}:`, error);
       throw new Error("Failed to download user avatar");
@@ -228,8 +267,7 @@ class AvatarProcessor {
     avatarURL,
     flagName,
     flagName2,
-    userID,
-    username = null
+    userID
   ) {
     // Ensure processor is initialized
     if (!this.initialized) {

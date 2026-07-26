@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Check for suspicious characters
-    if (!/^[a-zA-Z0-9_.-]+$/.test(query)) {
+    if (!/^[\w.-]+$/.test(query)) {
       showError("Invalid characters detected", "Only letters, numbers, underscores, periods, and hyphens are allowed");
       return false;
     }
@@ -85,9 +85,9 @@ document.addEventListener("DOMContentLoaded", () => {
   async function performSearch(query) {
     try {
       setLoadingState(true);
-      
+
       // First, try direct user ID lookup (numeric)
-      if (/^\d+$/.test(query)) {
+      if (/^\d{17,20}$/.test(query)) {
         // It's a user ID, try direct access
         const response = await fetch(`/files/${query}`, {
           method: 'GET',
@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (data.files && data.files.length > 0) {
             const avatarCount = data.files.filter(f => f.endsWith('.png') || f.endsWith('.webp')).length;
             showSuccess(`Found ${avatarCount} avatars! Redirecting...`);
-            
+
             setTimeout(() => {
               window.location.href = `/${query}`;
             }, 1000);
@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         }
       }
-      
+
       // Try username lookup
       const usernameResponse = await fetch(`/files/${query.toLowerCase()}`, {
         method: 'GET',
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.files && data.files.length > 0) {
           const avatarCount = data.files.filter(f => f.endsWith('.png') || f.endsWith('.webp')).length;
           showSuccess(`Found ${avatarCount} avatars for username! Redirecting...`);
-          
+
           setTimeout(() => {
             window.location.href = `/${query.toLowerCase()}`;
           }, 1000);
@@ -151,10 +151,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Real-time input feedback
   searchInput.addEventListener("input", (event) => {
     const query = event.target.value.trim();
-    
+
     // Clear any existing timeout
     clearTimeout(searchTimeout);
-    
+
     if (query === "") {
       clearResults();
       return;
@@ -193,7 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
       clearResults();
       searchInput.blur();
     }
-    
+
     if (event.ctrlKey && event.key === "k") {
       event.preventDefault();
       searchInput.focus();

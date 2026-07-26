@@ -1,16 +1,8 @@
 function capitalizeFirstLetter(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
+  return string[0].toUpperCase() + string.slice(1);
 }
 
-function formatFileSize(bytes) {
-  if (bytes === 0) return "0 Bytes";
-  const k = 1024;
-  const sizes = ["Bytes", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-}
-
-function createAvatarCard(file, imagePathBase, currentFormat) {
+function createAvatarCard(file, imagePathBase) {
   const flagName = file.replace(/\.(png|webp)$/i, "");
   const fileExtension = file.match(/\.(png|webp)$/i)?.[1] || "png";
 
@@ -211,17 +203,17 @@ Timestamp: ${new Date().toISOString()}
       { url: `/getUser/${userId}`, name: `Current User Info (${userId})` },
       { url: '/health', name: 'Health Check' }
     ];
-    
+
     try {
       console.log('Running comprehensive API diagnostics...');
       results.push(`🔍 API Diagnostics for ${window.location.host}`);
       results.push(`📅 ${new Date().toLocaleString()}`);
       results.push('');
-      
+
       for (const endpoint of testEndpoints) {
         try {
           console.log(`Testing ${endpoint.name}: ${endpoint.url}`);
-          
+
           const startTime = Date.now();
           const response = await fetch(endpoint.url, {
             headers: { 
@@ -231,10 +223,10 @@ Timestamp: ${new Date().toISOString()}
             signal: AbortSignal.timeout ? AbortSignal.timeout(5000) : undefined // 5 second timeout
           });
           const responseTime = Date.now() - startTime;
-          
+
           const contentType = response.headers.get('content-type');
           let responsePreview = '';
-          
+
           try {
             const text = await response.text();
             if (text.startsWith('{') || text.startsWith('[')) {
@@ -249,30 +241,30 @@ Timestamp: ${new Date().toISOString()}
               responsePreview = text.length > 200 ? text.substring(0, 200) + '...' : text;
             }
           } catch (e) {
-            responsePreview = 'Unable to read response body';
+            responsePreview = `Unable to read response body: ${e}`;
           }
-          
+
           results.push(`✅ ${endpoint.name}`);
           results.push(`   Status: ${response.status} ${response.statusText}`);
           results.push(`   Response Time: ${responseTime}ms`);
           results.push(`   Content-Type: ${contentType || 'Not specified'}`);
           results.push(`   Response: ${responsePreview}`);
           results.push('');
-          
+
         } catch (error) {
           results.push(`❌ ${endpoint.name}`);
           results.push(`   Error: ${error.name}: ${error.message}`);
           results.push('');
         }
       }
-      
+
     } catch (error) {
       results.push(`💥 Diagnostic Error: ${error.message}`);
     }
-    
+
     const resultText = results.join('\n');
     console.log('API Test Results:', resultText);
-    
+
     // Show results in console and alert
     alert("API Test Results:\n\n" + resultText);
   };
@@ -297,10 +289,13 @@ Timestamp: ${new Date().toISOString()}
   function setupFormatFilters() {
     const formatButtons = document.querySelectorAll(".format-btn");
 
-    formatButtons.forEach((button) => {
+    for (const button of formatButtons) {
       button.addEventListener("click", () => {
         // Update active state
-        formatButtons.forEach((btn) => btn.classList.remove("active"));
+        for (const btn of formatButtons) {
+          btn.classList.remove("active");
+        }
+
         button.classList.add("active");
 
         // Update current format and filter
@@ -309,7 +304,7 @@ Timestamp: ${new Date().toISOString()}
         currentPage = 1; // Reset to first page
         renderPage(currentPage);
       });
-    });
+    }
   }
 
   function filterAvatars() {
@@ -345,11 +340,11 @@ Timestamp: ${new Date().toISOString()}
     }
 
     // Render avatar cards
-    currentAvatars.forEach((file, index) => {
-      const card = createAvatarCard(file, imagePathBase, currentFormat);
+    for (let index = 0; index < currentAvatars.length; index++) {
+      const card = createAvatarCard(currentAvatars[index], imagePathBase, currentFormat);
       card.style.animationDelay = `${index * 0.1}s`;
       galleryContainer.appendChild(card);
-    });
+    }
 
     paginationContainer.style.display = "flex";
     renderPagination();

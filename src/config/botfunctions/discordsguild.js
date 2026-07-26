@@ -1,4 +1,3 @@
-const axios = require("axios");
 require("dotenv").config();
 const { discordstoken } = process.env;
 
@@ -11,14 +10,15 @@ async function updateDiscordsCount(client) {
     );
     const totalGuilds = results.reduce((a, b) => a + b, 0);
 
-    await axios.post(
+    await fetch(
       `https://discords.com/bots/api/bot/1101256478632972369/setservers`,
-      { server_count: totalGuilds },
       {
+        method: "POST",
         headers: {
           Authorization: discordstoken,
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ server_count: totalGuilds })
       }
     );
   } catch (error) {

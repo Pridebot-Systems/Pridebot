@@ -63,9 +63,9 @@ module.exports = (client) => {
       }
     };
 
-    fs.readdirSync(commandsPath).forEach((folder) => {
+    for (const folder of fs.readdirSync(commandsPath)) {
       loadCommands(`${commandsPath}/${folder}`);
-    });
+    }
 
     const rest = new REST({ version: "10" }).setToken(config.token);
     try {

@@ -54,16 +54,16 @@
         transition: all 0.3s ease;
         margin-left: 10px;
       }
-      
+
       .edit-btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
       }
-      
+
       .detail-card {
         position: relative;
       }
-      
+
       .card-edit-btn {
         position: absolute;
         top: 10px;
@@ -71,19 +71,19 @@
         opacity: 0;
         transition: opacity 0.3s ease;
       }
-      
+
       .detail-card:hover .card-edit-btn {
         opacity: 1;
       }
-      
+
       .profile-bio-section {
         position: relative;
       }
-      
+
       .section-edit-btn {
         float: right;
       }
-      
+
       .edit-modal {
         display: none;
         position: fixed;
@@ -95,7 +95,7 @@
         background: rgba(0, 0, 0, 0.7);
         backdrop-filter: blur(5px);
       }
-      
+
       .modal-content-custom {
         background: linear-gradient(135deg, rgba(255, 0, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
         border: 2px solid rgba(255, 0, 234, 0.2);
@@ -107,7 +107,7 @@
         box-shadow: 0 20px 60px rgba(255, 0, 234, 0.3);
         animation: slideIn 0.3s ease;
       }
-      
+
       @keyframes slideIn {
         from {
           transform: translateY(-50px);
@@ -118,7 +118,7 @@
           opacity: 1;
         }
       }
-      
+
       .modal-header-custom {
         display: flex;
         justify-content: space-between;
@@ -127,14 +127,14 @@
         padding-bottom: 15px;
         border-bottom: 2px solid rgba(255, 0, 234, 0.3);
       }
-      
+
       .modal-header-custom h3 {
         margin: 0;
         color: #FF00ea;
         font-size: 24px;
         font-weight: 700;
       }
-      
+
       .close-modal {
         background: none;
         border: none;
@@ -144,23 +144,23 @@
         line-height: 1;
         transition: all 0.3s ease;
       }
-      
+
       .close-modal:hover {
         color: #764ba2;
         transform: scale(1.1);
       }
-      
+
       .form-group-custom {
         margin-bottom: 20px;
       }
-      
+
       .form-group-custom label {
         display: block;
         font-weight: 600;
         color: #FF00ea;
         margin-bottom: 8px;
       }
-      
+
       .form-group-custom input,
       .form-group-custom textarea,
       .form-group-custom select {
@@ -172,7 +172,7 @@
         transition: all 0.3s ease;
         background: white;
       }
-      
+
       .form-group-custom input:focus,
       .form-group-custom textarea:focus,
       .form-group-custom select:focus {
@@ -180,19 +180,19 @@
         border-color: #FF00ea;
         box-shadow: 0 0 0 3px rgba(255, 0, 234, 0.2);
       }
-      
+
       .form-group-custom textarea {
         resize: vertical;
         min-height: 100px;
       }
-      
+
       .modal-actions {
         display: flex;
         gap: 10px;
         justify-content: flex-end;
         margin-top: 25px;
       }
-      
+
       .btn-save {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -203,12 +203,12 @@
         cursor: pointer;
         transition: all 0.3s ease;
       }
-      
+
       .btn-save:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
       }
-      
+
       .btn-cancel {
         background: #e2e8f0;
         color: #4a5568;
@@ -219,11 +219,11 @@
         cursor: pointer;
         transition: all 0.3s ease;
       }
-      
+
       .btn-cancel:hover {
         background: #cbd5e0;
       }
-      
+
       .logout-btn {
         background: #fc8181;
         color: white;
@@ -235,12 +235,12 @@
         cursor: pointer;
         transition: all 0.3s ease;
       }
-      
+
       .logout-btn:hover {
         background: #f56565;
         transform: translateY(-1px);
       }
-      
+
       .alert-custom {
         position: fixed;
         top: 80px;
@@ -253,7 +253,7 @@
         animation: slideInRight 0.3s ease;
         max-width: 400px;
       }
-      
+
       @keyframes slideInRight {
         from {
           transform: translateX(100%);
@@ -264,22 +264,22 @@
           opacity: 1;
         }
       }
-      
+
       .alert-success {
         border-left: 4px solid #48bb78;
       }
-      
+
       .alert-error {
         border-left: 4px solid #f56565;
       }
-      
+
       .char-counter {
         font-size: 12px;
         color: #718096;
         text-align: right;
         margin-top: 4px;
       }
-      
+
       .link-item {
         position: relative;
         display: flex;
@@ -290,19 +290,19 @@
         padding: 15px;
         transition: all 0.3s ease;
       }
-      
+
       .link-item:hover {
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(255, 0, 234, 0.2);
       }
-      
+
       .link-item a {
         flex: 1;
         color: var(--main-color);
         text-decoration: none;
         font-weight: 500;
       }
-      
+
       .remove-link-btn {
         position: absolute;
         top: 5px;
@@ -321,16 +321,16 @@
         transition: all 0.3s ease;
         opacity: 0;
       }
-      
+
       .link-item:hover .remove-link-btn {
         opacity: 1;
       }
-      
+
       .remove-link-btn:hover {
         background: #f56565;
         transform: scale(1.1);
       }
-      
+
       .links-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -578,7 +578,7 @@
       async function loadProfile() {
         try {
           document.getElementById('loading-container').style.display = 'flex';
-          
+
           const response = await fetch(`${API_URL}/api/profile/me`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
@@ -587,15 +587,15 @@
             currentProfile = {};
             document.getElementById('loading-container').style.display = 'none';
             document.getElementById('profile-content').style.display = 'block';
-            
+
             try {
               const base64Url = token.split('.')[1];
-              const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+              const base64 = base64Url.replaceAll('-', '+').replaceAll('_', '/');
               const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
                 return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
               }).join(''));
               const decoded = JSON.parse(jsonPayload);
-              
+
               if (decoded.userId) {
                 const userResponse = await fetch(`${API_URL}/getUser/${decoded.userId}`);
                 if (userResponse.ok) {
@@ -608,7 +608,7 @@
             } catch (e) {
               console.error('Error parsing token:', e);
             }
-            
+
             showAlert('No profile found. Start editing to create one!', 'success');
             return;
           }
@@ -650,23 +650,23 @@
         }
 
         if (profile.bio) {
-          document.getElementById('profile-bio').textContent = profile.bio.replace(/\\n/g, '\n');
+          document.getElementById('profile-bio').textContent = profile.bio.replaceAll('\\n', '\n');
         }
 
         if (profile.age) document.getElementById('profile-age').textContent = profile.age;
 
         if (profile.sexuality) {
           const sexualityText = profile.sexuality === 'other' ? profile.otherSexuality : profile.sexuality;
-          document.getElementById('profile-sexuality').textContent = sexualityText.charAt(0).toUpperCase() + sexualityText.slice(1);
+          document.getElementById('profile-sexuality').textContent = sexualityText[0].toUpperCase() + sexualityText.slice(1);
         }
 
         if (profile.romanticOrientation) {
-          document.getElementById('profile-romantic').textContent = profile.romanticOrientation.charAt(0).toUpperCase() + profile.romanticOrientation.slice(1);
+          document.getElementById('profile-romantic').textContent = profile.romanticOrientation[0].toUpperCase() + profile.romanticOrientation.slice(1);
         }
 
         if (profile.gender) {
           const genderText = profile.gender === 'other' ? profile.otherGender : profile.gender;
-          document.getElementById('profile-gender').textContent = genderText.charAt(0).toUpperCase() + genderText.slice(1);
+          document.getElementById('profile-gender').textContent = genderText[0].toUpperCase() + genderText.slice(1);
         }
 
         if (profile.color) {
@@ -685,12 +685,12 @@
         currentEditField = field;
         const modal = document.getElementById('editModal');
         const modalBody = document.getElementById('modal-body');
-        
-        let fieldTitle = field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1');
+
+        let fieldTitle = field[0].toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1');
         document.getElementById('modal-title').textContent = `Edit ${fieldTitle}`;
-        
+
         let html = '';
-        
+
         switch(field) {
           case 'preferredName':
             html = `<div class="form-group-custom"><label>Preferred Name</label><input type="text" id="edit-input" value="${currentProfile.preferredName || ''}" maxlength="100" placeholder="Your preferred name"></div>`;
@@ -720,10 +720,10 @@
             html = `<div class="form-group-custom"><label>Pronouns Page URL</label><input type="url" id="edit-input" value="${currentProfile.pronounpage || ''}" placeholder="https://pronouns.page/@username"></div>`;
             break;
         }
-        
+
         modalBody.innerHTML = html;
         modal.style.display = 'block';
-        
+
         setTimeout(() => {
           const editInput = document.getElementById('edit-input');
           if (editInput && editInput.tagName === 'TEXTAREA') {
@@ -731,7 +731,7 @@
               document.getElementById('char-count').textContent = e.target.value.length;
             });
           }
-          
+
           if (editInput && editInput.tagName === 'SELECT') {
             editInput.addEventListener('change', (e) => {
               const otherGroup = document.getElementById(`other-${field}-group`);
@@ -750,32 +750,32 @@
 
       async function saveField() {
         if (!currentEditField) return;
-        
+
         // Handle adding a link
         if (currentEditField === 'addLink') {
           const nameInput = document.getElementById('link-name-input');
           const urlInput = document.getElementById('link-url-input');
           const iconInput = document.getElementById('link-icon-input');
-          
+
           if (!nameInput || !urlInput) return;
-          
+
           const name = nameInput.value.trim();
           const url = urlInput.value.trim();
           const icon = iconInput ? iconInput.value.trim() : 'link';
-          
+
           if (!name || !url) {
             showAlert('Please fill in name and URL', 'error');
             return;
           }
-          
+
           if (!url.startsWith('http://') && !url.startsWith('https://')) {
             showAlert('URL must start with http:// or https://', 'error');
             return;
           }
-          
+
           const links = currentProfile.links || [];
           links.push({ name, url, icon: icon || 'link' });
-          
+
           try {
             const response = await fetch(`${API_URL}/api/profile/me`, {
               method: 'PUT',
@@ -785,12 +785,12 @@
               },
               body: JSON.stringify({ links })
             });
-            
+
             if (!response.ok) {
               const error = await response.json();
               throw new Error(error.error || 'Failed to add link');
             }
-            
+
             const result = await response.json();
             currentProfile = result.profile;
             displayLinks(currentProfile.links || []);
@@ -802,14 +802,14 @@
           }
           return;
         }
-        
+
         const input = document.getElementById('edit-input');
         const otherInput = document.getElementById('edit-other-input');
-        
+
         if (!input) return;
-        
+
         let value = input.value;
-        
+
         if (currentEditField === 'age' && value) {
           value = parseInt(value);
           if (value < 13 || value > 120) {
@@ -817,14 +817,14 @@
             return;
           }
         }
-        
+
         const updates = { [currentEditField]: value };
-        
+
         if (otherInput && input.value === 'Other') {
-          const otherField = `other${currentEditField.charAt(0).toUpperCase()}${currentEditField.slice(1)}`;
+          const otherField = `other${currentEditField[0].toUpperCase()}${currentEditField.slice(1)}`;
           updates[otherField] = otherInput.value;
         }
-        
+
         try {
           const response = await fetch(`${API_URL}/api/profile/me`, {
             method: 'PUT',
@@ -834,12 +834,12 @@
             },
             body: JSON.stringify(updates)
           });
-          
+
           if (!response.ok) {
             const error = await response.json();
             throw new Error(error.error || 'Failed to update');
           }
-          
+
           const result = await response.json();
           currentProfile = result.profile;
           displayProfile(currentProfile);
@@ -859,13 +859,13 @@
       function displayLinks(links) {
         const linksContainer = document.getElementById('profile-links');
         const noLinksMessage = document.getElementById('no-links-message');
-        
+
         if (!links || links.length === 0) {
           linksContainer.innerHTML = '';
           noLinksMessage.style.display = 'block';
           return;
         }
-        
+
         noLinksMessage.style.display = 'none';
         linksContainer.innerHTML = links.map((link, index) => `
           <div class="link-item">
@@ -882,9 +882,9 @@
       function addSite() {
         const modal = document.getElementById('editModal');
         const modalBody = document.getElementById('modal-body');
-        
+
         document.getElementById('modal-title').textContent = 'Add Website Link';
-        
+
         const html = `
           <div class="form-group-custom">
             <label>Website Name</label>
@@ -900,7 +900,7 @@
             <small style="color: #718096; font-size: 12px;">Leave blank for default link icon</small>
           </div>
         `;
-        
+
         modalBody.innerHTML = html;
         modal.style.display = 'block';
         currentEditField = 'addLink';
@@ -910,11 +910,11 @@
         if (!confirm('Are you sure you want to remove this link?')) {
           return;
         }
-        
+
         try {
           const links = currentProfile.links || [];
           links.splice(index, 1);
-          
+
           const response = await fetch(`${API_URL}/api/profile/me`, {
             method: 'PUT',
             headers: {
@@ -923,12 +923,12 @@
             },
             body: JSON.stringify({ links })
           });
-          
+
           if (!response.ok) {
             const error = await response.json();
             throw new Error(error.error || 'Failed to remove link');
           }
-          
+
           const result = await response.json();
           currentProfile = result.profile;
           displayLinks(currentProfile.links || []);
@@ -951,7 +951,7 @@
       }
 
       loadProfile();
-      
+
       document.getElementById('nav-toggle').addEventListener('click', function () {
         document.getElementById('nav-menu').classList.toggle('active');
       });

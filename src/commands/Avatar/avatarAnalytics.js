@@ -41,12 +41,12 @@ async function logAvatarGeneration(data) {
     });
 
     await logEntry.save();
-    
+
     // Log performance warning if processing was slow
     if (data.processingTime > 3000) {
       console.warn(`Slow avatar generation: ${data.processingTime}ms for ${data.userID} (${flagCombination})`);
     }
-    
+
   } catch (error) {
     console.error('Failed to log avatar generation:', error);
     // Don't throw error to avoid breaking the main command

@@ -88,8 +88,6 @@ module.exports = {
         }
       );
 
-
-
     let pollData = await PanVSPot.findOne();
     if (!pollData) {
       pollData = await PanVSPot.create({});

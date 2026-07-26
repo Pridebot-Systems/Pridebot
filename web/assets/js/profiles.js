@@ -49,14 +49,14 @@ async function formatBioText(text) {
   );
 
   formatted = formatted.replace(
-    /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,
+    /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
     "{{MDLINK::$1::$2}}"
   );
 
   formatted = formatted
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 
   formatted = formatted.replace(/(https?:\/\/[^\s<]+)/g, (match, url) => {
     const beforeMatch = formatted.substring(0, formatted.indexOf(match));
@@ -90,13 +90,13 @@ async function formatBioText(text) {
 
   const users = await Promise.all(userPromises);
 
-  users.forEach(({ userId, username }) => {
+  for (const { userId, username } of users) {
     const mentionPattern = new RegExp(`&lt;@${userId}&gt;`, "g");
     formatted = formatted.replace(
       mentionPattern,
       `<a href="https://discord.com/users/${userId}" target="_blank" rel="noopener noreferrer" class="user-mention">@${username}</a>`
     );
-  });
+  }
 
   // Bold text
   formatted = formatted.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
@@ -115,30 +115,30 @@ async function formatBioText(text) {
 
   // Discord emotes <:name:id> or <a:name:id>
   formatted = formatted.replace(
-    /&lt;a?:(\w+):(\d+)&gt;/g,
+    /&lt;a?:(\w+):(\d{17,20})&gt;/g,
     '<img src="https://cdn.discordapp.com/emojis/$2.png" alt=":$1:" class="discord-emoji" title=":$1:">'
   );
 
   // Convert spoiler placeholders
   formatted = formatted.replace(
-    /\{\{SPOILER::([^\}]+)\}\}/g,
+    /\{\{SPOILER::([^}]+)\}\}/g,
     '<span class="spoiler" onclick="this.classList.toggle(\'revealed\')">$1</span>'
   );
 
   // Convert markdown link placeholders to actual links
   formatted = formatted.replace(
-    /\{\{MDLINK::([^:]+)::(https?:\/\/[^\}]+)\}\}/g,
+    /\{\{MDLINK::([^:]+)::(https?:\/\/[^}]+)\}\}/g,
     '<a href="$2" target="_blank" rel="noopener noreferrer" class="bio-link">$1</a>'
   );
 
   // Auto-linked URLs
   formatted = formatted.replace(
-    /\{\{LINK:(https?:\/\/[^\}]+)\}\}/g,
+    /\{\{LINK:(https?:\/\/[^}]+)\}\}/g,
     '<a href="$1" target="_blank" rel="noopener noreferrer" class="bio-link">$1</a>'
   );
 
-  formatted = formatted.replace(/\\n/g, "<br>");
-  formatted = formatted.replace(/\n/g, "<br>");
+  formatted = formatted.replaceAll("\\n", "<br>");
+  formatted = formatted.replaceAll("\n", "<br>");
 
   return formatted;
 }
@@ -160,7 +160,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 async function loadProfile(searchedValue) {
   const loadingContainer = document.getElementById("loading-container");
   const profileContent = document.getElementById("profile-content");
-  const errorState = document.getElementById("error-state");
 
   try {
     const response = await fetch(`${API_BASE_URL}/profile/${searchedValue}`);
@@ -288,7 +287,7 @@ async function populateProfile(profile, discordUser, userId, userBadges, command
 
   if (profile.badgesVisible !== false && userBadges.length > 0) {
     const badgesEl = document.getElementById("profile-badges");
-    userBadges.forEach((badgeKey) => {
+    for (const badgeKey of userBadges) {
       if (badgeImages[badgeKey]) {
         const badgeImg = document.createElement("img");
         badgeImg.src = badgeImages[badgeKey].url;
@@ -297,7 +296,7 @@ async function populateProfile(profile, discordUser, userId, userBadges, command
         badgeImg.className = "profile-badge";
         badgesEl.appendChild(badgeImg);
       }
-    });
+    }
   }
 
   if (profile.bio) {
@@ -312,13 +311,13 @@ async function populateProfile(profile, discordUser, userId, userBadges, command
     document.getElementById("profile-age").textContent = profile.age;
     ageCard.style.display = "flex";
   }
-  
+
   if (commandUsage && commandUsage.totalCommands > 0) {
     const commandsCard = document.getElementById("commands-card");
     document.getElementById("profile-commands").textContent = commandUsage.totalCommands.toLocaleString();
     commandsCard.style.display = "flex";
   }
-  
+
   if (profile.sexuality) {
     const sexualityCard = document.getElementById("sexuality-card");
     let sexualityText = profile.sexuality;
@@ -359,7 +358,7 @@ async function populateProfile(profile, discordUser, userId, userBadges, command
     const avatarsSection = document.getElementById("avatars-section");
     const avatarsGrid = document.getElementById("custom-avatars");
 
-    profile.customAvatars.forEach((avatar) => {
+    for (const avatar of profile.customAvatars) {
       const avatarCard = document.createElement("div");
       avatarCard.className = "avatar-card";
       avatarCard.innerHTML = `
@@ -370,7 +369,7 @@ async function populateProfile(profile, discordUser, userId, userBadges, command
         window.open(avatar.url, "_blank");
       });
       avatarsGrid.appendChild(avatarCard);
-    });
+    }
 
     avatarsSection.style.display = "block";
   }
@@ -390,14 +389,14 @@ async function populateProfile(profile, discordUser, userId, userBadges, command
   }
 
   if (profile.customWebsites && profile.customWebsites.length > 0) {
-    profile.customWebsites.forEach((site) => {
+    for (const site of profile.customWebsites) {
       const link = createLinkButton(
         site.label,
         site.url,
         "fa-external-link-alt"
       );
       linksGrid.appendChild(link);
-    });
+    }
     hasLinks = true;
   }
 
@@ -441,7 +440,7 @@ function updatePageMeta(profile, discordUser) {
 
   if (ogDesc) {
     const desc = profile.bio
-      ? profile.bio.substring(0, 150).replace(/\\n/g, " ") +
+      ? profile.bio.substring(0, 150).replaceAll("\\n", " ") +
         (profile.bio.length > 150 ? "..." : "")
       : `View ${name}'s profile on Pridebot`;
     ogDesc.setAttribute("content", desc);

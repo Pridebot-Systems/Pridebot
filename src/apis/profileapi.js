@@ -189,12 +189,7 @@ module.exports = (client) => {
         "pronounpage",
       ];
 
-      const filteredUpdates = {};
-      allowedFields.forEach((field) => {
-        if (updates[field] !== undefined) {
-          filteredUpdates[field] = updates[field];
-        }
-      });
+      const filteredUpdates = Object.fromEntries(allowedFields.filter(field => updates[field]).map(field => [field, updates[field]]));
 
       if (
         filteredUpdates.age &&
@@ -260,7 +255,7 @@ module.exports = (client) => {
     const { userId } = req.params;
 
     try {
-      if (/^\d+$/.test(userId)) {
+      if (/^\d{17,20}$/.test(userId)) {
         const user = await client.users.fetch(userId);
         return res.json({
           id: user.id,
@@ -288,7 +283,6 @@ module.exports = (client) => {
         return res.json({ badges: [] });
       }
 
-      const badges = [];
       const badgeKeys = [
         "bot",
         "discord",
@@ -299,12 +293,7 @@ module.exports = (client) => {
         "partner",
         "donor",
       ];
-
-      for (const key of badgeKeys) {
-        if (Array.isArray(idLists[key]) && idLists[key].includes(userId)) {
-          badges.push(key);
-        }
-      }
+      const badges = badgeKeys.filter(key => Array.isArray(idLists[key]) && idLists[key].includes(userId));
 
       return res.json({ badges });
     } catch (error) {
@@ -347,7 +336,7 @@ module.exports = (client) => {
       const { userIdOrUsername } = req.params;
       let profile;
 
-      if (/^\d+$/.test(userIdOrUsername)) {
+      if (/^\d{17,20}$/.test(userIdOrUsername)) {
         profile = await ProfileData.findOne({ userId: userIdOrUsername });
       } else {
         profile = await ProfileData.findOne({ username: userIdOrUsername });
@@ -458,13 +447,13 @@ module.exports = (client) => {
           /<meta name="og:description" content=".*" \/>/,
           `<meta name="og:description" content="${bio
             .substring(0, 150)
-            .replace(/\\n/g, " ")}" />`
+            .replaceAll("\\n", " ")}" />`
         );
         htmlContent = htmlContent.replace(
           /<meta name="description" content=".*" \/>/,
           `<meta name="description" content="${bio
             .substring(0, 150)
-            .replace(/\\n/g, " ")}" />`
+            .replaceAll("\\n", " ")}" />`
         );
         htmlContent = htmlContent.replace(
           /<meta name="og:image"[\s\S]*?content=".*" \/>/,
@@ -486,7 +475,7 @@ module.exports = (client) => {
       }
     }
 
-    if (/^\d+$/.test(searched)) {
+    if (/^\d{17,20}$/.test(searched)) {
       try {
         const user = await client.users.fetch(searched);
         return serveProfilePage(

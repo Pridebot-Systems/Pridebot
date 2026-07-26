@@ -357,7 +357,6 @@ module.exports = (client) => {
       const tierId =
         data.relationships?.currently_entitled_tiers?.data?.[0]?.id;
       const pledgeCents = data.attributes?.currently_entitled_amount_cents || 0;
-      const pledgeAmount = (pledgeCents / 100).toFixed(2);
 
       const patron = included.find(
         (item) => item.type === "user" && item.id === patronId

@@ -130,15 +130,15 @@ module.exports = {
       return interaction.reply({ content: t.error_analyzing, ephemeral: true });
     }
 
-    const subjectCap = subject.charAt(0).toUpperCase() + subject.slice(1);
-    const possessiveDetCap = possessiveDeterminer.charAt(0).toUpperCase() + possessiveDeterminer.slice(1);
+    const subjectCap = subject[0].toUpperCase() + subject.slice(1);
+    const possessiveDetCap = possessiveDeterminer[0].toUpperCase() + possessiveDeterminer.slice(1);
 
     const embed = new EmbedBuilder()
       .setColor(0xff00ae)
       .setTitle(
         t.title
           .replace("{{subject}}", subjectCap)
-          .replace("{{object}}", object.charAt(0).toUpperCase() + object.slice(1))
+          .replace("{{object}}", object[0].toUpperCase() + object.slice(1))
           .replace("{{possessive}}", possessiveDetCap)
       )
       .setDescription(t.description)

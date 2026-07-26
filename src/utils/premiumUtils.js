@@ -27,9 +27,11 @@ async function hasFeature(userId, feature) {
 }
 
 function getFixedValueLimit(tier) {
-  if (tier === "lgbtqpp") return 3;
-  if (tier === "supporter") return 1;
-  return 0;
+  switch (tier) {
+    case "lgbtqpp": return 3;
+    case "supporter": return 1;
+    default: return 0;
+  }
 }
 
 async function getDarResult(userId, commandName) {
@@ -39,15 +41,27 @@ async function getDarResult(userId, commandName) {
     const tierFeatures = TIER_FEATURES[tier] || [];
     const mode = profile?.darMode || "rng";
 
-    if (mode === "fixed" && tierFeatures.includes("darFixedValue")) {
-      const fixedValue = profile?.darFixedValues?.get(commandName) ?? null;
-      if (fixedValue !== null && fixedValue !== undefined) {
-        return { min: fixedValue, max: fixedValue, fixed: true, useDarList: false };
+    switch (mode) {
+      case "fixed": {
+        if (tierFeatures.includes("darFixedValue")) {
+          const fixedValue = profile?.darFixedValues?.get(commandName) ?? null;
+          if (fixedValue !== null && fixedValue !== undefined) {
+            return { min: fixedValue, max: fixedValue, fixed: true, useDarList: false };
+          }
+        }
+
+        break;
+      }
+
+      case "range": {
+        if (tier === "lgbtqpp") {
+          return { min: profile.darRangeMin, max: profile.darRangeMax, fixed: false, useDarList: false };
+        }
+
+        break;
       }
     }
-    if (mode === "range" && tier === "lgbtqpp") {
-      return { min: profile.darRangeMin, max: profile.darRangeMax, fixed: false, useDarList: false };
-    }
+
     return { min: 0, max: 100, fixed: false, useDarList: false };
   } catch (err) {
     console.error("[PREMIUM] getDarResult error:", err);
