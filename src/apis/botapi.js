@@ -316,6 +316,11 @@ module.exports = (client) => {
             method: "POST",
             description: "Top.gg vote webhook",
           },
+          topggServer: {
+            path: "/topgg-server-votes",
+            method: "POST",
+            description: "Top.gg support server vote webhook",
+          },
           botlist: {
             path: "/botlist-votes",
             method: "POST",
@@ -621,6 +626,57 @@ module.exports = (client) => {
           .setTimestamp();
 
         await sendVoteEmbed(client, embed, "TopGG", topgguserid, res);
+      })
+      .catch((error) => {
+        console.error("Error fetching user from Discord:", error);
+        res.status(500).send("Internal Server Error");
+      });
+  });
+
+  app.post("/topgg-server-votes", async (req, res) => {
+    const voterId = req.body.user;
+    const guildId = req.body.guild;
+    const voteType = req.body.type;
+    console.log(
+      `[TopGG-Server] Vote received for user ${voterId}, guild ${guildId} (type: ${voteType})`,
+    );
+
+    if (!voterId || !guildId) {
+      return res
+        .status(400)
+        .json({ error: "Missing required fields: user, guild" });
+    }
+
+    if (voteType === "test") {
+      console.log("[TopGG-Server] Test webhook received, skipping stats");
+      return res.status(200).json({ success: true, message: "Test received" });
+    }
+
+    const voteCooldownSeconds = VOTE_COOLDOWN_HOURS * 3600;
+    const voteAvailableTimestamp =
+      Math.floor(Date.now() / 1000) + voteCooldownSeconds;
+
+    client.users
+      .fetch(voterId)
+      .then(async (user) => {
+        const userAvatarURL = user.displayAvatarURL();
+
+        await updateVotingStats(voterId, "TopGG");
+
+        const voting = await Voting.findOne();
+        const userVoting = voting.votingUsers.find(
+          (u) => u.userId === voterId,
+        );
+
+        const embed = new EmbedBuilder()
+          .setDescription(
+            `**Thank you <@${voterId}> for voting for our [support server](https://top.gg/servers/${guildId}/vote) on Top.gg <:Ic_Pridebot_topgg:1486222503931150357>** \nYou can vote again <t:${voteAvailableTimestamp}:R> \n\n**<@${voterId}> Top.gg Votes: ${userVoting.votingTopGG}** \n**Total Top.gg Votes: ${voting.votingAmount.TopGGTotal}**`,
+          )
+          .setColor("#FF00EA")
+          .setThumbnail(userAvatarURL)
+          .setTimestamp();
+
+        await sendVoteEmbed(client, embed, "TopGG-Server", voterId, res);
       })
       .catch((error) => {
         console.error("Error fetching user from Discord:", error);

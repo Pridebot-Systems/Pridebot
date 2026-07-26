@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const { EmbedBuilder } = require("discord.js");
 const ProfileData = require("../../mongo/models/profileSchema.js");
 const IDLists = require("../../mongo/models/idSchema.js");
+const PendingPatron = require("../../mongo/models/pendingPatronSchema.js");
 require("dotenv").config();
 const { getInfo } = require("discord-hybrid-sharding");
 
@@ -105,6 +106,120 @@ module.exports = (client) => {
     }
   }
 
+  async function activatePremium(discordId, tierId, patronName) {
+    try {
+      let profile = await ProfileData.findOne({ userId: discordId });
+      let profileStatus;
+      if (profile) {
+        profile.premiumMember = true;
+        profile.premiumTier = tierSlugs[tierId] || null;
+        if (!profile.premiumSince) {
+          profile.premiumSince = new Date();
+        }
+        await profile.save();
+        console.log(`Premium activated for user ${discordId}`);
+        profileStatus = "✅ Premium activated";
+      } else {
+        profile = new ProfileData({
+          userId: discordId,
+          username: patronName,
+          premiumMember: true,
+          premiumSince: new Date(),
+          premiumTier: tierSlugs[tierId] || null,
+        });
+        await profile.save();
+        console.log(
+          `Created new profile and activated premium for user ${discordId}`
+        );
+        profileStatus = "✅ Profile created & premium activated";
+      }
+
+      const idList = await IDLists.findOne();
+      if (idList) {
+        if (!idList.donor.includes(discordId)) {
+          idList.donor.push(discordId);
+        }
+        if (tierSlugs[tierId] === "lgbtqpp" && !idList.donorplus.includes(discordId)) {
+          idList.donorplus.push(discordId);
+        }
+        await idList.save();
+        console.log(`Added ${discordId} to donor list`);
+      }
+
+      return profileStatus;
+    } catch (dbError) {
+      console.error("Error updating profile:", dbError);
+      return "❌ Database error";
+    }
+  }
+
+  async function sendEmbedToChannel(channelId, embed) {
+    await client.cluster.broadcastEval(
+      async (c, { channelId, embedJSON }) => {
+        const { EmbedBuilder } = require("discord.js");
+        const channel = await c.channels.fetch(channelId).catch(() => null);
+        if (channel) {
+          await channel.send({ embeds: [new EmbedBuilder(embedJSON)] });
+          return true;
+        }
+        return false;
+      },
+      { context: { channelId, embedJSON: embed.toJSON() } }
+    );
+  }
+
+  async function recheckPendingPatrons(trigger = "interval") {
+    const pending = await PendingPatron.find();
+    if (!pending.length) return { checked: 0, activated: 0 };
+
+    if (!process.env.PATREON_CREATOR_ACCESS_TOKEN) {
+      console.warn(
+        `[PATREON] ${pending.length} pending patron(s) but PATREON_CREATOR_ACCESS_TOKEN is not set — cannot recheck`
+      );
+      return { checked: 0, activated: 0, error: "missing access token" };
+    }
+
+    console.log(
+      `[PATREON] Rechecking ${pending.length} pending patron(s) (trigger: ${trigger})`
+    );
+
+    let activated = 0;
+    for (const record of pending) {
+      const discordId = await fetchDiscordIdFromPatreon(record.patreonMemberId);
+      if (!discordId) {
+        record.lastCheckedAt = new Date();
+        await record.save().catch(() => null);
+        continue;
+      }
+
+      const profileStatus = await activatePremium(
+        discordId,
+        record.tierId,
+        record.patronName
+      );
+      await PendingPatron.deleteOne({ _id: record._id });
+      activated++;
+
+      try {
+        const embed = new EmbedBuilder()
+          .setTitle("Pending Patron Linked!")
+          .setDescription(
+            `${record.patronName} (<@${discordId}>) linked their Discord — **${
+              tierNames[record.tierId] || "Unknown Tier"
+            }** activated automatically.`
+          )
+          .addFields({ name: "Profile Status", value: profileStatus })
+          .setColor(0x66ff99)
+          .setTimestamp();
+        await sendEmbedToChannel(PREMIUM_CHANNEL_ID, embed);
+      } catch (error) {
+        console.error("Error sending pending-patron notification:", error);
+      }
+    }
+
+    return { checked: pending.length, activated };
+  }
+
   async function handlePledgeCreate(client, payload) {
     try {
       const data = payload.data;
@@ -135,48 +250,27 @@ module.exports = (client) => {
       const tierTitle =
         tier?.attributes?.title || tierNames[tierId] || "Unknown Tier";
 
-      let profileStatus = "No Discord ID linked";
+      let profileStatus;
       if (discordId) {
+        profileStatus = await activatePremium(discordId, tierId, patronName);
+        await PendingPatron.deleteOne({ patreonMemberId: data.id }).catch(
+          () => null
+        );
+      } else {
         try {
-          let profile = await ProfileData.findOne({ userId: discordId });
-          if (profile) {
-            profile.premiumMember = true;
-            profile.premiumTier = tierSlugs[tierId] || null;
-            if (!profile.premiumSince) {
-              profile.premiumSince = new Date();
-            }
-            await profile.save();
-            console.log(`Premium activated for user ${discordId}`);
-            profileStatus = "✅ Premium activated";
-          } else {
-            profile = new ProfileData({
-              userId: discordId,
-              username: patronName,
-              premiumMember: true,
-              premiumSince: new Date(),
-              premiumTier: tierSlugs[tierId] || null,
-            });
-            await profile.save();
-            console.log(
-              `Created new profile and activated premium for user ${discordId}`
-            );
-            profileStatus = "✅ Profile created & premium activated";
-          }
-
-          const idList = await IDLists.findOne();
-          if (idList) {
-            if (!idList.donor.includes(discordId)) {
-              idList.donor.push(discordId);
-            }
-            if (tierSlugs[tierId] === "lgbtqpp" && !idList.donorplus.includes(discordId)) {
-              idList.donorplus.push(discordId);
-            }
-            await idList.save();
-            console.log(`Added ${discordId} to donor list`);
-          }
+          await PendingPatron.findOneAndUpdate(
+            { patreonMemberId: data.id },
+            { patronName, tierId, lastCheckedAt: new Date() },
+            { upsert: true }
+          );
+          console.log(
+            `[PATREON] No Discord linked for ${patronName} — saved as pending patron (member ${data.id})`
+          );
+          profileStatus =
+            "⏳ No Discord ID linked — saved as pending, will auto-activate once they link Discord on Patreon";
         } catch (dbError) {
-          console.error("Error updating profile:", dbError);
-          profileStatus = "❌ Database error";
+          console.error("Error saving pending patron:", dbError);
+          profileStatus = "❌ No Discord ID linked (failed to save as pending)";
         }
       }
 
@@ -281,6 +375,9 @@ module.exports = (client) => {
 
       if (discordId) {
         try {
+          await PendingPatron.deleteOne({ patreonMemberId: data.id }).catch(
+            () => null
+          );
           const profile = await ProfileData.findOne({ userId: discordId });
           if (profile) {
             const isActive = pledgeCents > 0;
@@ -331,9 +428,25 @@ module.exports = (client) => {
           console.error("Error updating profile on pledge update:", dbError);
         }
       } else {
-        console.log(
-          `Pledge updated for ${patronName} but no Discord ID linked`
-        );
+        try {
+          if (pledgeCents > 0) {
+            await PendingPatron.findOneAndUpdate(
+              { patreonMemberId: data.id },
+              { patronName, tierId, lastCheckedAt: new Date() },
+              { upsert: true }
+            );
+            console.log(
+              `Pledge updated for ${patronName} but no Discord ID linked — pending record updated`
+            );
+          } else {
+            await PendingPatron.deleteOne({ patreonMemberId: data.id });
+            console.log(
+              `Pledge ended for ${patronName} (no Discord ID linked) — pending record removed`
+            );
+          }
+        } catch (dbError) {
+          console.error("Error updating pending patron:", dbError);
+        }
       }
 
       try {
@@ -374,6 +487,10 @@ module.exports = (client) => {
       let discordId =
         patron?.attributes?.social_connections?.discord?.user_id || null;
       if (!discordId) discordId = await fetchDiscordIdFromPatreon(data.id);
+
+      await PendingPatron.deleteOne({ patreonMemberId: data.id }).catch(
+        () => null
+      );
 
       if (discordId) {
         try {
@@ -438,6 +555,42 @@ module.exports = (client) => {
       console.error("Error handling pledge delete:", error);
     }
   }
+
+  // Called by the manager bot when a member joins the support server,
+  // and available for manual triggering. Requires PremiumRecheckSecret.
+  app.post("/premium/recheck", async (req, res) => {
+    const secret = process.env.PremiumRecheckSecret;
+    if (!secret) {
+      return res
+        .status(503)
+        .json({ error: "PremiumRecheckSecret not configured" });
+    }
+    if (req.headers.authorization !== `Bearer ${secret}`) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    try {
+      const result = await recheckPendingPatrons(
+        req.body?.trigger || "manual"
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("Error during pending patron recheck:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  setInterval(() => {
+    recheckPendingPatrons("interval").catch((err) =>
+      console.error("[PATREON] Scheduled pending recheck failed:", err)
+    );
+  }, 30 * 60 * 1000);
+
+  setTimeout(() => {
+    recheckPendingPatrons("startup").catch((err) =>
+      console.error("[PATREON] Startup pending recheck failed:", err)
+    );
+  }, 15_000);
 
   app.get("/health", (req, res) => {
     res.status(200).json({
