@@ -176,10 +176,6 @@ module.exports = (client) => {
               type: 0,
               name: `with ${totalUsage.toLocaleString()} commands`,
             },
-            {
-              type: 3,
-              name: `over all Pride Month celebrations!`,
-            }
           ];
 
           const presence = presences[client.presenceIndex];

@@ -1096,21 +1096,22 @@ module.exports = (client) => {
     },
   );
 
-  // Global error handler (must be last)
-  app.use((err, req, res) => {
-    console.error("[API] Unhandled error:", err);
-    res.status(500).json({
-      error: "Internal Server Error",
-      message: process.env.NODE_ENV === "development" ? err.message : undefined,
-    });
-  });
-
   // 404 handler
   app.use((req, res) => {
     res.status(404).json({
       error: "Not Found",
       path: req.path,
       message: "Endpoint does not exist. Visit / for available endpoints.",
+    });
+  });
+
+  // Global error handler
+  app.use((err, req, res, next) => {
+    console.error("[API] Unhandled error:", err);
+    if (res.headersSent) return next(err);
+    res.status(500).json({
+      error: "Internal Server Error",
+      message: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
   });
 
