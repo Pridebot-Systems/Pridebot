@@ -3,7 +3,7 @@ const {
   ContextMenuCommandBuilder,
   ApplicationCommandType,
 } = require("discord.js");
-const DarList = require("../../../mongo/models/idDarSchema");
+const { getDarResult, applyDarRange, addDarHistory } = require("../../utils/premiumUtils");
 const darlogging = require("../../config/logging/darlog");
 const loadTranslations = require("../../config/commandfunctions/translation");
 
@@ -27,39 +27,20 @@ module.exports = {
     const userName = targetUser.username;
     const userid = targetUser.id;
 
+    const { min, max, fixed, pin } = await getDarResult(userid, "transdar");
+
     let meter;
-    try {
-      const darList = await DarList.findOne();
-
-      if (darList) {
-        const transdarEntry = darList.transdar.find(
-          (entry) => entry.userid === userid
-        );
-
-        if (transdarEntry) {
-          meter = transdarEntry.meter;
-        } else {
-          meter = Math.floor(Math.random() * 101);
-          if (utility_functions.chance(0.0001)) {
-            meter = Math.floor(Math.random() * 2354082) + 500;
-            if (utility_functions.chance(0.5)) {
-              meter *= -1;
-            }
-          }
-        }
-      } else {
-        meter = Math.floor(Math.random() * 101);
-        if (utility_functions.chance(0.0001)) {
-          meter = Math.floor(Math.random() * 2354082) + 500;
-          if (utility_functions.chance(0.5)) {
-            meter *= -1;
-          }
-        }
+    if (pin !== null) {
+      meter = pin;
+    } else {
+      meter = applyDarRange(min, max);
+      if (!fixed && utility_functions.chance(0.0001)) {
+        meter = Math.floor(Math.random() * 2354082) + 500;
+        if (utility_functions.chance(0.5)) meter *= -1;
       }
-    } catch (err) {
-      console.error(err);
-      meter = Math.floor(Math.random() * 101);
     }
+
+    await addDarHistory(interaction.user.id, "transdar", meter);
 
     const embed = new EmbedBuilder()
       .setTitle(t.title.replace("{{username}}", userName))

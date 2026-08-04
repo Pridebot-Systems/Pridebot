@@ -1,4 +1,13 @@
 const ProfileData = require("../../mongo/models/profileSchema");
+const DarList = require("../../mongo/models/idDarSchema");
+
+const DAR_COMMANDS = ["gaydar", "transdar", "queerdar", "rizzdar", "lesdar", "bidar"];
+
+// The DarList is a single small document of dev-set overrides, read on every dar
+// command — cache it rather than round-tripping. `darID` invalidates on write.
+const DAR_PIN_TTL = 60 * 1000;
+let darPinCache = null;
+let darPinCachedAt = 0;
 
 const TIER_FEATURES = {
   supporter: ["darHistory", "darFixedValue", "premiumBadge"],
@@ -34,7 +43,41 @@ function getFixedValueLimit(tier) {
   }
 }
 
+async function loadDarPins() {
+  const now = Date.now();
+  if (darPinCache && now - darPinCachedAt < DAR_PIN_TTL) return darPinCache;
+
+  const doc = await DarList.findOne().lean();
+  const pins = new Map();
+  for (const command of DAR_COMMANDS) {
+    for (const entry of doc?.[command] || []) {
+      pins.set(`${command}:${entry.userid}`, entry.meter);
+    }
+  }
+
+  darPinCache = pins;
+  darPinCachedAt = now;
+  return pins;
+}
+
+async function getDarPin(userId, commandName) {
+  try {
+    const pins = await loadDarPins();
+    return pins.get(`${commandName}:${userId}`) ?? null;
+  } catch (err) {
+    console.error("[PREMIUM] getDarPin error:", err);
+    return null;
+  }
+}
+
+function invalidateDarPins() {
+  darPinCache = null;
+}
+
 async function getDarResult(userId, commandName) {
+  const pin = await getDarPin(userId, commandName);
+  if (pin !== null) return { min: 0, max: 100, fixed: true, pin };
+
   try {
     const profile = await ProfileData.findOne({ userId });
     const tier = profile?.premiumTier;
@@ -46,7 +89,7 @@ async function getDarResult(userId, commandName) {
         if (tierFeatures.includes("darFixedValue")) {
           const fixedValue = profile?.darFixedValues?.get(commandName) ?? null;
           if (fixedValue !== null && fixedValue !== undefined) {
-            return { min: fixedValue, max: fixedValue, fixed: true, useDarList: false };
+            return { min: fixedValue, max: fixedValue, fixed: true, pin: null };
           }
         }
 
@@ -55,17 +98,17 @@ async function getDarResult(userId, commandName) {
 
       case "range": {
         if (tier === "lgbtqpp") {
-          return { min: profile.darRangeMin, max: profile.darRangeMax, fixed: false, useDarList: false };
+          return { min: profile.darRangeMin, max: profile.darRangeMax, fixed: false, pin: null };
         }
 
         break;
       }
     }
 
-    return { min: 0, max: 100, fixed: false, useDarList: false };
+    return { min: 0, max: 100, fixed: false, pin: null };
   } catch (err) {
     console.error("[PREMIUM] getDarResult error:", err);
-    return { min: 0, max: 100, fixed: false, useDarList: true };
+    return { min: 0, max: 100, fixed: false, pin: null };
   }
 }
 
@@ -91,4 +134,14 @@ async function addDarHistory(userId, command, result) {
   }
 }
 
-module.exports = { getTier, hasFeature, getDarResult, applyDarRange, addDarHistory, getFixedValueLimit };
+module.exports = {
+  getTier,
+  hasFeature,
+  getDarResult,
+  applyDarRange,
+  addDarHistory,
+  getFixedValueLimit,
+  getDarPin,
+  invalidateDarPins,
+  DAR_COMMANDS,
+};
