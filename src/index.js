@@ -233,6 +233,39 @@ async function postToDiscordListGG(client) {
   }
 }
 
+async function postToDELLY(client) {
+  try {
+    const guildCounts = await client.cluster.fetchClientValues(
+      "guilds.cache.size"
+    );
+    const serverCount = guildCounts.reduce((a, b) => a + b, 0);
+
+    const response = await fetch(
+      `https://api.discordextremelist.xyz/v2/bot/${config.clientId}/stats`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: config.DELLYToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          guildCount: serverCount,
+          shardCount: client.cluster.info.TOTAL_SHARDS,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    console.log("Stats successfully posted to DELLY");
+  } catch (error) {
+    console.error("Failed to post to DELLY:", error);
+  }
+}
+
 if (!config.isBeta && getInfo().CLUSTER === 0) {
   setInterval(async () => {
     try {
@@ -252,6 +285,12 @@ if (!config.isBeta && getInfo().CLUSTER === 0) {
       console.log("Discordlist.gg stats posted successfully");
     } catch (err) {
       console.error("postToDiscordListGG failed:", err);
+    }
+    try {
+      await postToDELLY(client);
+      console.log("delly count updated successfully");
+    } catch (err) {
+      console.error("delly failed:", err);
     }
   }, 15 * 60 * 1000);
   console.log("Bot list stat posting enabled (15min interval)");
