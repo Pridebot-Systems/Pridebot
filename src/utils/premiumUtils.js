@@ -134,6 +134,33 @@ async function addDarHistory(userId, command, result) {
   }
 }
 
+// Dev-set pins can be text ("morbius", "absolutely no") rather than a number.
+// Every locale string reads "{{meter}}% <label>!", so a text pin would trail a
+// stray percent sign - drop it for those and leave numeric results untouched.
+const DAR_METER_TOKEN = "{{meter}}";
+
+function isNumericMeter(meter) {
+  if (typeof meter === "number") return Number.isFinite(meter);
+  if (typeof meter !== "string") return false;
+  return meter.trim() !== "" && Number.isFinite(Number(meter));
+}
+
+function formatDarMeter(meter) {
+  return String(meter).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function buildDarDescription(template, mention, meter, display) {
+  const text = display ?? formatDarMeter(meter);
+  const numeric = isNumericMeter(String(text).replace(/,/g, ""));
+  const resolved = numeric
+    ? template
+    : template.replace(`${DAR_METER_TOKEN}%`, DAR_METER_TOKEN);
+
+  return resolved
+    .replace("{{mention}}", mention)
+    .replace(DAR_METER_TOKEN, text);
+}
+
 module.exports = {
   getTier,
   hasFeature,
@@ -143,5 +170,7 @@ module.exports = {
   getFixedValueLimit,
   getDarPin,
   invalidateDarPins,
+  formatDarMeter,
+  buildDarDescription,
   DAR_COMMANDS,
 };

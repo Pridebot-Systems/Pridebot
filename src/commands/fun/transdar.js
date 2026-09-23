@@ -2,14 +2,16 @@ const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const commandLogging = require("../../config/logging/commandlog");
 const darlogging = require("../../config/logging/darlog");
 const loadTranslations = require("../../config/commandfunctions/translation");
-const { getDarResult, applyDarRange, addDarHistory } = require("../../utils/premiumUtils");
+const {
+  getDarResult,
+  applyDarRange,
+  addDarHistory,
+  buildDarDescription,
+} = require("../../utils/premiumUtils");
 
 const utility_functions = {
   chance: function (probability) {
     return Math.random() <= probability;
-  },
-  number_format_commas: function (number) {
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   },
 };
 
@@ -50,11 +52,7 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setTitle(t.title.replace("{{username}}", userName))
-      .setDescription(
-        t.description
-          .replace("{{mention}}", `<@${userid}>`)
-          .replace("{{meter}}", utility_functions.number_format_commas(meter))
-      )
+      .setDescription(buildDarDescription(t.description, `<@${userid}>`, meter))
       .setColor(0xff00ae)
       .setFooter({ text: t.footer });
     try {

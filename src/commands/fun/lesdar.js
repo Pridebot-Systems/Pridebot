@@ -2,14 +2,17 @@ const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const commandLogging = require("../../config/logging/commandlog");
 const darlogging = require("../../config/logging/darlog");
 const loadTranslations = require("../../config/commandfunctions/translation");
-const { getDarResult, applyDarRange, addDarHistory } = require("../../utils/premiumUtils");
+const {
+  getDarResult,
+  applyDarRange,
+  addDarHistory,
+  buildDarDescription,
+  formatDarMeter,
+} = require("../../utils/premiumUtils");
 
 const utility_functions = {
   chance: function (probability) {
     return Math.random() <= probability;
-  },
-  number_format_commas: function (number) {
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   },
 };
 
@@ -50,15 +53,13 @@ module.exports = {
 
     const meterDisplay = userid === "1201827969585393676"
       ? "1000000000000000000000000"
-      : utility_functions.number_format_commas(meter);
+      : formatDarMeter(meter);
 
     const embed = new EmbedBuilder()
       .setTitle(t.title.replace("{{username}}", userName))
       // Custom value for description is a special case as request from dev friend, will allow it for this command only - Sdriver1
       .setDescription(
-        t.description
-          .replace("{{mention}}", `<@${userid}>`)
-          .replace("{{meter}}", meterDisplay)
+        buildDarDescription(t.description, `<@${userid}>`, meter, meterDisplay)
       )
       .setColor(0xff00ae)
       .setFooter({ text: t.footer });
