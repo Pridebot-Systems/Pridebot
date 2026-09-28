@@ -1,0 +1,68 @@
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const commandLogging = require("../../utils/logging/commandlog");
+const darlogging = require("../../utils/logging/darlog");
+const { loadTranslations } = require("../../../Shared/locales");
+const {
+  getDarResult,
+  applyDarRange,
+  addDarHistory,
+  buildDarDescription,
+} = require("../../utils/premium");
+
+const utility_functions = {
+  chance: function (probability) {
+    return Math.random() <= probability;
+  },
+};
+
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName("gaydar")
+    .setDescription("How gay are you?")
+    .addUserOption((option) =>
+      option
+        .setName("target")
+        .setDescription("See how gay a user is")
+        .setRequired(false)
+    ),
+
+  async execute(interaction, client) {
+    await interaction.deferReply();
+
+    const t = loadTranslations(interaction.locale, "Fun", "gaydar");
+    const targetUser =
+      interaction.options.getUser("target") || interaction.user;
+    const userName = targetUser.username;
+    const userid = targetUser.id;
+
+    const { min, max, fixed, pin } = await getDarResult(userid, "gaydar");
+
+    let meter;
+    if (pin !== null) {
+      meter = pin;
+    } else {
+      meter = applyDarRange(min, max);
+      if (!fixed && utility_functions.chance(0.0001)) {
+        meter = Math.floor(Math.random() * 2354082) + 500;
+        if (utility_functions.chance(0.5)) meter *= -1;
+      }
+    }
+
+    await addDarHistory(interaction.user.id, "gaydar", meter);
+
+    const embed = new EmbedBuilder()
+      .setTitle(t.title.replace("{{username}}", userName))
+      .setDescription(buildDarDescription(t.description, `<@${userid}>`, meter))
+      .setColor(0xff00ae)
+      .setFooter({ text: t.footer });
+
+    try {
+      await interaction.editReply({ embeds: [embed] }); // Edit the deferred reply
+    } catch (error) {
+      console.error("Error sending response:", error);
+    }
+
+    await commandLogging(client, interaction);
+    await darlogging(client, "Gaydar", userName, meter, userid);
+  },
+};

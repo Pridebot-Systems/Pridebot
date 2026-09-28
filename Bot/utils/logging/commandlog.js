@@ -1,0 +1,41 @@
+const { EmbedBuilder } = require("discord.js");
+const CommandUsage = require("../../../DB/models/usageSchema");
+const { sendLog } = require("./sendlogs");
+
+const commandLogging = async (client, interaction) => {
+  const estDate = new Date().toLocaleString("en-US", {
+    timeZone: "America/New_York",
+  });
+
+  const usageData = await CommandUsage.findOne({
+    commandName: interaction.commandName,
+  });
+
+  const allUsages = await CommandUsage.find({});
+  const totalUsage = allUsages.reduce((acc, cmd) => acc + cmd.count, 0);
+
+  let location;
+  if (interaction.guild) {
+    location = `${interaction.guild.name} (${interaction.guild.id})`;
+  } else {
+    location = "User Install Context (External Server)";
+  }
+
+  const logEmbed = new EmbedBuilder()
+    .setTitle("Command Used")
+    .setDescription(
+      `**Command:** /${interaction.commandName}\n**Command Count:** ${
+        usageData ? usageData.count : 0
+      }
+        \n**Total Usage:** ${totalUsage}\n\n**Location:** ${location}\n**User:** <@${
+        interaction.user.id
+      }> (${interaction.user.id})\n**Time:** ${estDate} (EST)`
+    )
+    .setColor(0xff00ea)
+    .setFooter({ text: `User: ${interaction.user.id}` })
+    .setTimestamp();
+
+  await sendLog(client, logEmbed, "1256810888694861914");
+};
+
+module.exports = commandLogging;

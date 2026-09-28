@@ -1,0 +1,262 @@
+{
+  "sexuality": [
+    {
+      "name": "Asexual",
+      "value": "Asexual"
+    },
+    {
+      "name": "Bisexual",
+      "value": "Bisexual"
+    },
+    {
+      "name": "Demisexual",
+      "value": "Demisexual"
+    },
+    {
+      "name": "Heterosexual",
+      "value": "Heterosexual"
+    },
+    {
+      "name": "Gay",
+      "value": "Gay"
+    },
+    {
+      "name": "Lesbian",
+      "value": "Lesbian"
+    },
+    {
+      "name": "Omnisexual",
+      "value": "Omnisexual"
+    },
+    {
+      "name": "Pansexual",
+      "value": "Pansexual"
+    },
+    {
+      "name": "Polyamorous",
+      "value": "Polyamorous"
+    },
+    {
+      "name": "Polysexual",
+      "value": "Polysexual"
+    },
+    {
+      "name": "Queer",
+      "value": "Queer"
+    },
+    {
+      "name": "Questioning",
+      "value": "Questioning"
+    },
+    {
+      "name": "Skoliosexual",
+      "value": "Skoliosexual"
+    },
+    {
+      "name": "Straight",
+      "value": "Straight"
+    },
+    {
+      "name": "Sapphic",
+      "value": "Sapphic"
+    },
+    {
+      "name": "Unlabeled",
+      "value": "Unlabeled"
+    },
+    {
+      "name": "Other",
+      "value": "Other"
+    }
+  ],
+  "romantic": [
+    {
+      "name": "Aromantic",
+      "value": "Aromantic"
+    },
+    {
+      "name": "Biromantic",
+      "value": "Biromantic"
+    },
+    {
+      "name": "Demiromantic",
+      "value": "Demiromantic"
+    },
+    {
+      "name": "Heteroromantic",
+      "value": "Heteroromantic"
+    },
+    {
+      "name": "Homoromantic",
+      "value": "Homoromantic"
+    },
+    {
+      "name": "Omniromantic",
+      "value": "Omniromantic"
+    },
+    {
+      "name": "Panromantic",
+      "value": "Panromantic"
+    },
+    {
+      "name": "Questioning",
+      "value": "Questioning"
+    },
+    {
+      "name": "Unlabeled",
+      "value": "Unlabeled"
+    },
+    {
+      "name": "Other",
+      "value": "Other"
+    }
+  ],
+  "gender": [
+    {
+      "name": "Agender",
+      "value": "Agender"
+    },
+    {
+      "name": "Androgyne",
+      "value": "Androgyne"
+    },
+    {
+      "name": "Bigender/Trigender",
+      "value": "Bigender/Trigender"
+    },
+    {
+      "name": "Cis-male",
+      "value": "Cis-male"
+    },
+    {
+      "name": "Cis-female",
+      "value": "Cis-female"
+    },
+    {
+      "name": "Demi-boy",
+      "value": "Demi-boy"
+    },
+    {
+      "name": "Demi-girl",
+      "value": "Demi-girl"
+    },
+    {
+      "name": "Genderfaun",
+      "value": "Genderfaun"
+    },
+    {
+      "name": "Genderfluid",
+      "value": "Genderfluid"
+    },
+    {
+      "name": "Genderflux",
+      "value": "Genderflux"
+    },
+    {
+      "name": "Genderqueer",
+      "value": "Genderqueer"
+    },
+    {
+      "name": "Intersex",
+      "value": "Intersex"
+    },
+    {
+      "name": "Non-Binary",
+      "value": "Non-Binary"
+    },
+    {
+      "name": "Pangender",
+      "value": "Pangender"
+    },
+    {
+      "name": "Questioning",
+      "value": "Questioning"
+    },
+    {
+      "name": "Transfeminine",
+      "value": "Transfeminine"
+    },
+    {
+      "name": "Transmasculine",
+      "value": "Transmasculine"
+    },
+    {
+      "name": "Two-Spirit",
+      "value": "Two-Spirit"
+    },
+    {
+      "name": "Xenogender",
+      "value": "Xenogender"
+    },
+    {
+      "name": "Unlabeled",
+      "value": "Unlabeled"
+    },
+    {
+      "name": "Other",
+      "value": "Other"
+    }
+  ],
+  "pronouns": [
+    {
+      "name": "He/Him/His",
+      "value": "He/Him/His"
+    },
+    {
+      "name": "She/Her/Hers",
+      "value": "She/Her/Hers"
+    },
+    {
+      "name": "They/Them/Their",
+      "value": "They/Them/Their"
+    },
+    {
+      "name": "It/Its",
+      "value": "It/Its"
+    },
+    {
+      "name": "He/They",
+      "value": "He/They"
+    },
+    {
+      "name": "She/They",
+      "value": "She/They"
+    },
+    {
+      "name": "It/They",
+      "value": "It/They"
+    },
+    {
+      "name": "Any Pronouns",
+      "value": "Any Pronouns"
+    },
+    {
+      "name": "ey/em/eir",
+      "value": "ey/em/eir"
+    },
+    {
+      "name": "fae/faer/faers",
+      "value": "fae/faer/faers"
+    },
+    {
+      "name": "xe/xem/xyr",
+      "value": "xe/xem/xyr"
+    },
+    {
+      "name": "ze/zir/zir",
+      "value": "ze/zir/zir"
+    },
+    {
+      "name": "other neopronouns",
+      "value": "other neopronouns"
+    },
+    {
+      "name": "None",
+      "value": "None"
+    },
+    {
+      "name": "Other",
+      "value": "Other"
+    }
+  ]
+}

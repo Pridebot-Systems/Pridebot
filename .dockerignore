@@ -1,0 +1,23 @@
+# Secrets — supplied at runtime (env_file, secrets/ mount), never baked in
+.env
+.env.*
+secrets/
+API/statsapi/google-credentials.json
+
+# Runtime data — mounted as a volume
+data/
+
+# Installed inside the image
+node_modules/
+
+# Not needed at runtime
+.git
+**/.git
+Reconstruction/
+scripts/
+*.log
+.vscode/
+.idea/
+Dockerfile
+.dockerignore
+compose*.yaml

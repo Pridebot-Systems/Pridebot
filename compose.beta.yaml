@@ -1,0 +1,11 @@
+# Beta bot. Ports come from the beta*port values in .env.
+# Published on 127.0.0.1 only: reachable from this machine, not the network.
+services:
+  bot:
+    environment:
+      beta: "true"
+    ports:
+      - "127.0.0.1:${betaAPIport}:${betaAPIport}"
+      - "127.0.0.1:${betaAvatarAPIport}:${betaAvatarAPIport}"
+      - "127.0.0.1:${betaProfileAPIport}:${betaProfileAPIport}"
+      - "127.0.0.1:${betaPremiumAPIport}:${betaPremiumAPIport}"

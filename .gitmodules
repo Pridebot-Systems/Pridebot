@@ -1,0 +1,6 @@
+[submodule "API"]
+	path = API
+	url = ../Pridebot-API
+[submodule "Web"]
+	path = Web
+	url = ../Pridebot-Web
