@@ -6,6 +6,7 @@ services:
   bot:
     environment:
       beta: "false"
+    mem_limit: 8g
     ports:
       - "127.0.0.1:${prodAPIport}:${prodAPIport}"
       - "127.0.0.1:${prodAvatarAPIport}:${prodAvatarAPIport}"

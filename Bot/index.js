@@ -21,6 +21,17 @@ const initializeBot = require("./bot");
  */
 
 let shuttingDown = false;
+const BOOT_RETRY_DELAY_MS = 30_000;
+const READY_DEADLINE_MS = 10 * 60_000;
+
+async function exitForRespawn(reason, err) {
+  console.error(
+    `[BOOT] ${reason} — exiting for respawn in ${BOOT_RETRY_DELAY_MS / 1000}s:`,
+    err?.message || err
+  );
+  await new Promise((resolve) => setTimeout(resolve, BOOT_RETRY_DELAY_MS));
+  process.exit(1);
+}
 
 function recordShutdown() {
   shuttingDown = true;
@@ -92,15 +103,17 @@ async function main() {
   try {
     await DB.connect();
   } catch (err) {
-    console.error("[BOOT] MongoDB connection failed — exiting for respawn:", err.message);
-    process.exit(1);
+    return exitForRespawn("MongoDB connection failed", err);
   }
 
   initializeBot(client);
+
+  setTimeout(() => {
+    if (client.isReady() || shuttingDown) return;
+    console.error(`[BOOT] Not ready ${READY_DEADLINE_MS / 60_000} min after login — exiting for respawn`);
+    process.exit(1);
+  }, READY_DEADLINE_MS).unref();
+
   await client.login(config.token);
 }
-
-main().catch((err) => {
-  console.error("[BOOT] Fatal:", err);
-  process.exit(1);
-});
+main().catch((err) => exitForRespawn("Startup failed", err));

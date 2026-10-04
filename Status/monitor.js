@@ -1,24 +1,6 @@
 const store = require("./store");
 const uptime = require("./uptime");
 const { clusterSnapshot, checkHttp, checkDiscord } = require("./probes");
-
-/**
- * Watches every cluster, shard and HTTP service from the cluster manager process,
- * so it keeps reporting when any single cluster is dead — including cluster 0,
- * which hosts the APIs.
- *
- * Built after the 2026-10-03 V1 outage: cluster 2's login failed with a gateway
- * 522, its process stayed alive with no Discord connection, and shards 8–11 were
- * offline for ~22h. Bot presence still showed "online" (15 of 19 shards were up),
- * so nothing noticed. Here each cluster is asked for its own shard states over IPC,
- * and a cluster that doesn't answer counts as down.
- *
- * Incidents open automatically once a component has been unhealthy for
- * `incidentGraceMs` (normal gateway resumes take seconds and never open one) and
- * resolve on the first healthy check.
- */
-
-// discord.js Status enum, by value.
 const SHARD_STATES = [
   "Ready",
   "Connecting",
@@ -30,7 +12,6 @@ const SHARD_STATES = [
   "Identifying",
   "Resuming",
 ];
-/** On their way to Ready; anything else not Ready is down. */
 const TRANSIENT_STATES = new Set([1, 2, 4, 6, 7, 8]);
 
 const DEFAULTS = {
@@ -159,6 +140,11 @@ class StatusMonitor {
       info.lastDeathAt = now;
       info.diedAt ??= now;
       this._event("death", `Cluster ${id} (shards ${shards}) process exited; respawning`);
+    } else if (type === "exhausted") {
+      this._event(
+        "restart",
+        `Cluster ${id} (shards ${shards}) used all its restarts; restarting the whole bot`
+      );
     }
   }
 

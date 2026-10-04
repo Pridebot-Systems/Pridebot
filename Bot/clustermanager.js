@@ -2,20 +2,7 @@ const path = require("path");
 const { ClusterManager } = require("discord-hybrid-sharding");
 const config = require("../environment");
 const { startStatusService } = require("../Status");
-
-/**
- * Entry point (npm start). Spawns Bot/index.js once per cluster.
- *
- * V1 called manager.respawn(cluster.id) from the "death" and "exit" listeners.
- * manager.respawn is the boolean `respawn` OPTION, not a method, so the "death"
- * listener threw a TypeError inside the library's exit handler — before the
- * library's own respawn line ran — and crashed this manager process, taking every
- * cluster down with it. One cluster dying became a full outage that only recovered
- * because pm2 restarted the manager. The "exit" and "disconnect" listeners never
- * fired: Cluster emits only spawn, ready, death, message, and error.
- *
- * Respawning is the library's job (respawn: true, capped by restarts.max).
- */
+const CLUSTER_HEAP_MB = 1536;
 
 const manager = new ClusterManager(path.join(__dirname, "index.js"), {
   totalShards: "auto",
@@ -24,12 +11,9 @@ const manager = new ClusterManager(path.join(__dirname, "index.js"), {
   token: config.token,
   respawn: true,
   restarts: { max: 5, interval: 60 * 60 * 1000 },
+  execArgv: [`--max-old-space-size=${CLUSTER_HEAP_MB}`],
 });
 
-/**
- * status.pridebot.xyz lives here rather than in cluster 0 so it keeps reporting
- * while any cluster is down. A failure to start it must not stop the bot.
- */
 let status = null;
 try {
   status = startStatusService(manager, { port: config.ports.status });
@@ -46,8 +30,19 @@ manager.on("clusterCreate", (cluster) => {
     status?.monitor.recordClusterEvent(cluster.id, "ready");
   });
   cluster.on("death", () => {
-    console.error(`[CLUSTER] Cluster ${cluster.id} died — library will respawn it 💥`);
+    if (stopping) return;
     status?.monitor.recordClusterEvent(cluster.id, "death");
+    const { current, max } = cluster.restarts;
+    if (current < max) {
+      console.error(`[CLUSTER] Cluster ${cluster.id} died — respawning (${current + 1}/${max}) 💥`);
+      return;
+    }
+    console.error(
+      `[CLUSTER] Cluster ${cluster.id} died with all ${max} restarts used — ` +
+        "exiting so Docker restarts the whole bot"
+    );
+    status?.monitor.recordClusterEvent(cluster.id, "exhausted");
+    shutdown("RESTART LIMIT", { exitCode: 1, clean: false });
   });
   cluster.on("error", (err) =>
     console.error(`[CLUSTER] Cluster ${cluster.id} error:`, err?.message || err)
@@ -56,30 +51,21 @@ manager.on("clusterCreate", (cluster) => {
 
 manager.on("debug", (msg) => console.log(`[DHS] ${msg}`));
 
-/**
- * Graceful stop. In Docker only PID 1 receives `docker stop`'s SIGTERM; the
- * cluster processes must be told explicitly, or they are SIGKILLed when the grace
- * period ends and never record their shutdown time. Respawning is switched off
- * first — the library would otherwise restart each cluster as it exits.
- */
 const SHUTDOWN_TIMEOUT_MS = 20_000;
 let stopping = false;
 
-async function shutdown(signal) {
+async function shutdown(signal, { exitCode = 0, clean = true } = {}) {
   if (stopping) return;
   stopping = true;
-  console.log(`[CLUSTER] ${signal} received — stopping ${manager.clusters.size} cluster(s)`);
+  console.log(`[CLUSTER] ${signal} — stopping ${manager.clusters.size} cluster(s)`);
   manager.respawn = false;
-  // Mark this a planned stop, so the next boot logs a restart, not an outage.
-  status?.stop({ clean: true });
+  status?.stop({ clean });
 
   const exits = [...manager.clusters.values()].map((cluster) => {
     const child = cluster.thread?.process;
     if (!child || child.exitCode !== null) return Promise.resolve();
     const exited = new Promise((resolve) => child.once("exit", resolve));
-    // On Windows, kill() is TerminateProcess — no handler runs. A console Ctrl+C
-    // already reaches every process there, so just wait for them to exit.
-    if (process.platform !== "win32") child.kill("SIGTERM"); // index.js records shutdown time
+    if (process.platform !== "win32") child.kill("SIGTERM");
     return exited;
   });
 
@@ -88,7 +74,7 @@ async function shutdown(signal) {
     new Promise((resolve) => setTimeout(() => resolve(true), SHUTDOWN_TIMEOUT_MS)),
   ]);
   if (timedOut) console.warn("[CLUSTER] Clusters did not exit in time — forcing shutdown");
-  process.exit(0);
+  process.exit(exitCode);
 }
 
 process.on("SIGTERM", () => shutdown("SIGTERM"));

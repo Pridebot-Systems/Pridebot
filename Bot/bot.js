@@ -1,4 +1,4 @@
-const { Events } = require("discord.js");
+const { Events, Status } = require("discord.js");
 const { getInfo } = require("discord-hybrid-sharding");
 const cron = require("node-cron");
 const config = require("../environment");
@@ -15,8 +15,6 @@ const { avatarProcessor } = require("./utils/avatar/avatarProcessor");
 const sendRestartMessage = require("./events/server/restart");
 
 // Prefix-style owner commands. Each takes (message, client) and ignores messages
-// that are not addressed to it. Dev/pfpcleanup.js exports pfpCleanupCommand, but
-// V1 never wired it up, so it stays unwired here too.
 const { idCommand } = require("./commands/Dev/id");
 const { blacklistCommand } = require("./commands/Dev/blacklist");
 const { termCommand } = require("./commands/Dev/termlist");
@@ -41,8 +39,8 @@ const DEV_MESSAGE_COMMANDS = [
 
 const PRESENCE_INTERVAL_MS = 15_000;
 const WATCHDOG_INTERVAL_MS = 60_000;
+const WATCHDOG_MAX_MISSES = 3;
 
-/** month is 0-based, as in Date#getMonth. */
 const SPECIAL_DAYS = [
   { month: 2, day: 31, name: "Happy International Trans Day of Visibility from Pridebot" },
   { month: 3, day: 1, name: "Happy April Fools from Pridebot" },
@@ -148,11 +146,18 @@ module.exports = (client) => {
         `${client.guilds.cache.size} guilds, ${userCount.toLocaleString()} users`
     );
 
-    // Exit so the cluster manager respawns just this cluster. Before the
-    // clustermanager.js fix, this exit crashed the whole manager.
+    let missed = 0;
     setInterval(() => {
-      if (!client.user || client.ws.status !== 0) {
-        console.warn("[WATCHDOG] Gateway not ready — exiting for respawn");
+      const notReady = [...client.ws.shards.values()].filter((s) => s.status !== Status.Ready);
+      if (client.user && notReady.length === 0) {
+        missed = 0;
+        return;
+      }
+      missed += 1;
+      const ids = notReady.map((s) => s.id).join(", ") || "client";
+      console.warn(`[WATCHDOG] Not ready: shard(s) ${ids} (${missed}/${WATCHDOG_MAX_MISSES})`);
+      if (missed >= WATCHDOG_MAX_MISSES) {
+        console.warn("[WATCHDOG] Exiting for respawn");
         process.exit(1);
       }
     }, WATCHDOG_INTERVAL_MS);
