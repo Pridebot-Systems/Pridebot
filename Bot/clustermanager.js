@@ -1,6 +1,7 @@
 const path = require("path");
 const { ClusterManager } = require("discord-hybrid-sharding");
 const config = require("../environment");
+const { startStatusService } = require("../Status");
 
 /**
  * Entry point (npm start). Spawns Bot/index.js once per cluster.
@@ -25,13 +26,29 @@ const manager = new ClusterManager(path.join(__dirname, "index.js"), {
   restarts: { max: 5, interval: 60 * 60 * 1000 },
 });
 
+/**
+ * status.pridebot.xyz lives here rather than in cluster 0 so it keeps reporting
+ * while any cluster is down. A failure to start it must not stop the bot.
+ */
+let status = null;
+try {
+  status = startStatusService(manager, { port: config.ports.status });
+} catch (err) {
+  console.error("[STATUS] Failed to start the status service:", err);
+}
+
 manager.on("clusterCreate", (cluster) => {
   console.log(`[CLUSTER] Launched cluster ${cluster.id}`);
 
-  cluster.on("ready", () => console.log(`[CLUSTER] Cluster ${cluster.id} is ready ✅`));
-  cluster.on("death", () =>
-    console.error(`[CLUSTER] Cluster ${cluster.id} died — library will respawn it 💥`)
-  );
+  cluster.on("spawn", () => status?.monitor.recordClusterEvent(cluster.id, "spawn"));
+  cluster.on("ready", () => {
+    console.log(`[CLUSTER] Cluster ${cluster.id} is ready ✅`);
+    status?.monitor.recordClusterEvent(cluster.id, "ready");
+  });
+  cluster.on("death", () => {
+    console.error(`[CLUSTER] Cluster ${cluster.id} died — library will respawn it 💥`);
+    status?.monitor.recordClusterEvent(cluster.id, "death");
+  });
   cluster.on("error", (err) =>
     console.error(`[CLUSTER] Cluster ${cluster.id} error:`, err?.message || err)
   );
@@ -53,6 +70,8 @@ async function shutdown(signal) {
   stopping = true;
   console.log(`[CLUSTER] ${signal} received — stopping ${manager.clusters.size} cluster(s)`);
   manager.respawn = false;
+  // Mark this a planned stop, so the next boot logs a restart, not an outage.
+  status?.stop({ clean: true });
 
   const exits = [...manager.clusters.values()].map((cluster) => {
     const child = cluster.thread?.process;

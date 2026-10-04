@@ -11,3 +11,4 @@ services:
       - "127.0.0.1:${prodAvatarAPIport}:${prodAvatarAPIport}"
       - "127.0.0.1:${prodProfileAPIport}:${prodProfileAPIport}"
       - "127.0.0.1:${prodPremiumAPIport}:${prodPremiumAPIport}"
+      - "127.0.0.1:${prodStatusPort:-2614}:${prodStatusPort:-2614}"

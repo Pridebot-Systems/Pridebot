@@ -27,6 +27,11 @@ const config = {
     avatar: pick("betaAvatarAPIport", "prodAvatarAPIport"),
     profile: pick("betaProfileAPIport", "prodProfileAPIport"),
     premium: pick("betaPremiumAPIport", "prodPremiumAPIport"),
+    // status.pridebot.xyz, served by the cluster manager. Optional so existing .env
+    // files keep booting; defaults sit next to the other ports.
+    status:
+      process.env[isBeta ? "betaStatusPort" : "prodStatusPort"] ||
+      (isBeta ? "2514" : "2614"),
   },
 
   links: {
@@ -47,6 +52,9 @@ const config = {
     session: process.env.SESSION_SECRET,
     profileApiToken: process.env.PROFILE_API_TOKEN,
     premiumRecheck: process.env.PremiumRecheckSecret,
+    // Bearer token for posting manual incidents to status.pridebot.xyz. Unset
+    // disables the admin routes.
+    statusAdmin: process.env.STATUS_ADMIN_TOKEN,
   },
 
   patreon: {

@@ -9,3 +9,4 @@ services:
       - "127.0.0.1:${betaAvatarAPIport}:${betaAvatarAPIport}"
       - "127.0.0.1:${betaProfileAPIport}:${betaProfileAPIport}"
       - "127.0.0.1:${betaPremiumAPIport}:${betaPremiumAPIport}"
+      - "127.0.0.1:${betaStatusPort:-2514}:${betaStatusPort:-2514}"
