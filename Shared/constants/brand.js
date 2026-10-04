@@ -51,6 +51,8 @@ const CHANNELS = {
   VOTES: "1224815141921624186",
   /** Staff-only Patreon activity log. */
   PREMIUM: "1450239691075883222",
+  /** Staff-only: profile text refused by moderation (bot and web editor). */
+  MOD_FLAGS: "1231591223337160715",
 };
 
 /** Guilds the APIs read from. */

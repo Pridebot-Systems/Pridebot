@@ -28,10 +28,8 @@ const UserCommandUsage = require("../../../DB/models/userCommandUsageSchema");
 
 const { badgeMap } = require("./profilehelper");
 const { checkAndShowProfileFeedbackSurvey } = require("./profileSurveyHandler");
-const {
-  containsDisallowedContent,
-} = require("../../utils/detection/containDisallow");
-const { scanText } = require("../../utils/detection/perspective");
+const { checkProfileText } = require("../../utils/detection/profileModeration");
+const { CHANNELS } = require("../../../Shared/constants/brand");
 
 async function handleDisplay(interaction, client) {
   const userId = interaction.user.id;
@@ -331,7 +329,6 @@ async function handlePremium(interaction) {
 
 async function handleUpdate(interaction, client) {
   const subcommand = interaction.options.getSubcommand();
-  const username = interaction.user.username;
   const age = interaction.options.getInteger("age");
 
   if (!(await ageCheck(interaction, age, subcommand))) return;
@@ -339,52 +336,11 @@ async function handleUpdate(interaction, client) {
   const preferredName = interaction.options.getString("preferredname");
   const bio = interaction.options.getString("bio");
 
-  // Content safety
-  if (
-    preferredName &&
-    (await containsDisallowedContent(preferredName, username))
-  ) {
-    await sendFlagNotification(
-      interaction,
-      preferredName,
-      subcommand,
-      "Preferred Name"
-    );
-    return interaction.reply({
-      content: "Disallowed content in preferred name.",
-      ephemeral: true,
-    });
-  }
-  if (bio && (await containsDisallowedContent(bio, username))) {
-    await sendFlagNotification(interaction, bio, subcommand, "Bio");
-    return interaction.reply({
-      content: "Disallowed content in bio.",
-      ephemeral: true,
-    });
-  }
-
-  // Toxicity check
-  const scan = await scanText(preferredName || bio);
-  if (!scan) {
-    return interaction.reply({
-      content: "Error analyzing content.",
-      ephemeral: true,
-    });
-  }
-  if (scan.toxicity > 0.65 || scan.insult > 0.65) {
-    await sendToxicNotification(
-      interaction,
-      scan.toxicity,
-      scan.insult,
-      preferredName,
-      bio,
-      subcommand
-    );
-    return interaction.reply({
-      content: "High toxicity or insult detected.",
-      ephemeral: true,
-    });
-  }
+  const refusal = await moderationRefusal(interaction, subcommand, [
+    ["Preferred Name", preferredName],
+    ["Bio", bio],
+  ]);
+  if (refusal) return interaction.reply({ content: refusal, ephemeral: true });
 
   const pronounpage = interaction.options.getString("pronounpage");
   if (pronounpage && !isValidPronounPageLink(pronounpage)) {
@@ -431,7 +387,6 @@ async function handleUpdate(interaction, client) {
 
 async function handleSetup(interaction, client) {
   const subcommand = interaction.options.getSubcommand();
-  const username = interaction.user.username;
   const age = interaction.options.getInteger("age");
 
   if (!(await ageCheck(interaction, age, subcommand))) return;
@@ -446,50 +401,11 @@ async function handleSetup(interaction, client) {
   const preferredName = interaction.options.getString("preferredname");
   const bio = interaction.options.getString("bio");
 
-  // Content safety
-  if (
-    preferredName &&
-    (await containsDisallowedContent(preferredName, username))
-  ) {
-    await sendFlagNotification(
-      interaction,
-      preferredName,
-      subcommand,
-      "Preferred Name"
-    );
-    return interaction.reply({
-      content: "Disallowed content in preferred name.",
-      ephemeral: true,
-    });
-  }
-  if (bio && (await containsDisallowedContent(bio, username))) {
-    await sendFlagNotification(interaction, bio, subcommand, "Bio");
-    return interaction.reply({
-      content: "Disallowed content in bio.",
-      ephemeral: true,
-    });
-  }
-  const scan = await scanText(preferredName || bio);
-  if (!scan) {
-    return interaction.reply({
-      content: "Error analyzing content.",
-      ephemeral: true,
-    });
-  }
-  if (scan.toxicity > 0.65 || scan.insult > 0.65) {
-    await sendToxicNotification(
-      interaction,
-      scan.toxicity,
-      scan.insult,
-      preferredName,
-      bio,
-      subcommand
-    );
-    return interaction.reply({
-      content: "High toxicity or insult detected.",
-      ephemeral: true,
-    });
-  }
+  const refusal = await moderationRefusal(interaction, subcommand, [
+    ["Preferred Name", preferredName],
+    ["Bio", bio],
+  ]);
+  if (refusal) return interaction.reply({ content: refusal, ephemeral: true });
 
   const pronounpage = interaction.options.getString("pronounpage");
   if (pronounpage && !isValidPronounPageLink(pronounpage)) {
@@ -587,13 +503,33 @@ async function ageCheck(interaction, age, cmd) {
         { name: "Command", value: cmd, inline: true }
       )
       .setTimestamp();
-    const ch = await interaction.client.channels.fetch("1231591223337160715");
+    const ch = await interaction.client.channels.fetch(CHANNELS.MOD_FLAGS);
     if (ch) ch.send({ embeds: [embed] });
     await interaction.reply({ content: "Invalid age.", ephemeral: true });
     return false;
   }
   return true;
 }
+
+/**
+ * Run profile text through moderation. Returns the reply refusing the edit (and
+ * alerts moderators), or null when the text may be saved.
+ */
+async function moderationRefusal(interaction, subcommand, fields) {
+  const result = await checkProfileText(fields, interaction.user.username);
+  if (result.ok) return null;
+  if (result.reason === "unavailable") return "Error analyzing content.";
+  if (result.reason === "blocked") {
+    await sendFlagNotification(interaction, result.text, subcommand, result.label);
+    return `Disallowed content in ${result.label.toLowerCase()}.`;
+  }
+  await sendToxicNotification(interaction, result.toxicity, result.insult, result.text, null, subcommand);
+  return "High toxicity or insult detected.";
+}
+
+// Embed field values cap at 1024; a full 1024-character bio plus the spoiler
+// markers made the alert itself throw, so the user got no reply.
+const spoiler = (text) => `||${String(text).slice(0, 1000)}||`;
 
 async function sendFlagNotification(interaction, content, cmd, type) {
   const embed = new EmbedBuilder()
@@ -603,10 +539,10 @@ async function sendFlagNotification(interaction, content, cmd, type) {
       { name: "User", value: interaction.user.tag, inline: true },
       { name: "Command", value: cmd, inline: true },
       { name: "Type", value: type, inline: true },
-      { name: "Content", value: `||${content}||`, inline: true }
+      { name: "Content", value: spoiler(content), inline: true }
     )
     .setTimestamp();
-  const ch = await interaction.client.channels.fetch("1231591223337160715");
+  const ch = await interaction.client.channels.fetch(CHANNELS.MOD_FLAGS);
   if (ch) ch.send({ embeds: [embed] });
 }
 
@@ -624,7 +560,7 @@ async function sendToxicNotification(
     .addFields(
       { name: "User", value: interaction.user.tag, inline: true },
       { name: "Command", value: cmd, inline: true },
-      { name: "Content", value: `||${pref || bio}||`, inline: true },
+      { name: "Content", value: spoiler(pref || bio), inline: true },
       {
         name: "Toxicity",
         value: `${(toxicity * 100).toFixed(2)}%`,
@@ -633,7 +569,7 @@ async function sendToxicNotification(
       { name: "Insult", value: `${(insult * 100).toFixed(2)}%`, inline: true }
     )
     .setTimestamp();
-  const ch = await interaction.client.channels.fetch("1231591223337160715");
+  const ch = await interaction.client.channels.fetch(CHANNELS.MOD_FLAGS);
   if (ch) ch.send({ embeds: [embed] });
 }
 
@@ -716,6 +652,9 @@ async function handleModalSubmit(interaction, client) {
       content: "That website couldn't be added. The URL must start with `https://` or `http://`.",
     });
   }
+  // The label is shown publicly as a button on the profile.
+  const refusal = await moderationRefusal(interaction, "premium", [["Link Name", site.label]]);
+  if (refusal) return interaction.editReply({ content: refusal });
   const profile =
     (await Profile.findOne({ userId })) || new Profile({ userId });
   // The "edited" log diffs against this; V1 passed null and the log threw after
