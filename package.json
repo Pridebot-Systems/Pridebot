@@ -1,7 +1,7 @@
 {
   "name": "pridebot",
   "version": "2.0.0",
-  "description": "Pridebot \u2014 Discord bot, public API, and website in one repository.",
+  "description": "Pridebot — Discord bot, public API, and website in one repository.",
   "main": "Bot/clustermanager.js",
   "author": "Sdriver1",
   "license": "MIT",
@@ -38,7 +38,7 @@
     "node-cron": "^3.0.3",
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
-    "sharp": "^0.33.5",
+    "sharp": "^0.35.5",
     "topgg-autoposter": "^2.0.2"
   },
   "devDependencies": {
