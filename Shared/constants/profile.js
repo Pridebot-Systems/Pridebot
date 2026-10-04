@@ -30,6 +30,35 @@ const PUBLIC_PROFILE_FIELDS = [
   "badgesVisible",
 ];
 
+/**
+ * Custom website buttons (`customWebsites`, the LGBTQ++ "social links" perk).
+ *
+ * V1 validated none of this. `/profile view` puts every link in one Discord button
+ * row after "Web Profile" and "Pronoun Page", and a row holds 5 — so a 4th link,
+ * a label over Discord's 80 characters, or a URL without http(s) made the whole
+ * command throw for that user.
+ */
+const SOCIAL_LINKS = {
+  MAX: 3,
+  LABEL_MAX: 80,
+  URL_MAX: 512,
+};
+
+/** A cleaned { label, url }, or null when either part is invalid. */
+function parseSocialLink(link) {
+  const label = typeof link?.label === "string" ? link.label.trim() : "";
+  const url = typeof link?.url === "string" ? link.url.trim() : "";
+  if (!label || label.length > SOCIAL_LINKS.LABEL_MAX) return null;
+  if (!url || url.length > SOCIAL_LINKS.URL_MAX) return null;
+  try {
+    const { protocol } = new URL(url);
+    if (protocol !== "https:" && protocol !== "http:") return null;
+  } catch {
+    return null;
+  }
+  return { label, url };
+}
+
 /** Project a profile document to its public shape, honouring visibility flags. */
 function toPublicProfile(profile) {
   if (!profile) return null;
@@ -47,4 +76,9 @@ function toPublicProfile(profile) {
   return out;
 }
 
-module.exports = { PUBLIC_PROFILE_FIELDS, toPublicProfile };
+module.exports = {
+  PUBLIC_PROFILE_FIELDS,
+  SOCIAL_LINKS,
+  parseSocialLink,
+  toPublicProfile,
+};

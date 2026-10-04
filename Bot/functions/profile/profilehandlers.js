@@ -12,8 +12,15 @@ const commandLogging = require("../../utils/logging/commandlog");
 const profileLogging = require("../../utils/logging/profilelogging");
 const path = require("path");
 const { PROFILE_PFPS_DIR } = require("../../../Shared/paths");
+const { SOCIAL_LINKS, parseSocialLink } = require("../../../Shared/constants/profile");
 const fs = require("fs");
 const config = require("../../../environment");
+const { hasFeature } = require("../../utils/premium");
+
+const MAX_ROW_BUTTONS = 5;
+const NO_SOCIAL_LINKS =
+  "Custom website buttons are a Pridebot LGBTQ++ perk. You can upgrade at https://pridebot.xyz/premium";
+const SOCIAL_LINKS_FULL = `You can have up to ${SOCIAL_LINKS.MAX} websites. Remove one with \`/profile premium website:remove\` first.`;
 
 const Profile = require("../../../DB/models/profileSchema");
 const IDLists = require("../../../DB/models/idSchema");
@@ -183,7 +190,10 @@ async function handleView(interaction, client) {
     );
   }
 
-  for (const site of profile.customWebsites || []) {
+  // Links saved before validation existed may be malformed or too many for one
+  // row; skip those rather than let the whole reply throw.
+  const sites = (profile.customWebsites || []).map(parseSocialLink).filter(Boolean);
+  for (const site of sites.slice(0, MAX_ROW_BUTTONS - row.components.length)) {
     row.addComponents(
       new ButtonBuilder()
         .setLabel(site.label)
@@ -253,9 +263,18 @@ async function handlePremium(interaction) {
 
   switch (action) {
     case "add": {
+      const blocked = !(await hasFeature(userId, "socialLinks"))
+        ? NO_SOCIAL_LINKS
+        : profile.customWebsites.length >= SOCIAL_LINKS.MAX
+          ? SOCIAL_LINKS_FULL
+          : null;
+      if (blocked) {
+        return interaction.reply({ content: [...messages, blocked].join(" "), ephemeral: true });
+      }
       const lastSite = profile.customWebsites.slice(-1)[0] || {};
-      const labelPh = lastSite.label || "e.g. My Blog";
-      const urlPh = lastSite.url || "https://example.com";
+      // Discord caps placeholders at 100 characters; a saved URL can be longer.
+      const labelPh = (lastSite.label || "e.g. My Blog").slice(0, 100);
+      const urlPh = (lastSite.url || "https://example.com").slice(0, 100);
       const modal = new ModalBuilder()
         .setCustomId("customWebsiteModal")
         .setTitle("Add Custom Website");
@@ -266,6 +285,7 @@ async function handlePremium(interaction) {
             .setLabel("Button Label")
             .setStyle(TextInputStyle.Short)
             .setPlaceholder(labelPh)
+            .setMaxLength(SOCIAL_LINKS.LABEL_MAX)
             .setRequired(true)
         ),
         new ActionRowBuilder().addComponents(
@@ -274,6 +294,7 @@ async function handlePremium(interaction) {
             .setLabel("Website URL")
             .setStyle(TextInputStyle.Short)
             .setPlaceholder(urlPh)
+            .setMaxLength(SOCIAL_LINKS.URL_MAX)
             .setRequired(true)
         )
       );
@@ -285,7 +306,13 @@ async function handlePremium(interaction) {
       if (sites.length === 0) {
         return interaction.reply({ content: "No websites to remove.", ephemeral: true });
       }
-      const options = sites.map((ws) => ({ label: ws.label, value: ws.url }));
+      // Select values are capped at 100 characters and must be unique, so the
+      // subdocument id identifies the link rather than its URL.
+      const options = sites.slice(0, 25).map((ws) => ({
+        label: ws.label.slice(0, 100),
+        description: ws.url.slice(0, 100),
+        value: String(ws._id),
+      }));
       const menu = new StringSelectMenuBuilder()
         .setCustomId("removeWebsiteSelect")
         .setPlaceholder("Select a website to remove")
@@ -675,14 +702,29 @@ async function handleModalSubmit(interaction, client) {
   if (interaction.customId !== "customWebsiteModal") return;
   await interaction.deferReply({ ephemeral: true });
   const userId = interaction.user.id;
-  const label = interaction.fields.getTextInputValue("websiteLabel");
-  const url = interaction.fields.getTextInputValue("websiteUrl");
+  // Re-check at submit: the modal could have been opened before a downgrade, or
+  // twice before either submit landed.
+  if (!(await hasFeature(userId, "socialLinks"))) {
+    return interaction.editReply({ content: NO_SOCIAL_LINKS });
+  }
+  const site = parseSocialLink({
+    label: interaction.fields.getTextInputValue("websiteLabel"),
+    url: interaction.fields.getTextInputValue("websiteUrl"),
+  });
+  if (!site) {
+    return interaction.editReply({
+      content: "That website couldn't be added. The URL must start with `https://` or `http://`.",
+    });
+  }
   const profile =
     (await Profile.findOne({ userId })) || new Profile({ userId });
   profile.premiumMember = true;
   if (!profile.premiumSince) profile.premiumSince = new Date();
   profile.customWebsites = profile.customWebsites || [];
-  profile.customWebsites.push({ label, url });
+  if (profile.customWebsites.length >= SOCIAL_LINKS.MAX) {
+    return interaction.editReply({ content: SOCIAL_LINKS_FULL });
+  }
+  profile.customWebsites.push(site);
   await profile.save();
   await commandLogging(client, interaction);
   await profileLogging(client, interaction, "edited", null, profile);
@@ -695,18 +737,20 @@ async function handleModalSubmit(interaction, client) {
 async function handleRemoveWebsite(interaction, client) {
   if (interaction.customId !== "removeWebsiteSelect") return;
   await interaction.deferUpdate();
-  const url = interaction.values[0];
+  const siteId = interaction.values[0];
   const userId = interaction.user.id;
   const profile = await Profile.findOne({ userId });
+  const removed = profile?.customWebsites?.find((ws) => String(ws._id) === siteId);
+  if (!removed) {
+    return interaction.editReply({ content: "That website was already removed.", components: [] });
+  }
   const original = profile.toObject();
-  profile.customWebsites = (profile.customWebsites || []).filter(
-    (ws) => ws.url !== url
-  );
+  profile.customWebsites = profile.customWebsites.filter((ws) => ws !== removed);
   await profile.save();
   await commandLogging(client, interaction);
   await profileLogging(client, interaction, "edited", original, profile);
   return interaction.editReply({
-    content: `Removed website: ${url}`,
+    content: `Removed website: ${removed.url}`,
     components: [],
   });
 }
