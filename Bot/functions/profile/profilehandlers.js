@@ -718,6 +718,9 @@ async function handleModalSubmit(interaction, client) {
   }
   const profile =
     (await Profile.findOne({ userId })) || new Profile({ userId });
+  // The "edited" log diffs against this; V1 passed null and the log threw after
+  // the save, so the user never got a reply.
+  const original = profile.toObject();
   profile.premiumMember = true;
   if (!profile.premiumSince) profile.premiumSince = new Date();
   profile.customWebsites = profile.customWebsites || [];
@@ -727,7 +730,7 @@ async function handleModalSubmit(interaction, client) {
   profile.customWebsites.push(site);
   await profile.save();
   await commandLogging(client, interaction);
-  await profileLogging(client, interaction, "edited", null, profile);
+  await profileLogging(client, interaction, "edited", original, profile);
   return interaction.editReply({
     content: "Website added!",
     ephemeral: true,

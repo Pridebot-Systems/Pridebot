@@ -66,7 +66,6 @@ const config = {
     discordsAuth: process.env.discordsauth,
     discordlistggToken: process.env.discordlistggToken,
     discordlistggWebhookSecret: process.env.discordlistggWebhookSecret,
-    // Optional. V1 read config.DELLYToken, which was never defined.
     dellyToken: process.env.DELLYToken,
   },
 
@@ -74,7 +73,12 @@ const config = {
   // request while its secret is unset — V1 accepted Top.gg and GitHub webhooks
   // with no authentication at all.
   webhooks: {
+    // Top.gg legacy (v0) webhooks: the Authorization value set on the bot's edit page.
     topggAuth: process.env.TOPGG_WEBHOOK_AUTH,
+    // Top.gg v1 webhooks: the whs_ signing secret shown after saving the webhook URL.
+    // Top.gg generates one per project, so the support server has its own.
+    topggSecret: process.env.TOPGG_WEBHOOK_SECRET,
+    topggServerSecret: process.env.TOPGG_SERVER_WEBHOOK_SECRET,
     githubSecret: process.env.GITHUB_WEBHOOK_SECRET,
   },
 
