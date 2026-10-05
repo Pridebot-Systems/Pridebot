@@ -1,9 +1,9 @@
 const { SlashCommandBuilder, EmbedBuilder, version: discordJsVersion } = require("discord.js");
 const { getInfo } = require("discord-hybrid-sharding");
 const commandLogging = require("../../utils/logging/commandlog");
-const { getTotalCommits } = require("../../functions/commands/commit");
+// Semantic version, bumped with `npm version` (see README, "Versioning").
+const { version: botVersion } = require("../../../package.json");
 const { getStats } = require("../../functions/bot/stats");
-const config = require("../../../environment");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -68,23 +68,13 @@ module.exports = {
       const memoryUsage = `${processStats.memory} MB`;
       const cpuUsage = `${processStats.cpu}%`;
 
-      let totalCommits = await getTotalCommits(
-        "Pridebot-Systems",
-        "Pridebot",
-        config.githubToken
-      );
-
-      let commitHundreds = totalCommits.toString().slice(-3, -2) || "0";
-      let commitTens = totalCommits.toString().slice(-2, -1) || "0";
-      let commitOnes = totalCommits.toString().slice(-1);
-
       const ping = `**Ping**: \`${botping}ms\` \n**Bot Latency**: \`${botLatency}ms\``;
       const up = `\n**Uptime:** \`${formatUptime(
         process.uptime()
       )}\` \n**Start Time:** ${startTimeTimestamp}`;
       const botstats = `**Servers:** \`${currentGuildCount.toLocaleString()}\` \n**Users:** \`${totalUserCount.toLocaleString()}\`\n**User Installs:** \`${approximateUserInstallCount.toLocaleString()}\``;
       const commandstats = `**Commands:** \`${CommandsCount}\` \n**Total Usage:** \`${totalUsage.toLocaleString()}\` \n**Profiles:** \`${profileAmount.toLocaleString()}\``;
-      const botversion = `**Dev:** \`${commitHundreds}.${commitTens}.${commitOnes}\` \n **Node.js:** \`${process.version}\` \n **Discord.js:** \`v${discordJsVersion}\``;
+      const botversion = `**Dev:** \`v${botVersion}\` \n **Node.js:** \`${process.version}\` \n **Discord.js:** \`v${discordJsVersion}\``;
       const clientstats = `**CPU:** \`${cpuUsage}\` \n**Memory:** \`${memoryUsage}\``;
       const shardstats = `**Shards:** \`${
         getInfo().TOTAL_SHARDS
