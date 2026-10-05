@@ -35,9 +35,6 @@ module.exports = {
       return result.join(", ");
     }
 
-    // V1 asked the pm2 daemon for a process named "Pridebot". That only ever
-    // measured the cluster manager, not the cluster processes doing the work, and
-    // returned N/A whenever the bot ran outside pm2. Measure every cluster instead.
     async function getProcessStats() {
       const perCluster = await client.cluster.broadcastEval(async () => {
         const sampleMs = 200;

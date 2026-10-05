@@ -10,20 +10,6 @@ const config = require("../../../environment");
 const { COMMANDS_DIR } = require("../../../Shared/paths");
 const { listJsFiles } = require("./listFiles");
 
-/**
- * Loads every command module under Bot/commands.
- *
- * Changes from V1:
- *   - Paths are absolute. V1 resolved "./src/commands" against the working
- *     directory and required via `__dirname + "../../../" + path`, so the bot only
- *     booted when launched from the repo root.
- *   - Modules without `data` (the prefix-style Dev commands) are counted and
- *     skipped quietly. V1 logged a red error for each of them on every boot.
- *   - Duplicate names are detected BEFORE registering. V1 only looked after
- *     Discord rejected the payload, with a filter that could never match.
- *
- * Kept separate from registration so it can run offline.
- */
 function loadCommands(dir = COMMANDS_DIR) {
   const commands = new Map();
   const payload = [];

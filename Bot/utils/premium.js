@@ -3,8 +3,6 @@ const DarList = require("../../DB/models/idDarSchema");
 
 const DAR_COMMANDS = ["gaydar", "transdar", "queerdar", "rizzdar", "lesdar", "bidar"];
 
-// The DarList is a single small document of dev-set overrides, read on every dar
-// command — cache it rather than round-tripping. `darID` invalidates on write.
 const DAR_PIN_TTL = 60 * 1000;
 let darPinCache = null;
 let darPinCachedAt = 0;

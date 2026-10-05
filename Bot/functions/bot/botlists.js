@@ -2,21 +2,6 @@ const { AutoPoster } = require("topgg-autoposter");
 const { CLIENT_ID } = require("../../../Shared");
 const config = require("../../../environment");
 
-/**
- * Server-count posting to bot lists. Production only, cluster 0 only.
- *
- * V1 split this across index.js (three inline posters + Top.gg) and
- * discordsguild.js, with three problems fixed here:
- *   - Top.gg's AutoPoster was created on EVERY cluster, so each one posted the
- *     same cross-cluster total — N identical requests per interval.
- *   - DELLY read config.DELLYToken, which never existed, so it sent
- *     `Authorization: undefined` every 15 minutes. Lists with no token are now
- *     skipped and reported once at startup.
- *   - discords.com never checked response.ok, so rejections were silent.
- *
- * Lists are keyed by CLIENT_ID (the production listing), not config.clientId.
- */
-
 const INTERVAL_MS = 15 * 60 * 1000;
 
 async function totalGuilds(client) {

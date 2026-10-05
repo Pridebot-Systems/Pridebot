@@ -11,15 +11,6 @@ const { Timeout } = require("../timeout");
 const flagCache = new NodeCache({ stdTTL: 3600, checkperiod: 600 }); // 1 hour cache, check every 10 minutes
 const avatarCache = new NodeCache({ stdTTL: 600, checkperiod: 120 }); // 10 minute cache, check every 2 minutes
 const processedAvatarCache = new NodeCache({ stdTTL: 1800, checkperiod: 300 }); // 30 minute cache for final results
-
-// Background processing queue — created on first use, not at load.
-//
-// V1 built the queue and registered a worker at module load on EVERY cluster, so
-// each one held Redis connections from boot. Nothing ever enqueued a job
-// (queueAvatarGeneration had no callers), and with Redis down the try/catch never
-// fired — ioredis reports failures as events, add() hangs forever, and the
-// "fallback to direct processing" branch was unreachable. Now Redis is only
-// touched if something actually queues work, and an unreachable Redis falls back.
 const QUEUE_READY_TIMEOUT_MS = 3000;
 let avatarQueue = null;
 let queueUnavailable = false;

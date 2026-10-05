@@ -7,19 +7,6 @@ const { DATA_DIR, SHUTDOWN_FILE } = require("../Shared/paths");
 const { errorlogging } = require("./utils/logging/errorlogs");
 const initializeBot = require("./bot");
 
-/**
- * One cluster process. Spawned by clustermanager.js.
- *
- * Changes from V1:
- *   - The DB connects BEFORE login and a failure exits so the manager respawns
- *     the cluster. V1 connected in parallel and only logged the error; mongoose
- *     does not retry a failed initial connection, so the bot stayed online with
- *     every DB call failing until someone restarted it.
- *   - Bot-list posting moved to functions/bot/botlists.js, started from bot.js.
- *   - The cluster "log" IPC handler is gone — nothing sent those messages;
- *     sendLog routes through broadcastEval instead.
- */
-
 let shuttingDown = false;
 const BOOT_RETRY_DELAY_MS = 30_000;
 const READY_DEADLINE_MS = 10 * 60_000;

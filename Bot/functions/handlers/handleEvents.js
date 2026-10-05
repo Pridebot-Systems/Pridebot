@@ -3,20 +3,6 @@ const { EVENTS_DIR } = require("../../../Shared/paths");
 const { errorlogging } = require("../../utils/logging/errorlogs");
 const { listJsFiles } = require("./listFiles");
 
-/**
- * Registers every module under Bot/events that exports { name, execute }.
- *
- * Changes from V1:
- *   - Synchronous. V1's handleEvents was async and never awaited, so a missing
- *     require (localeTracker.js) became an unhandled rejection and NO events
- *     registered — the bot connected and silently ignored every interaction.
- *     A load failure now throws at boot.
- *   - Every handler is wrapped: rejections are logged instead of escaping as
- *     unhandled rejections (V1's manual guild handlers were called without
- *     await inside try/catch, which caught nothing).
- *   - Modules that aren't events (server/restart.js) are skipped, not registered
- *     under an empty event name as V1 did.
- */
 function loadEvents(client, dir = EVENTS_DIR) {
   const registered = [];
   const skipped = [];

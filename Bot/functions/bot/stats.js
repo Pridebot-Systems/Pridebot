@@ -3,16 +3,6 @@ const { stats: contract } = require("../../../Shared");
 const { getApproximateUserInstallCount } = require("./user_install");
 const { getRegisteredCommandsCount } = require("../commands/registercommand");
 
-/**
- * The numbers behind GET /stats, the /stats command, and the nightly Sheets export.
- *
- * V1 computed these only inside botapi. The /stats command and the Sheets cron then
- * fetched them back over the network from https://api.pridebot.xyz/stats — always
- * PRODUCTION, even from beta, and dead whenever the public API was. All three now
- * call getStats() in-process. Each cluster keeps its own short-lived cache; the
- * computation works from any cluster because the counts come from broadcastEval.
- */
-
 const TTL_MS = 2 * 60 * 1000;
 let cached = null;
 let cachedAt = 0;
@@ -49,8 +39,6 @@ async function computeStats(client) {
     },
   };
 
-  // Three consumers read these field names; fail loudly rather than serve a
-  // payload that silently breaks one of them.
   return contract.assertStatsShape(stats);
 }
 

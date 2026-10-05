@@ -1,7 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 
-/** Every .js file under `dir`, recursively, as absolute paths in a stable order. */
 function listJsFiles(dir) {
   const out = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) =>

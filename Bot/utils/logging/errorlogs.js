@@ -6,9 +6,6 @@ const SUPPRESSED_DISCORD_CODES = [10062]; // Unknown Interaction — expected no
 const errorlogging = async (client, error, context = {}) => {
   if (error instanceof DiscordAPIError && SUPPRESSED_DISCORD_CODES.includes(error.code)) return;
 
-  // V1 returned here unless the log channel was cached on THIS cluster, which
-  // aborted before the cross-cluster sendLog below ever ran — errors from any
-  // cluster not holding the logging guild were silently dropped.
   const estDate = new Date().toLocaleString("en-US", {
     timeZone: "America/New_York",
   });

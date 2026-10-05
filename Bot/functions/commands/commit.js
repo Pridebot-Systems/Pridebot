@@ -1,13 +1,3 @@
-/**
- * Total commits on a repository's default branch.
- *
- * V1 paged through the entire history 100 commits at a time and stopped when a
- * page had length 0. A GitHub error (bad token, rate limit) returns an object with
- * no `length`, so the loop never ended — it kept fetching forever, and every
- * /stats call or GitHub webhook started another one. This makes one request with
- * per_page=1: the "last" page number in the Link header IS the commit count.
- */
-
 const CACHE_TTL_MS = 10 * 60 * 1000;
 const cache = new Map();
 

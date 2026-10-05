@@ -1,14 +1,5 @@
 const Voting = require("../../../DB/models/votingSchema");
 
-/**
- * Vote counting on the single Voting document.
- *
- * V1 loaded the whole document (every voter ever), mutated it in memory, and
- * saved it back. Two votes arriving together each saved their own copy, and the
- * later save erased the earlier vote. Every write here is an atomic $inc/$push,
- * and reads project only the one voter they need.
- */
-
 const PLATFORMS = {
   TopGG: { userField: "votingTopGG", totalField: "TopGGTotal" },
   Wumpus: { userField: "votingWumpus", totalField: "WumpusTotal" },
@@ -26,10 +17,6 @@ async function votingDocId() {
   return doc._id;
 }
 
-/**
- * Record one vote. Resolves to { userVotes, platformTotal } for the thank-you
- * embed: this user's count on the platform and the platform's running total.
- */
 async function updateVotingStats(userId, platform, attempt = 0) {
   const spec = PLATFORMS[platform];
   if (!spec) throw new Error(`Unknown voting platform: ${platform}`);

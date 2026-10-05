@@ -5,8 +5,6 @@ const { SHUTDOWN_FILE } = require("../../../Shared/paths");
 const { sendLog } = require("../../utils/logging/sendlogs");
 
 module.exports = async (client) => {
-  // Called once, from cluster 0. sendLog routes to whichever cluster holds the
-  // channel; V1 ran this on every cluster and all but one logged "not found".
   const channelId = CHANNELS.CLEANUP;
   let shutdownTime;
 
