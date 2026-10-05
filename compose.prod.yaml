@@ -1,7 +1,3 @@
-# Production bot. Ports come from the prod*port values in .env.
-# Published on 127.0.0.1 only, for a reverse proxy (nginx, Caddy) on the same
-# host to forward api./pfp./profile.pridebot.xyz. If the proxy runs elsewhere,
-# drop the "127.0.0.1:" prefix — and firewall the ports.
 services:
   bot:
     environment:

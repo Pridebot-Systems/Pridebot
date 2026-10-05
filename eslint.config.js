@@ -14,12 +14,10 @@ module.exports = [
     rules: {
       "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
       "no-undef": "error",
-      // The class of bug that took V1's boot down twice.
       "no-console": "off",
     },
   },
   {
-    // Browser-side scripts served from Web/.
     files: ["Web/**/*.js"],
     languageOptions: {
       sourceType: "script",

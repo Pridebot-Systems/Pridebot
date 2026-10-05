@@ -1,8 +1,5 @@
-# Secrets (.env.example is a local-only template)
 .env
 .env.*
-# API/statsapi/google-credentials.json is ignored by the API repo's own .gitignore
-# Docker mounts this read-only into the container (compose.yaml)
 secrets/
 
 # Dependencies
@@ -11,7 +8,6 @@ node_modules/
 # Runtime artifacts
 logs/
 *.log
-# shutdown-time.txt now lives in data/
 .cache/
 tmp/
 
@@ -20,14 +16,6 @@ tmp/
 Thumbs.db
 .vscode/
 .idea/
-
-# NOTE: unlike V1, nothing under src/ is gitignored. environment.js, the Dev
-# commands, and the API modules are all tracked — V1 ignored files that bot.js
-# required at the top level, so a fresh clone could not boot.
-
-# Runtime data (generated avatars, shutdown marker) — see Shared/paths.js
 data/
-
-# Local-only tooling and migration notes — kept on disk, not in the repo
 Reconstruction/
 scripts/

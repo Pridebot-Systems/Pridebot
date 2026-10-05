@@ -1,5 +1,3 @@
-# Beta bot. Ports come from the beta*port values in .env.
-# Published on 127.0.0.1 only: reachable from this machine, not the network.
 services:
   bot:
     environment:

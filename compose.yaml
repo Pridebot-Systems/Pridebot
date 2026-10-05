@@ -3,7 +3,6 @@ name: pridebot
 # Shared service definition. Always combine with an environment file:
 #   beta:        docker compose -f compose.yaml -f compose.beta.yaml up -d --build
 #   production:  docker compose -f compose.yaml -f compose.prod.yaml up -d --build
-# (or: npm run docker:beta / npm run docker:prod)
 services:
   bot:
     build: .
@@ -12,18 +11,12 @@ services:
     environment:
       GOOGLE_CREDENTIALS_FILE: /app/secrets/google-credentials.json
     volumes:
-      # Generated avatars and the shutdown marker. On Linux the directory must be
-      # writable by the container's `node` user: sudo chown -R 1000:1000 data
       - ./data:/app/data
-      # Google service-account key for the nightly Sheets export (optional).
       - ./secrets:/app/secrets:ro
-    # tini as PID 1: reaps zombies and forwards signals to the cluster manager,
-    # which stops each cluster so they record their shutdown time.
     init: true
     stop_grace_period: 30s
     restart: unless-stopped
     healthcheck:
-      # The API's /health on whichever port the active environment uses.
       test:
         - CMD
         - node
