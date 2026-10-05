@@ -91,6 +91,7 @@ class StatusMonitor {
     this.badSince = new Map();
     this.lastCheckAt = null;
     this.allReadySince = null;
+    this.notReadySince = null;
     this.discord = null;
     this.discordCheckedAt = 0;
     this.snapshot = null;
@@ -120,7 +121,6 @@ class StatusMonitor {
     this.running = false;
     clearTimeout(this.timer);
     this.state.cleanShutdown = clean;
-    // The clusters were serving until this moment, not just until the last check.
     if (this.lastCheckAt) this.state.lastSeen = this.now();
     this._save();
   }
@@ -172,8 +172,13 @@ class StatusMonitor {
     const shardsReady = shards.filter((shard) => shard.status === "operational").length;
     const botStatus = this._botStatus(clusters, shardsReady, totalShards);
 
-    if (botStatus === "operational") this.allReadySince ??= now;
-    else this.allReadySince = null;
+    if (botStatus === "operational") {
+      this.notReadySince = null;
+      this.allReadySince ??= now;
+    } else {
+      this.notReadySince ??= now;
+      if (now - this.notReadySince >= this.options.incidentGraceMs) this.allReadySince = null;
+    }
 
     if (layout.length) this._updateIncidents(clusters, services, now);
     this._recordUptime(clusters, services, shardsReady, totalShards, now);

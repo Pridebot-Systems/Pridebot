@@ -1,15 +1,3 @@
-/**
- * Premium tiers, dar mechanics, and the Patreon mapping — single source of truth.
- *
- * In V1 this was split across three places that had to agree by hand:
- *   - src/utils/premiumUtils.js       TIER_FEATURES + getFixedValueLimit
- *   - src/apis/premiumapi.js          tierNames/tierSlugs keyed by Patreon tier ID
- *   - website index.html:283-350      the perk bullets shown to customers
- * The website copy is the one that silently goes stale, because nothing links it
- * to the code that actually grants the feature.
- */
-
-/** Feature flags a tier grants. Checked with hasFeature(); never hardcode a tier name. */
 const FEATURES = {
   DAR_HISTORY: "darHistory",
   DAR_FIXED_VALUE: "darFixedValue",
@@ -32,8 +20,6 @@ const TIERS = {
       FEATURES.DAR_FIXED_VALUE,
       FEATURES.PREMIUM_BADGE,
     ],
-    // Customer-facing copy. The website renders these instead of its own list,
-    // so a perk cannot appear on the site without the feature flag behind it.
     perks: [
       "Dar history — your last 90 results",
       "1 fixed dar value slot",
@@ -67,11 +53,7 @@ const TIERS = {
 };
 
 const TIER_SLUGS = Object.keys(TIERS);
-
-/** Dar commands that honour pins, fixed values, and ranges. */
 const DAR_COMMANDS = ["gaydar", "transdar", "queerdar", "rizzdar", "lesdar", "bidar"];
-
-/** Dar mechanics. The privacy policy's retention disclosure cites DAR_HISTORY_LIMIT. */
 const DAR = {
   DEFAULT_MIN: 0,
   DEFAULT_MAX: 100,
@@ -81,12 +63,10 @@ const DAR = {
   MODES: ["rng", "fixed", "range"],
 };
 
-/** Patreon tier ID -> tier slug. Built from TIERS so the two cannot disagree. */
 const PATREON_TIER_TO_SLUG = Object.fromEntries(
   TIER_SLUGS.map((slug) => [TIERS[slug].patreonTierId, slug])
 );
 
-/** Patreon tier ID -> display name. */
 const PATREON_TIER_TO_NAME = Object.fromEntries(
   TIER_SLUGS.map((slug) => [TIERS[slug].patreonTierId, TIERS[slug].name])
 );

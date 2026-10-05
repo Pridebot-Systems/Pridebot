@@ -1,12 +1,3 @@
-/**
- * Every outbound URL — single source of truth.
- *
- * V1 repeated the vote URLs in the bot's /vote embed, the website's command
- * mockup, and the footer of every page; the invite link with its permission bits
- * lived in both repos. Anything environment-dependent (api./profile./pfp. hosts)
- * belongs in environment.js instead — these are the stable public URLs.
- */
-
 const { CLIENT_ID, INVITE_PERMISSIONS } = require("./brand");
 
 const SITE = "https://pridebot.xyz";
@@ -25,10 +16,6 @@ const LINKS = {
   legalEmail: "legal@pridebot.xyz",
 };
 
-/**
- * Bot lists. `vote` is what the /vote command and the website both render;
- * `key` matches the Voting schema's per-site totals.
- */
 const BOT_LISTS = [
   {
     key: "topgg",
