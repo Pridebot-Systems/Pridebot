@@ -1,5 +1,13 @@
+# Its own project, image tag and data dir, so beta can run beside production
+# without replacing its container, its pridebot:latest image, or its status
+# history and generated avatars. (MongoDB is still shared.)
+name: pridebot-beta
+
 services:
   bot:
+    image: pridebot:beta
+    volumes:
+      - ./data-beta:/app/data
     environment:
       beta: "true"
     ports:

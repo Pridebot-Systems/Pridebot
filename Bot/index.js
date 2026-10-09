@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { Client, GatewayIntentBits } = require("discord.js");
+const { Client, GatewayIntentBits, Options, Partials } = require("discord.js");
 const { ClusterClient, getInfo } = require("discord-hybrid-sharding");
 const config = require("../environment");
 const DB = require("../DB");
@@ -41,6 +41,15 @@ process.on("disconnect", () => {
   shuttingDown = true;
 });
 
+const makeCache = Options.cacheWithLimits({
+  ...Options.DefaultMakeCacheSettings,
+  MessageManager: 0,
+  GuildMemberManager: {
+    maxSize: 0,
+    keepOverLimit: (member) => member.id === member.client.user.id,
+  },
+});
+
 const client = new Client({
   shards: getInfo().SHARD_LIST,
   shardCount: getInfo().TOTAL_SHARDS,
@@ -51,6 +60,15 @@ const client = new Client({
     GatewayIntentBits.DirectMessages,
     GatewayIntentBits.DirectMessageReactions,
   ],
+  partials: [Partials.Message, Partials.Reaction, Partials.User],
+  makeCache,
+  sweepers: {
+    ...Options.DefaultSweeperSettings,
+    users: {
+      interval: 60 * 60,
+      filter: () => (user) => user.id !== user.client.user.id,
+    },
+  },
 });
 client.botStartTime = Math.floor(Date.now() / 1000);
 client.cluster = new ClusterClient(client);

@@ -6,6 +6,7 @@ API/statsapi/google-credentials.json
 
 # Runtime data — mounted as a volume
 data/
+data-beta/
 
 # Installed inside the image
 node_modules/

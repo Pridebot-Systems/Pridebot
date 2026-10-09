@@ -5,8 +5,11 @@ async function react(reaction, user, client) {
       const idLists = await IDLists.findOne();
 
       if (idLists.devs.includes(user.id)) {
-        if (reaction.message.author.id === client.user.id) {
-          await reaction.message.delete();
+        const message = reaction.message.partial
+          ? await reaction.message.fetch()
+          : reaction.message;
+        if (message.author.id === client.user.id) {
+          await message.delete();
         }
       }
     } catch (error) {

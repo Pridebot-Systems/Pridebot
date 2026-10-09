@@ -10,9 +10,11 @@
 function clusterSnapshot(client) {
   const guildsPerShard = {};
   let members = 0;
+  let cachedMembers = 0;
   for (const guild of client.guilds.cache.values()) {
     guildsPerShard[guild.shardId] = (guildsPerShard[guild.shardId] || 0) + 1;
     members += guild.memberCount || 0;
+    cachedMembers += guild.members.cache.size;
   }
   const memory = process.memoryUsage();
   return {
@@ -22,6 +24,8 @@ function clusterSnapshot(client) {
     heapUsed: memory.heapUsed,
     guilds: client.guilds.cache.size,
     members,
+    cachedUsers: client.users.cache.size,
+    cachedMembers,
     shards: [...client.ws.shards.values()].map((shard) => ({
       id: shard.id,
       status: shard.status,

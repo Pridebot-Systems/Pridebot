@@ -17,5 +17,6 @@ Thumbs.db
 .vscode/
 .idea/
 data/
+data-beta/
 Reconstruction/
 scripts/

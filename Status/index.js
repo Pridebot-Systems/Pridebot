@@ -19,6 +19,7 @@ const { StatusMonitor } = require("./monitor");
  *   GET  /health/shards             200 when every shard is ready, else 503 + details
  *   GET  /api/status                full snapshot (refreshed every 15s)
  *   GET  /api/incidents?days=90     incident history
+ *   GET  /api/memory?hours=24       per-cluster memory samples, every 5 min (max 336h)
  *   POST /api/admin/incidents                {title, message, impact?, label?}
  *   POST /api/admin/incidents/:id/updates    {message, label?}  label "resolved" closes it
  * Admin routes need `Authorization: Bearer $STATUS_ADMIN_TOKEN` and are disabled
@@ -135,6 +136,11 @@ function startStatusService(manager, { port, file = STATE_FILE }) {
   app.get("/api/incidents", (req, res) => {
     const days = Math.min(90, Math.max(1, Number.parseInt(req.query.days, 10) || 90));
     res.set("Cache-Control", "public, max-age=30").json(monitor.listIncidents({ days }));
+  });
+
+  app.get("/api/memory", (req, res) => {
+    const hours = Math.min(336, Math.max(1, Number.parseInt(req.query.hours, 10) || 24));
+    res.set("Cache-Control", "public, max-age=60").json(monitor.memory.list({ hours }));
   });
 
   const admin = express.Router();

@@ -1,6 +1,8 @@
+const path = require("path");
 const store = require("./store");
 const uptime = require("./uptime");
 const { clusterSnapshot, checkHttp, checkDiscord } = require("./probes");
+const { MemoryHistory } = require("./memory");
 const SHARD_STATES = [
   "Ready",
   "Connecting",
@@ -85,6 +87,7 @@ class StatusMonitor {
     this.options = { ...DEFAULTS, ...options };
 
     this.state = store.load(file);
+    this.memory = new MemoryHistory(path.join(path.dirname(file), "memory.jsonl"), { now });
     this.startedAt = now();
     this.clusterInfo = new Map();
     this.serviceEverUp = new Set();
@@ -181,6 +184,7 @@ class StatusMonitor {
     }
 
     if (layout.length) this._updateIncidents(clusters, services, now);
+    this.memory.record(clusters);
     this._recordUptime(clusters, services, shardsReady, totalShards, now);
 
     this.lastCheckAt = now;
@@ -376,6 +380,8 @@ class StatusMonitor {
       uptime: probe ? Math.round(probe.uptime) : null,
       memoryMB: probe ? Math.round(probe.rss / 1048576) : null,
       heapMB: probe ? Math.round(probe.heapUsed / 1048576) : null,
+      cachedUsers: probe ? probe.cachedUsers : null,
+      cachedMembers: probe ? probe.cachedMembers : null,
       guilds: probe ? probe.guilds : null,
       members: probe ? probe.members : null,
       restarts: cluster?.restarts?.current ?? 0,
