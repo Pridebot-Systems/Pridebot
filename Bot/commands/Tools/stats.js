@@ -1,8 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, version: discordJsVersion } = require("discord.js");
 const { getInfo } = require("discord-hybrid-sharding");
 const commandLogging = require("../../utils/logging/commandlog");
-// Semantic version, bumped with `npm version` (see README, "Versioning").
-const { version: botVersion } = require("../../../package.json");
 const { getStats } = require("../../functions/bot/stats");
 
 module.exports = {
@@ -74,7 +72,7 @@ module.exports = {
       )}\` \n**Start Time:** ${startTimeTimestamp}`;
       const botstats = `**Servers:** \`${currentGuildCount.toLocaleString()}\` \n**Users:** \`${totalUserCount.toLocaleString()}\`\n**User Installs:** \`${approximateUserInstallCount.toLocaleString()}\``;
       const commandstats = `**Commands:** \`${CommandsCount}\` \n**Total Usage:** \`${totalUsage.toLocaleString()}\` \n**Profiles:** \`${profileAmount.toLocaleString()}\``;
-      const botversion = `**Dev:** \`v${botVersion}\` \n **Node.js:** \`${process.version}\` \n **Discord.js:** \`v${discordJsVersion}\``;
+      const botversion = `**Dev:** \`v${stats.version}\` \n **Node.js:** \`${process.version}\` \n **Discord.js:** \`v${discordJsVersion}\``;
       const clientstats = `**CPU:** \`${cpuUsage}\` \n**Memory:** \`${memoryUsage}\``;
       const shardstats = `**Shards:** \`${
         getInfo().TOTAL_SHARDS

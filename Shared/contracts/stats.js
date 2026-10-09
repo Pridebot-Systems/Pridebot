@@ -1,15 +1,3 @@
-/**
- * The `GET /stats` response contract.
- *
- * Three independent consumers read these exact field names:
- *   - the README shields.io badges
- *   - the website homepage counters (botstats.js)
- *   - the nightly Google Sheets export (statsapi)
- * In V1 the shape existed only as an object literal inside botapi.js, so renaming
- * a field broke the site and the spreadsheet with no warning. Declaring it here
- * makes the contract explicit and lets the API assert against it before serving.
- */
-
 const STATS_FIELDS = [
   "totalUserCount",
   "currentGuildCount",
@@ -19,6 +7,7 @@ const STATS_FIELDS = [
   "profileAmount",
   "totalUsage",
   "commandsCount",
+  "version",
   "botuptime",
   "ping",
   "vote",

@@ -2,6 +2,7 @@ const { CommandUsage, Profile, Voting } = require("../../../DB");
 const { stats: contract } = require("../../../Shared");
 const { getApproximateUserInstallCount } = require("./user_install");
 const { getRegisteredCommandsCount } = require("../commands/registercommand");
+const { version } = require("../../../package.json");
 
 const TTL_MS = 2 * 60 * 1000;
 let cached = null;
@@ -24,10 +25,10 @@ async function computeStats(client) {
     UserInstallCount: await getApproximateUserInstallCount(),
     profileAmount: await Profile.countDocuments(),
     totalUsage: sum("count"),
-    // V1 added 2 to the registered count; kept so the published number doesn't drop.
     commandsCount: (await getRegisteredCommandsCount(client)) + 2,
     totalGuildCount: sum("guildCount"),
     totalUserContextCount: sum("userContextCount"),
+    version,
     botuptime: client.botStartTime,
     ping: client.ws.ping,
     vote: {
@@ -41,8 +42,6 @@ async function computeStats(client) {
 
   return contract.assertStatsShape(stats);
 }
-
-/** Cached stats; recomputes when older than maxAgeMs. Concurrent callers share one run. */
 async function getStats(client, { maxAgeMs = TTL_MS } = {}) {
   if (cached && Date.now() - cachedAt < maxAgeMs) return cached;
   if (!inflight) {

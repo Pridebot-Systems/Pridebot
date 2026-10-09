@@ -1,6 +1,6 @@
 {
   "name": "pridebot",
-  "version": "2.0.4`",
+  "version": "2.0.5",
   "description": "Pridebot — Discord bot, public API, and website in one repository.",
   "main": "Bot/clustermanager.js",
   "author": "Sdriver1",
