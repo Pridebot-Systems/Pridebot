@@ -4,6 +4,9 @@ const { CHANNELS, COLORS } = require("../../../Shared");
 const { SHUTDOWN_FILE } = require("../../../Shared/paths");
 const { sendLog } = require("../../utils/logging/sendlogs");
 
+const RETRY_DELAY_MS = 15_000;
+const RETRY_ATTEMPTS = 60;
+
 module.exports = async (client) => {
   const channelId = CHANNELS.CLEANUP;
   let shutdownTime;
@@ -51,5 +54,13 @@ module.exports = async (client) => {
     })
     .setTimestamp();
 
-  await sendLog(client, embed, channelId);
+  // Cluster 0 gets here first, but the log guild can be on a cluster that has
+  // not spawned yet (spawning is sequential), so keep trying until it is up.
+  for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
+    if (await sendLog(client, embed, channelId)) return;
+    await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+  }
+  console.warn(
+    `[RESTART] Restart message not delivered after ${(RETRY_ATTEMPTS * RETRY_DELAY_MS) / 60_000} min`
+  );
 };

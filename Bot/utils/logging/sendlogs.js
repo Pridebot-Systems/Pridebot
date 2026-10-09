@@ -8,6 +8,7 @@ function ipcOpen(client) {
   );
 }
 
+/** Resolves true once the message was posted, false if no cluster could post it. */
 async function sendLog(client, message, channelId) {
   if (!ipcOpen(client)) {
     try {
@@ -22,7 +23,7 @@ async function sendLog(client, message, channelId) {
         e?.message || e
       );
     }
-    return;
+    return false;
   }
 
   try {
@@ -36,7 +37,7 @@ async function sendLog(client, message, channelId) {
             ? { content: message }
             : { embeds: [EmbedBuilder.from(message)] };
         await channel.send(content);
-        return;
+        return true;
       }
     }
   } catch (err) {
@@ -49,7 +50,7 @@ async function sendLog(client, message, channelId) {
   }
 
   try {
-    await client.cluster.broadcastEval(
+    const results = await client.cluster.broadcastEval(
       async (c, { message, channelId, guildId }) => {
         if (!c.guilds.cache.has(guildId)) return null;
         const { EmbedBuilder } = require("discord.js");
@@ -77,11 +78,13 @@ async function sendLog(client, message, channelId) {
         },
       }
     );
+    return results.some((result) => result !== null);
   } catch (err) {
     console.error(
       "[sendLog] broadcastEval failed (IPC likely closed):",
       err?.code || err?.message || err
     );
+    return false;
   }
 }
 
