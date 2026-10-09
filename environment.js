@@ -47,6 +47,7 @@ const config = {
     profileApiToken: process.env.PROFILE_API_TOKEN,
     premiumRecheck: process.env.PremiumRecheckSecret,
     statusAdmin: process.env.STATUS_ADMIN_TOKEN,
+    internalApi: process.env.INTERNAL_API_TOKEN,
   },
 
   patreon: {
