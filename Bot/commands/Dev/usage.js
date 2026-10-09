@@ -55,6 +55,7 @@ module.exports = {
       Dev: [
         "blacklist",
         "darid",
+        "datarequest",
         "errormode",
         "id",
         "pfpcleanup",

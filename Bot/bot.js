@@ -90,8 +90,8 @@ async function updatePresence(client) {
 }
 
 /** Work that must happen exactly once across the whole bot. */
-async function startClusterZeroServices(client, commandPayload, duplicates) {
-  await registerCommands(commandPayload, duplicates);
+async function startClusterZeroServices(client, commandPayload, duplicates, guildPayloads) {
+  await registerCommands(commandPayload, duplicates, guildPayloads);
 
   client.presenceIndex = 0;
   setTimeout(() => {
@@ -126,7 +126,7 @@ async function startClusterZeroServices(client, commandPayload, duplicates) {
 }
 
 module.exports = (client) => {
-  const { commands, payload, skipped: nonCommands, duplicates } = loadCommands();
+  const { commands, payload, guildPayloads, skipped: nonCommands, duplicates } = loadCommands();
   client.commands = commands;
   console.log(
     `[COMMANDS] Loaded ${commands.size} commands (${nonCommands.length} helper/prefix modules skipped)`
@@ -164,7 +164,7 @@ module.exports = (client) => {
 
     if (clusterId === 0) {
       try {
-        await startClusterZeroServices(client, payload, duplicates);
+        await startClusterZeroServices(client, payload, duplicates, guildPayloads);
       } catch (err) {
         console.error("[READY] Cluster 0 service startup failed:", err);
         await errorlogging(client, err).catch(() => {});
