@@ -5,9 +5,9 @@
 [![Servers](https://img.shields.io/badge/dynamic/json?url=https://api.pridebot.xyz/stats&query=currentGuildCount&label=Servers&color=brightgreen)](https://pridebot.xyz/invite)
 [![Users](https://img.shields.io/badge/dynamic/json?url=https://api.pridebot.xyz/stats&query=totalUserCount&label=Users&color=blue)](https://pridebot.xyz/invite)
 [![Uses](https://img.shields.io/badge/dynamic/json?url=https://api.pridebot.xyz/stats&query=totalUsage&label=Uses&color=ff69b4)](https://pridebot.xyz)
-[![MIT License](https://img.shields.io/github/license/Pridebot-Systems/Pridebot)](LICENSE)
+![Version](https://img.shields.io/badge/dynamic/json?url=https://api.pridebot.xyz/stats&query=$.version&label=version)
 
-[🚀 Invite to Server](https://pridebot.xyz/invite) • [📚 Documentation](https://pridebot.xyz) • [💬 Support Server](https://pridebot.xyz/support) • [💎 Premium](https://pridebot.xyz/premium) • [📈 Status](https://status.pridebot.xyz)
+[Invite to Server](https://pridebot.xyz/invite) • [Documentation](https://pridebot.xyz) • [Support Server](https://pridebot.xyz/support) • [Premium](https://pridebot.xyz/premium) • [Status](https://status.pridebot.xyz)
 
 </div>
 
@@ -75,7 +75,7 @@ For anyone who wants to donate/support the development of Pridebot, you can do t
 
 **Made with ❤️ by the Pridebot team**
 
-🏳️‍🌈 _Pridebot © 2023-2026 - Celebrating diversity, one server at a time_ 🏳️‍⚧️
+_Pridebot © 2023-2026 - Celebrating diversity, one server at a time_
 
 [![GitHub](https://img.shields.io/badge/GitHub-Pridebot--Systems-black?logo=github)](https://github.com/Pridebot-Systems)
 [![Website](https://img.shields.io/badge/Website-pridebot.xyz-blue)](https://pridebot.xyz)
