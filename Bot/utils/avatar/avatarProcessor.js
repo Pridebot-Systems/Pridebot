@@ -110,7 +110,6 @@ const validFlags = [
   "polyamorous",
   "polysexual",
   "queer",
-  "queer2",
   "queerplatonic",
   "sapphic",
   "sapphillean",
