@@ -12,7 +12,11 @@ const commandLogging = require("../../utils/logging/commandlog");
 const profileLogging = require("../../utils/logging/profilelogging");
 const path = require("path");
 const { PROFILE_PFPS_DIR } = require("../../../Shared/paths");
-const { SOCIAL_LINKS, parseSocialLink } = require("../../../Shared/constants/profile");
+const {
+  SOCIAL_LINKS,
+  parseSocialLink,
+  normalizeHexColor,
+} = require("../../../Shared/constants/profile");
 const fs = require("fs");
 const config = require("../../../environment");
 const { hasFeature } = require("../../utils/premium");
@@ -48,8 +52,8 @@ async function handleDisplay(interaction, client) {
   const updates = {};
 
   if (colorInput) {
-    const color = colorInput.startsWith("#") ? colorInput : `#${colorInput}`;
-    if (!/^#([\dA-F]{3,6})$/i.test(color)) {
+    const color = normalizeHexColor(colorInput);
+    if (!color) {
       return interaction.reply({
         content: "Please enter a valid hex code for the color.",
         ephemeral: true,
@@ -106,7 +110,7 @@ async function handleView(interaction, client) {
     await profile.save();
   }
 
-  const embedColor = profile.color || "#FF00EA";
+  const embedColor = normalizeHexColor(profile.color) || "#FF00EA";
   const idLists = await IDLists.findOne();
 
   const userUsage = await UserCommandUsage.findOne({ userId });

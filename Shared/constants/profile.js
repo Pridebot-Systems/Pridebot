@@ -38,6 +38,14 @@ function parseSocialLink(link) {
   return { label, url };
 }
 
+function normalizeHexColor(input) {
+  if (typeof input !== "string") return null;
+  const hex = input.trim().replace(/^#/, "");
+  if (/^[\da-f]{6}$/i.test(hex)) return `#${hex}`;
+  if (/^[\da-f]{3}$/i.test(hex)) return `#${hex.replace(/./g, "$&$&")}`;
+  return null;
+}
+
 function toPublicProfile(profile) {
   if (!profile) return null;
   const source = typeof profile.toObject === "function" ? profile.toObject() : profile;
@@ -58,5 +66,6 @@ module.exports = {
   PUBLIC_PROFILE_FIELDS,
   SOCIAL_LINKS,
   parseSocialLink,
+  normalizeHexColor,
   toPublicProfile,
 };

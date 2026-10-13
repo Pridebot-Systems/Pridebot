@@ -10,6 +10,7 @@ const Profile = require("../../../DB/models/profileSchema");
 const IDLists = require("../../../DB/models/idSchema");
 
 const { badgeMap } = require("../../functions/profile/profilehelper");
+const { normalizeHexColor } = require("../../../Shared/constants/profile");
 
 module.exports = {
   data: new ContextMenuCommandBuilder()
@@ -30,7 +31,7 @@ module.exports = {
         });
       }
 
-      const embedColor = profile.color || "#FF00EA";
+      const embedColor = normalizeHexColor(profile.color) || "#FF00EA";
       const idLists = await IDLists.findOne();
       let badgeStr = "";
       if (profile && profile.badgesVisible && idLists) {
