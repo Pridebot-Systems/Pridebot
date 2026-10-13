@@ -22,33 +22,20 @@ const {
 } = require("../../../DB");
 const { GUILDS, COLORS } = require("../../../Shared");
 const { PFPS_DIR, PROFILE_PFPS_DIR } = require("../../../Shared/paths");
-
-/**
- * /datarequest — dev-only, registered in the logging guild only (see `guildIds`
- * below and handleCommands.js). Look up everything Pridebot stores for a user ID,
- * toggle the categories to remove, confirm, delete.
- *
- * Not covered: messages already posted to Discord log channels (command logs,
- * dar logs, profile logs) and transient Redis avatar-queue jobs.
- */
+const safeCollect = require("../../utils/safeCollect");
 
 const SESSION_IDLE_MS = 10 * 60 * 1000;
-// Keeps a full 10-category embed under Discord's 6000-char limit.
 const SUMMARY_MAX = 350;
 const PROFILE_SUMMARY_MAX = 900;
 
-// Lists that hold staff membership rather than user data; never touched here.
 const PROTECTED_ID_LISTS = new Set(["devs"]);
 
 const DAR_LISTS = Object.keys(DarList.schema.paths).filter((p) => !p.startsWith("_"));
 const BADGE_LISTS = Object.keys(IDLists.schema.paths).filter(
   (p) => !p.startsWith("_") && !PROTECTED_ID_LISTS.has(p)
 );
-
-// Never preselected by an "All Data" request: removing it unbans the user.
 const MANUAL_ONLY = new Set(["blacklist"]);
 
-// What /feedback's data_delete options map to here.
 const REQUEST_TYPE_MAP = {
   profile: ["profile"],
   avatars: ["avatars"],
@@ -85,10 +72,6 @@ async function profilePfpFiles(userId) {
   }
 }
 
-/**
- * avatarProcessor.saveAvatar also writes a copy under data/pfps/<username>.
- * Digits-only names are skipped: those folders are other users' ID folders.
- */
 function usernameDirs(usernames, userId) {
   const dirs = [];
   for (const raw of usernames) {
@@ -548,7 +531,7 @@ module.exports = {
     // the message when the idle timer fires — the slash command's may not.
     let last = interaction;
 
-    collector.on("collect", async (i) => {
+    collector.on("collect", safeCollect("datarequest", async (i) => {
       last = i;
       const [, action, key] = i.customId.split(":");
       try {
@@ -597,7 +580,7 @@ module.exports = {
         if (i.deferred || i.replied) await i.followUp({ content, flags: MessageFlags.Ephemeral }).catch(() => {});
         else await i.reply({ content, flags: MessageFlags.Ephemeral }).catch(() => {});
       }
-    });
+    }));
 
     collector.on("end", (_collected, reason) => {
       if (reason === "closed") return;

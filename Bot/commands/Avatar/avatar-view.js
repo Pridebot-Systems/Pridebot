@@ -9,6 +9,7 @@ const fs = require("fs");
 const path = require("path");
 const { PFPS_DIR } = require("../../../Shared/paths");
 const commandLogging = require("../../utils/logging/commandlog");
+const safeCollect = require("../../utils/safeCollect");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -106,7 +107,7 @@ module.exports = {
       time: 60000,
     });
 
-    collector.on("collect", async (i) => {
+    collector.on("collect", safeCollect("avatar-view", async (i) => {
       if (i.customId === "prev_page") currentPage--;
       if (i.customId === "next_page") currentPage++;
 
@@ -114,7 +115,7 @@ module.exports = {
         embeds: [generateEmbed(currentPage)],
         components: [generateButtons(currentPage)],
       });
-    });
+    }));
 
     collector.on("end", async () => {
       await interaction.editReply({

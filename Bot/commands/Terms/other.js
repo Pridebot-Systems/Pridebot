@@ -9,6 +9,11 @@ const {
   ButtonStyle,
 } = require("discord.js");
 const commandLogging = require("../../utils/logging/commandlog");
+const safeCollect = require("../../utils/safeCollect");
+
+// Kept under the 15-minute interaction token so the menu can still be
+// cleared when its collector ends.
+const MENU_LIFETIME = 10 * 60 * 1000;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -228,14 +233,22 @@ module.exports = {
       return components;
     }
 
-    await interaction.reply({ embeds: [embed], components: [row] });
+    const response = await interaction.reply({
+      embeds: [embed],
+      components: [row],
+      withResponse: true,
+    });
     await commandLogging(client, interaction);
 
-    const collector = interaction.channel.createMessageComponentCollector({
+    const collector = response.resource.message.createMessageComponentCollector({
       componentType: ComponentType.StringSelect,
+      time: MENU_LIFETIME,
     });
+    collector.on("end", () =>
+      interaction.editReply({ components: [] }).catch(() => {}),
+    );
 
-    collector.on("collect", async (selectInteraction) => {
+    collector.on("collect", safeCollect("other", async (selectInteraction) => {
       if (selectInteraction.customId === "otherSelect") {
         const selectedValue = selectInteraction.values[0];
         const otherInfo = other.find((o) => o.value === selectedValue);
@@ -264,22 +277,27 @@ module.exports = {
         const buttons = createOtherButtons(currentIndex);
         const updatedRow = new ActionRowBuilder().addComponents(buttons);
 
-        selectInteraction.reply({
+        const reply = await selectInteraction.reply({
           embeds: [selectedEmbed],
           components: [updatedRow],
           ephemeral: true,
+          withResponse: true,
         });
+
+        // Buttons live on this ephemeral reply, so each reply gets its own collector.
+        const buttonCollector =
+          reply.resource.message.createMessageComponentCollector({
+            componentType: ComponentType.Button,
+            time: MENU_LIFETIME,
+          });
+        buttonCollector.on("collect", safeCollect("other buttons", handleButton));
+        buttonCollector.on("end", () =>
+          selectInteraction.editReply({ components: [] }).catch(() => {}),
+        );
       }
-    });
+    }));
 
-    const buttonCollector = interaction.channel.createMessageComponentCollector(
-      {
-        componentType: ComponentType.BUTTON,
-        time: 60000,
-      },
-    );
-
-    buttonCollector.on("collect", (buttonInteraction) => {
+    async function handleButton(buttonInteraction) {
       const [, otherValue] = buttonInteraction.customId.split("-");
       const selectedOtherIndex = other.findIndex((o) => o.value === otherValue);
       const otherInfo = other[selectedOtherIndex];
@@ -303,10 +321,10 @@ module.exports = {
       const updatedButtons = createOtherButtons(selectedOtherIndex);
       const updatedRow = new ActionRowBuilder().addComponents(updatedButtons);
 
-      buttonInteraction.update({
+      await buttonInteraction.update({
         embeds: [updatedEmbed],
         components: [updatedRow],
       });
-    });
+    }
   },
 };

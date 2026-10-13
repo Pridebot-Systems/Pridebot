@@ -9,6 +9,7 @@ const {
 const fs = require("fs");
 const path = require("path");
 const { PFPS_DIR } = require("../../../Shared/paths");
+const safeCollect = require("../../utils/safeCollect");
 
 module.exports = {
   data: new ContextMenuCommandBuilder()
@@ -101,7 +102,7 @@ module.exports = {
       time: 60000, 
     });
 
-    collector.on("collect", async (i) => {
+    collector.on("collect", safeCollect("useravatar-view", async (i) => {
       if (i.customId === "prev_page") currentPage--;
       if (i.customId === "next_page") currentPage++;
 
@@ -109,7 +110,7 @@ module.exports = {
         embeds: [generateEmbed(currentPage)],
         components: [generateButtons(currentPage)],
       });
-    });
+    }));
 
     collector.on("end", async () => {
       await interaction.editReply({

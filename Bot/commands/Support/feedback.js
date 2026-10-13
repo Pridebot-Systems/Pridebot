@@ -9,6 +9,7 @@ const {
 } = require("discord.js");
 const commandLogging = require("../../utils/logging/commandlog");
 const Feedback = require("../../../DB/models/feedbackSchema");
+const safeCollect = require("../../utils/safeCollect");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -111,7 +112,7 @@ module.exports = {
       return;
     }
 
-    collector.on("collect", async (selectInteraction) => {
+    collector.on("collect", safeCollect("feedback", async (selectInteraction) => {
       const category = selectInteraction.values[0];
 
       // Special handling for data deletion requests
@@ -193,7 +194,7 @@ module.exports = {
           return;
         }
 
-        dataCollector.on("collect", async (dataSelectInteraction) => {
+        dataCollector.on("collect", safeCollect("feedback data", async (dataSelectInteraction) => {
           const dataTypes = dataSelectInteraction.values;
 
           const modal = new ModalBuilder()
@@ -223,7 +224,7 @@ module.exports = {
           modal.addComponents(firstRow, secondRow);
 
           await dataSelectInteraction.showModal(modal);
-        });
+        }));
 
         return;
       }
@@ -249,7 +250,7 @@ module.exports = {
       modal.addComponents(firstActionRow);
 
       await selectInteraction.showModal(modal);
-    });
+    }));
 
     collector.on("end", (collected, reason) => {
       if (reason === "time" && collected.size === 0) {

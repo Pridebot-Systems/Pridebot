@@ -9,6 +9,11 @@ const {
   ButtonStyle,
 } = require("discord.js");
 const commandLogging = require("../../utils/logging/commandlog");
+const safeCollect = require("../../utils/safeCollect");
+
+// Kept under the 15-minute interaction token so the menu can still be
+// cleared when its collector ends.
+const MENU_LIFETIME = 10 * 60 * 1000;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -292,14 +297,22 @@ module.exports = {
       return components;
     }
 
-    await interaction.reply({ embeds: [embed], components: [row] });
+    const response = await interaction.reply({
+      embeds: [embed],
+      components: [row],
+      withResponse: true,
+    });
     await commandLogging(client, interaction);
 
-    const collector = interaction.channel.createMessageComponentCollector({
+    const collector = response.resource.message.createMessageComponentCollector({
       componentType: ComponentType.StringSelect,
+      time: MENU_LIFETIME,
     });
+    collector.on("end", () =>
+      interaction.editReply({ components: [] }).catch(() => {}),
+    );
 
-    collector.on("collect", (selectInteraction) => {
+    collector.on("collect", safeCollect("sexuality", async (selectInteraction) => {
       if (selectInteraction.customId === "sexSelect") {
         const selectedValue = selectInteraction.values[0];
         const sexInfo = sex.find((s) => s.value === selectedValue);
@@ -308,7 +321,7 @@ module.exports = {
           console.error(
             `No sexuality information found for value: ${selectedValue}`
           );
-          selectInteraction.reply({
+          await selectInteraction.reply({
             content:
               "Sorry, an error occurred while fetching sexuality information.",
             ephemeral: true,
@@ -338,22 +351,27 @@ module.exports = {
         const buttons = createSexualityButtons(currentIndex);
         const updatedRow = new ActionRowBuilder().addComponents(buttons);
 
-        selectInteraction.reply({
+        const reply = await selectInteraction.reply({
           embeds: [selectedEmbed],
           components: [updatedRow],
           ephemeral: true,
+          withResponse: true,
         });
-      }
-    });
 
-    const buttonCollector = interaction.channel.createMessageComponentCollector(
-      {
-        componentType: ComponentType.BUTTON,
-        time: 60000,
+        // Buttons live on this ephemeral reply, so each reply gets its own collector.
+        const buttonCollector =
+          reply.resource.message.createMessageComponentCollector({
+            componentType: ComponentType.Button,
+            time: MENU_LIFETIME,
+          });
+        buttonCollector.on("collect", safeCollect("sexuality buttons", handleButton));
+        buttonCollector.on("end", () =>
+          selectInteraction.editReply({ components: [] }).catch(() => {}),
+        );
       }
-    );
+    }));
 
-    buttonCollector.on("collect", (buttonInteraction) => {
+    async function handleButton(buttonInteraction) {
       const [, sexValue] = buttonInteraction.customId.split("-");
       const selectedSexualityIndex = sex.findIndex((s) => s.value === sexValue);
       const sexInfo = sex[selectedSexualityIndex];
@@ -385,10 +403,10 @@ module.exports = {
       const updatedButtons = createSexualityButtons(selectedSexualityIndex);
       const updatedRow = new ActionRowBuilder().addComponents(updatedButtons);
 
-      buttonInteraction.update({
+      await buttonInteraction.update({
         embeds: [updatedEmbed],
         components: [updatedRow],
       });
-    });
+    }
   },
 };

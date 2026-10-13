@@ -8,6 +8,7 @@ const {
   ComponentType,
 } = require("discord.js");
 const commandLogging = require("../../utils/logging/commandlog");
+const safeCollect = require("../../utils/safeCollect");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -155,7 +156,7 @@ module.exports = {
       filter: (i) => i.user.id === interaction.user.id, // Only allow original user
     });
 
-    collector.on("collect", async (selectInteraction) => {
+    collector.on("collect", safeCollect("help", async (selectInteraction) => {
       if (selectInteraction.customId === "helpSelect") {
         const selectedValue = selectInteraction.values[0];
         const helpInfo = helpOptions.find((h) => h.value === selectedValue);
@@ -183,7 +184,7 @@ module.exports = {
           ephemeral: true,
         });
       }
-    });
+    }));
 
     collector.on("end", (collected, reason) => {
       if (reason === "time") {
