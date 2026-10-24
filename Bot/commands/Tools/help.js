@@ -1,14 +1,325 @@
-const { OWNER_ID } = require("../../../Shared");
+const path = require("path");
 const {
   SlashCommandBuilder,
-  EmbedBuilder,
+  ContextMenuCommandBuilder,
+  ContainerBuilder,
+  SectionBuilder,
+  TextDisplayBuilder,
+  ThumbnailBuilder,
+  SeparatorBuilder,
+  SeparatorSpacingSize,
   ActionRowBuilder,
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
-  ComponentType,
+  ButtonBuilder,
+  ButtonStyle,
+  MessageFlags,
 } = require("discord.js");
+const { OWNER_ID, LINKS } = require("../../../Shared");
+const { COMMANDS_DIR } = require("../../../Shared/paths");
+const { listJsFiles } = require("../../functions/handlers/listFiles");
+const { version } = require("../../../package.json");
 const commandLogging = require("../../utils/logging/commandlog");
 const safeCollect = require("../../utils/safeCollect");
+
+const ACCENT = 0xff00ae;
+const MENU_LIFETIME = 10 * 60 * 1000;
+const ID_CACHE_TTL = 60 * 60 * 1000;
+const ID_RETRY_TTL = 5 * 60 * 1000;
+
+const HIDDEN_FOLDERS = new Set(["Dev"]);
+const APPS = "apps";
+
+const CATEGORIES = [
+  {
+    key: "Avatar",
+    emoji: "1113295174701940776",
+    blurb: "Add pride flags to your avatar",
+    note: `**Quick access:** all your avatars live at **https://pfp.pridebot.xyz/your_user_id**\n-# Replace "your_user_id" with your Discord user ID`,
+  },
+  {
+    key: "Fun",
+    emoji: "1196254858689380474",
+    blurb: "Radars, name and pronoun testers, and matchmaking",
+    note: "-# Radar commands are just for fun and aren't based on any real reading of users.",
+  },
+  {
+    key: "Pride",
+    emoji: "1108822823721521242",
+    blurb: "Identities, events, and their history",
+  },
+  {
+    key: "Profile",
+    emoji: "1197388214843998299",
+    blurb: "Set up and share your Pridebot profile",
+  },
+  {
+    key: "Support",
+    emoji: "1197399653109473301",
+    blurb: "Coming out, mental health, and trans resources",
+  },
+  {
+    key: "Terms",
+    emoji: "1112602480128299079",
+    blurb: "Genders, sexualities, pronouns, and more",
+  },
+  {
+    key: "Tools",
+    emoji: "1112234548999245834",
+    blurb: "Stats, voting, premium, and partners",
+  },
+  {
+    key: APPS,
+    label: "User Apps",
+    emoji: "🖱️",
+    blurb: "Right-click a user and open Apps",
+    note: "-# On mobile, tap a user's profile and look under **Apps**.",
+  },
+];
+
+const DESCRIPTION_OVERRIDES = {
+  asexual: 'Learn about the term "asexual" and its history',
+  bisexual: 'Learn about the term "bisexual" and its history',
+  gay: 'Learn about the term "gay" and its history',
+  genderfluid: 'Learn about the term "genderfluid" and its history',
+  lesbian: 'Learn about the term "lesbian" and its history',
+  nonbinary: 'Learn about the term "non-binary" and its history',
+  pansexual: 'Learn about the term "pansexual" and its history',
+  queer: 'Learn about the term "queer" and its history',
+  transgender: 'Learn about the term "transgender" and its history',
+  pridemonth: "Learn about Pride Month and its history",
+  lgbtqia: "Show off the LGBTQIA+ community",
+  match: "Determine the compatibility between two users",
+  nametester: "Try out new names for yourself",
+  pronountester: "Try out new pronouns for yourself",
+  other: "Learn about other terms found in LGBTQIA+ spaces",
+  stats: "Get Pridebot's and Discord's statistics",
+  vote: "Support Pridebot by voting for us",
+  "User Avatar-view": "View a user's pride avatars",
+  "User Gaydar": "How gay is this user?",
+  "User Queerdar": "How queer is this user?",
+  "User Transdar": "How trans is this user?",
+  "User Profile": "View a user's profile",
+};
+
+let catalog = null;
+
+function getCatalog() {
+  if (catalog) return catalog;
+
+  const groups = new Map();
+  for (const file of listJsFiles(COMMANDS_DIR)) {
+    const [folder, ...rest] = path.relative(COMMANDS_DIR, file).split(path.sep);
+    if (HIDDEN_FOLDERS.has(folder)) continue;
+
+    const mod = require(file);
+    if (!mod.data || mod.guildIds?.length) continue;
+
+    const isApp = mod.data instanceof ContextMenuCommandBuilder;
+    if (!isApp && !(mod.data instanceof SlashCommandBuilder)) continue;
+
+    const json = mod.data.toJSON();
+    const key = isApp ? APPS : folder;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push({
+      name: json.name,
+      isApp,
+      group: !isApp && rest.length > 1 ? rest[0] : null,
+      description: DESCRIPTION_OVERRIDES[json.name] ?? json.description,
+      subcommands: (json.options ?? [])
+        .filter((o) => o.type === 1)
+        .map((o) => ({ name: o.name, description: o.description })),
+    });
+  }
+
+  const known = CATEGORIES.filter((c) => groups.has(c.key));
+  const extra = [...groups.keys()]
+    .filter((key) => !CATEGORIES.some((c) => c.key === key))
+    .map((key) => ({ key, emoji: "📁", blurb: `${key} commands` }));
+
+  catalog = [...known, ...extra].map((c) => ({
+    ...c,
+    label: c.label ?? c.key,
+    commands: groups.get(c.key),
+  }));
+  return catalog;
+}
+
+let idCache = { at: 0, ttl: 0, ids: new Map() };
+
+async function getCommandIds(client) {
+  if (Date.now() - idCache.at < idCache.ttl) return idCache.ids;
+  try {
+    const fetched = await client.application.commands.fetch();
+    const ids = new Map(fetched.map((c) => [c.name, c.id]));
+    const complete = getCatalog().every((cat) =>
+      cat.commands.every((cmd) => ids.has(cmd.name))
+    );
+    idCache = { at: Date.now(), ttl: complete ? ID_CACHE_TTL : ID_RETRY_TTL, ids };
+  } catch (err) {
+    console.warn("[HELP] Couldn't fetch command IDs:", err.message);
+    idCache = { ...idCache, at: Date.now(), ttl: ID_RETRY_TTL };
+  }
+  return idCache.ids;
+}
+
+function mention(ids, name, sub) {
+  const full = sub ? `${name} ${sub}` : name;
+  const id = ids.get(name);
+  return id ? `</${full}:${id}>` : `\`/${full}\``;
+}
+
+function emojiMarkdown(emoji) {
+  return /^\d+$/.test(emoji) ? `<:_:${emoji}>` : emoji;
+}
+
+function entryCount(cmd) {
+  return cmd.subcommands.length || 1;
+}
+
+function countCommands() {
+  let slash = 0;
+  let apps = 0;
+  for (const cat of getCatalog())
+    for (const cmd of cat.commands)
+      if (cmd.isApp) apps++;
+      else slash += entryCount(cmd);
+  return { slash, apps };
+}
+
+function capitalize(s) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function divider(spacing = SeparatorSpacingSize.Small) {
+  return new SeparatorBuilder().setDivider(true).setSpacing(spacing);
+}
+
+function categorySelect(current, disabled) {
+  return new ActionRowBuilder().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId("help:category")
+      .setPlaceholder("Browse a category…")
+      .setDisabled(disabled)
+      .addOptions(
+        getCatalog().map((cat) =>
+          new StringSelectMenuOptionBuilder()
+            .setLabel(cat.label)
+            .setDescription(cat.blurb)
+            .setValue(cat.key)
+            .setEmoji(cat.emoji)
+            .setDefault(cat.key === current)
+        )
+      )
+  );
+}
+
+function linkButtons() {
+  const link = (label, url, emoji) =>
+    new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel(label).setURL(url).setEmoji(emoji);
+  return new ActionRowBuilder().addComponents(
+    link("Website", LINKS.site, "1108228682184654908"),
+    link("Support", LINKS.support, "1108417509624926228"),
+    link("Premium", LINKS.premium, "1235074804726628465"),
+    link("GitHub", LINKS.github, "1110925802041774151")
+  );
+}
+
+function footer() {
+  return new TextDisplayBuilder().setContent(
+    `-# Made with 💖 by [Sdriver1](https://discord.com/users/${OWNER_ID}) · v${version} · [Terms](${LINKS.tos}) · [Privacy](${LINKS.privacy})`
+  );
+}
+
+function buildOverview(client, { interactive = true, disabled = false } = {}) {
+  const { slash, apps } = countCommands();
+  const categories = getCatalog()
+    .map(
+      (cat) =>
+        `${emojiMarkdown(cat.emoji)} **${cat.label}** · ${cat.commands.reduce((n, cmd) => n + entryCount(cmd), 0)}\n-# ${cat.blurb}`
+    )
+    .join("\n");
+
+  const container = new ContainerBuilder()
+    .setAccentColor(ACCENT)
+    .addSectionComponents(
+      new SectionBuilder()
+        .addTextDisplayComponents(
+          new TextDisplayBuilder().setContent(
+            "# Pridebot Help\n" +
+            "Pridebot, developed by Sdriver1, is a multifunction LGBTQ+ Discord bot designed to improve understanding of LGBTQIA+ identities through a wide range of informative commands covering sexualities, genders, pronouns, and related topics, while also helping users explore and better understand their own identities."
+          )
+        )
+        .setThumbnailAccessory(
+          new ThumbnailBuilder().setURL(client.user.displayAvatarURL({ extension: "png", size: 256 }))
+        )
+    )
+    .addSeparatorComponents(divider())
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(
+        `### Categories\n-# **${slash}** slash commands · **${apps}** user apps\n${categories}`
+      )
+    );
+
+  if (interactive) container.addActionRowComponents(categorySelect(null, disabled));
+
+  return container
+    .addSeparatorComponents(divider(SeparatorSpacingSize.Large))
+    .addActionRowComponents(linkButtons())
+    .addTextDisplayComponents(footer());
+}
+
+function commandLines(ids, cmd) {
+  if (cmd.isApp) return [`**${cmd.name}**\n-# ${cmd.description}`];
+  if (cmd.subcommands.length)
+    return cmd.subcommands.map(
+      (sub) => `${mention(ids, cmd.name, sub.name)}\n-# ${sub.description}`
+    );
+  return [`${mention(ids, cmd.name)}\n-# ${cmd.description}`];
+}
+
+function buildCategory(key, ids, { interactive = true, disabled = false } = {}) {
+  const cat = getCatalog().find((c) => c.key === key);
+
+  const sections = [];
+  let lastGroup;
+  for (const cmd of cat.commands) {
+    if (cmd.group && cmd.group !== lastGroup) sections.push(`### ${capitalize(cmd.group)}`);
+    lastGroup = cmd.group;
+    sections.push(...commandLines(ids, cmd));
+  }
+
+  const container = new ContainerBuilder()
+    .setAccentColor(ACCENT)
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(
+        `## ${emojiMarkdown(cat.emoji)} ${cat.label}\n-# ${cat.blurb}`
+      )
+    )
+    .addSeparatorComponents(divider())
+    .addTextDisplayComponents(new TextDisplayBuilder().setContent(sections.join("\n")));
+
+  if (cat.note)
+    container.addTextDisplayComponents(new TextDisplayBuilder().setContent(cat.note));
+
+  if (interactive) {
+    container
+      .addSeparatorComponents(divider(SeparatorSpacingSize.Large))
+      .addActionRowComponents(categorySelect(key, disabled))
+      .addActionRowComponents(
+        new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId("help:home")
+            .setLabel("Back to overview")
+            .setEmoji("🏠")
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(disabled)
+        )
+      );
+  }
+
+  return container.addTextDisplayComponents(footer());
+}
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -16,187 +327,50 @@ module.exports = {
     .setDescription("Shows command list and helpful links"),
 
   async execute(interaction, client) {
-    const channel = interaction.channel;
+    const ids = await getCommandIds(client);
+    let view = null;
+    const render = (opts) =>
+      view ? buildCategory(view, ids, opts) : buildOverview(client, opts);
 
-    if (!channel) {
-      await interaction.reply(
-        "The type of command you are trying to send can't be sent in User Install format. Please use this command again in a server where Pridebot is added. \nInvite link: https://pridebot.xyz/invite"
-      );
-      return;
-    }
-
-    const helpOptions = [
-      {
-        name: "Avatar",
-        description: "Click to learn about avatar commands",
-        value: "avatar",
-        emoji: "1113295174701940776",
-        info: {
-          title: "Avatar Commands",
-          description: `</avatar-list:1273988656561913906> - Get list of available flags to add\n</avatar-view:1301025323009441886> - View full list of your pride avatars\n</prideavatar:1273988656561913907> - Add a pride flag to your avatar\n\n**Quick Access:** Visit **https://pfp.pridebot.xyz/your_user_id** to view all your avatars\n*Replace "your_user_id" with your actual Discord user ID*`,
-        },
-      },
-      {
-        name: "Fun",
-        description: "Click to learn about fun commands",
-        value: "fun",
-        emoji: "1196254858689380474",
-        info: {
-          title: "Fun Commands",
-          description: `</gaydar:1273988656561913909> - How gay are you or your friend?\n</lgbtq:1273988656561913910> - Fun little command to show off the LGBTQ+ community\n</match:1273988656561913911> - Determine the compatibility between two users\n</nametester:1273988656561913912> - Try out new names for yourself\n</pronountester:1273988656561913913> - Try out new pronouns for yourself\n</queerdar:1273988656561913914> - How queer are you or your friend?\n</transdar:1273988656561913915> - How trans are you or your friend?\n</rizzdar:0> - How much rizz do you or your friend have?\n</bidar:0> - How bi are you or your friend?\n\n*These radar commands are for entertainment only and not based on any real diagnosis or readings of users.*`,
-        },
-      },
-      {
-        name: "Pride",
-        description: "Click to learn about Pride commands",
-        value: "pride",
-        emoji: "1108822823721521242",
-        info: {
-          title: "Pride Commands",
-          description: `</asexual:1273988656696135805> - Learn about the term "asexual" and its history\n</bisexual:1273988656696135806> - Learn about the term "bisexual" and its history\n</gay:1273988656696135807> - Learn about the term "gay" and its history\n</genderfluid:1273988656696135808> - Learn about the term "genderfluid" and its history\n</lesbian:1273988656696135809> - Learn about the term "lesbian" and its history\n</nonbinary:1273988656696135810> - Learn about the term "non-binary" and its history\n</pansexual:1273988656696135811> - Learn about the term "pansexual" and its history\n</pridemonth:1273988656839004280> - Learn about pride month and its history\n</queer:1273988656839004281> - Learn about the term "queer" and its history\n</transgender:1273988656839004282> - Learn about the term "transgender" and its history`,
-        },
-      },
-      {
-        name: "Profile",
-        description: "Click to learn about Profile commands",
-        value: "profile",
-        emoji: "1197388214843998299",
-        info: {
-          title: "Profile Commands",
-          description: `</profile edit:1273988656839004283> - Edit your profile appearance\n</profile setup:1273988656839004283> - Set up your profile\n</profile view:1273988656839004283> - View your or another user's profile\n</profile update:1273988656839004283> - Update the information in your profile`,
-        },
-      },
-      {
-        name: "Support",
-        description: "Click to learn about Support commands",
-        value: "support",
-        emoji: "1197399653109473301",
-        info: {
-          title: "Support Commands",
-          description: `</comingout:1273988656839004285> - Access tips and guides on how to come out safely\n</mentalhealth:1273988656839004287> - Access helplines and mental health resources\n</transresources:1273988656839004288> - Resources and advice for users of transgender identities`,
-        },
-      },
-      {
-        name: "Terms",
-        description: "Click to learn about Term commands",
-        value: "term",
-        emoji: "1112602480128299079",
-        info: {
-          title: "Term Commands",
-          description: `</gender:1273988656839004289> - Learn about different types of genders\n</other:1273988656956309647> - Learn about other terms commonly found in LGBTQIA+ spaces\n</pronouns:1273988656956309648> - Learn about different types of pronouns\n</sexuality:1273988656956309649> - Learn about different types of sexualities`,
-        },
-      },
-      {
-        name: "Tool",
-        description: "Click to learn about Tool commands",
-        value: "tool",
-        emoji: "1112234548999245834",
-        info: {
-          title: "Tool Commands",
-          description: `</donate:1317291535985016882> - Donate to help support Pridebot's development\n</help:1273988656956309650> - Shows command list and helpful links\n</partner:1273988656956309651> - Check out Pridebot's amazing partners\n</stats:1273988656956309652> - Get the bot's and Discord statistics\n</vote:1273988656956309653> - Support Pridebot by voting for us`,
-        },
-      },
-    ];
-
-    const selectOptions = helpOptions.map((option) =>
-      new StringSelectMenuOptionBuilder()
-        .setLabel(option.name)
-        .setDescription(option.description)
-        .setValue(option.value)
-        .setEmoji(option.emoji)
-    );
-
-    const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId("helpSelect")
-      .setPlaceholder("What commands you want to learn about?")
-      .addOptions(selectOptions);
-
-    const row = new ActionRowBuilder().addComponents(selectMenu);
-
-    // Count total commands
-    const totalCommands = helpOptions.reduce((count, category) => {
-      // Rough count based on command mentions in descriptions
-      const commandMatches = (category.info.description.match(/<\/\w+/g) || []).length;
-      return count + commandMatches;
-    }, 0);
-
-    const embed = new EmbedBuilder()
-      .setTitle(`🌈 Pridebot Help`)
-      .setDescription(
-        `Pridebot, developed by <@${OWNER_ID}>, is a unique LGBTQIA+ themed bot designed to provide credible and accurate information on LGBTQIA+ identities and terms, while also helping users discover themselves through resources and interactive commands.\n\nPridebot offers a range of topics including different sexual orientations, gender identities, pronouns, and the intricate aspects of the LGBTQ+ community. Including the educational aspect, Pridebot also offers fun and engaging commands like radar games and profiles to help others learn about you.\n\n**${totalCommands}+ commands available** • Thank you for using Pridebot! ❤️`
-      )
-      .setColor(0xff00ae)
-      .setThumbnail(client.user?.displayAvatarURL({ dynamic: true }))
-      .setFooter({
-        text: `Select a category below to explore commands • Developed with 💖`,
-        iconURL: client.user?.displayAvatarURL(),
-      })
-      .setTimestamp()
-      .addFields(
-        {
-          name: "Help Categories",
-          value:
-            "**<:_:1113295174701940776> - Avatar \n<:_:1196254858689380474> - Fun \n<:_:1108822823721521242> - Pride \n<:_:1197388214843998299> - Profile \n<:_:1197399653109473301> - Support \n<:_:1112602480128299079> - Terms \n<:_:1112234548999245834> - Tool**",
-          inline: true,
-        },
-        {
-          name: "Useful links",
-          value:
-            "<:Ic_Pridebot_logo:1108228682184654908> [**Website**](https://pridebot.xyz/) \n<:Ic_Pridebot_discord:1108417509624926228> [**Support Server**](https://pridebot.xyz/support) \n<:_:1176002361580331029> [**TOS**](https://pridebot.xyz/tos) \n<:_:1255012892206567476> [**Privacy Policy**](https://pridebot.xyz/privacy) \n:link: [**Bot Invite**](https://pridebot.xyz/invite) \n<:Ic_Pridebot_git:1110925802041774151> [**Github Repo**](https://github.com/Sdriver1/Pridebot) \n<:Ic_Pridebot_donor:1235074804726628465> [**Patreon**](https://pridebot.xyz/premium)",
-          inline: true,
-        }
-      );
-
-    await interaction.reply({ embeds: [embed], components: [row] });
+    const response = await interaction.reply({
+      components: [render()],
+      flags: MessageFlags.IsComponentsV2,
+      allowedMentions: { parse: [] },
+      withResponse: true,
+    });
     await commandLogging(client, interaction);
 
-    const collector = interaction.channel.createMessageComponentCollector({
-      componentType: ComponentType.StringSelect,
-      time: 300_000, // 5 minutes timeout
-      filter: (i) => i.user.id === interaction.user.id, // Only allow original user
+    const collector = response.resource.message.createMessageComponentCollector({
+      time: MENU_LIFETIME,
     });
 
-    collector.on("collect", safeCollect("help", async (selectInteraction) => {
-      if (selectInteraction.customId === "helpSelect") {
-        const selectedValue = selectInteraction.values[0];
-        const helpInfo = helpOptions.find((h) => h.value === selectedValue);
-
-        if (!helpInfo) {
-          console.error(`No help information found for value: ${selectedValue}`);
-          await selectInteraction.reply({
-            content: "❌ Sorry, an error occurred while fetching help information.",
-            ephemeral: true,
+    collector.on(
+      "collect",
+      safeCollect("help", async (i) => {
+        const target = i.customId === "help:category" ? i.values[0] : null;
+        if (target && !getCatalog().some((c) => c.key === target)) return;
+        if (i.user.id !== interaction.user.id) {
+          await i.reply({
+            components: [
+              target
+                ? buildCategory(target, ids, { interactive: false })
+                : buildOverview(client, { interactive: false }),
+            ],
+            flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+            allowedMentions: { parse: [] },
           });
           return;
         }
 
-        const selectedEmbed = new EmbedBuilder()
-          .setColor(0xff00ae)
-          .setTitle(helpInfo.info.title)
-          .setDescription(helpInfo.info.description)
-          .setFooter({
-            text: `Use /help to see all categories • ${helpInfo.name} Commands`,
-          })
-          .setTimestamp();
+        view = target;
+        await i.update({ components: [render()], allowedMentions: { parse: [] } });
+      })
+    );
 
-        await selectInteraction.reply({
-          embeds: [selectedEmbed],
-          ephemeral: true,
-        });
-      }
-    }));
-
-    collector.on("end", (collected, reason) => {
-      if (reason === "time") {
-        // Disable the select menu after timeout
-        const disabledRow = new ActionRowBuilder().addComponents(
-          selectMenu.setDisabled(true)
-        );
-        interaction.editReply({ 
-          embeds: [embed], 
-          components: [disabledRow] 
-        }).catch(() => {}); // Ignore errors if message was deleted
-      }
-    });
+    collector.on("end", () =>
+      interaction
+        .editReply({ components: [render({ disabled: true })], allowedMentions: { parse: [] } })
+        .catch(() => { })
+    );
   },
 };
