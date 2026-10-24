@@ -115,6 +115,12 @@ const profileLogging = async (
     return;
   }
 
+  // Booleans read as Yes/No; otherwise false would show as "Not set"
+  const display = (val) => {
+    if (typeof val === "boolean") return val ? "Yes" : "No";
+    return val ? String(val) : "Not set";
+  };
+
   const checkField = (key, displayName) => {
     const oldVal = originalProfile[key] ?? null;
     const newVal = updatedProfile[key] ?? null;
@@ -122,12 +128,12 @@ const profileLogging = async (
       embed.addFields(
         {
           name: `${displayName} (Old)`,
-          value: oldVal ? String(oldVal) : "Not set",
+          value: display(oldVal),
           inline: true,
         },
         {
           name: `${displayName} (New)`,
-          value: newVal ? String(newVal) : "Not set",
+          value: display(newVal),
           inline: true,
         }
       );
@@ -136,6 +142,7 @@ const profileLogging = async (
 
   checkField("preferredName", "Preferred Name");
   checkField("age", "Age");
+  checkField("ageVisible", "Age Visible");
   checkField("bio", "Bio");
   checkField("sexuality", "Sexuality");
   checkField("otherSexuality", "Other Sexuality");
@@ -186,6 +193,10 @@ const profileLogging = async (
       name: "Avatars Removed",
       value: removedAvs.map((a) => a.url).join("\n"),
     });
+
+  // Re-saving the same values (e.g. /profile update with nothing new) changes
+  // nothing, and an edit log with no fields is just noise
+  if (!embed.data.fields?.length) return;
 
   await sendLog(client, embed, "1284916147702988882");
 };
