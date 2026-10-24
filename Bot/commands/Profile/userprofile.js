@@ -9,7 +9,7 @@ const {
 const Profile = require("../../../DB/models/profileSchema");
 const IDLists = require("../../../DB/models/idSchema");
 
-const { badgeMap } = require("../../functions/profile/profilehelper");
+const { badgeMap, combineIdentity } = require("../../functions/profile/profilehelper");
 const { normalizeHexColor } = require("../../../Shared/constants/profile");
 
 module.exports = {
@@ -38,32 +38,9 @@ module.exports = {
         badgeStr = Object.entries(badgeMap).reduce((acc, [key, value]) => acc + (idLists[key] && idLists[key].includes(targetUser.id) ? value : ""), "");
       }
 
-      const pronounsValue = profile.pronouns || "Not set";
-      const otherPronounsValue = profile.otherPronouns
-        ? `, ${profile.otherPronouns}`
-        : "";
-      const combinedPronouns =
-        pronounsValue.includes("Not set") && otherPronounsValue
-          ? otherPronounsValue.substring(2)
-          : pronounsValue + otherPronounsValue;
-
-      const sexualityValue = profile.sexuality || "Not set";
-      const otherSexualityValue = profile.otherSexuality
-        ? `, ${profile.otherSexuality}`
-        : "";
-      const combinedSexuality =
-        sexualityValue.includes("Not set") && otherSexualityValue
-          ? otherSexualityValue.substring(2)
-          : sexualityValue + otherSexualityValue;
-
-      const genderValue = profile.gender || "Not set";
-      const otherGenderValue = profile.otherGender
-        ? `, ${profile.otherGender}`
-        : "";
-      const combinedGender =
-        genderValue.includes("Not set") && otherGenderValue
-          ? otherGenderValue.substring(2)
-          : genderValue + otherGenderValue;
+      const combinedPronouns = combineIdentity(profile.pronouns, profile.otherPronouns);
+      const combinedSexuality = combineIdentity(profile.sexuality, profile.otherSexuality);
+      const combinedGender = combineIdentity(profile.gender, profile.otherGender);
 
       const profileFields = [
         {

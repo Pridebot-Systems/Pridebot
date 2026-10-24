@@ -16,8 +16,15 @@ const stringOptionWithChoices =
       .setRequired(required)
       .addChoices(...choices);
 
+// A second sexuality/gender/pronoun set is stored in its own field
+// (otherSexuality etc.). Joined with " / " to match the web profile.
+function combineIdentity(primary, other) {
+  return [primary, other].filter(Boolean).join(" / ") || "Not set";
+}
+
 module.exports = {
   stringOptionWithChoices,
+  combineIdentity,
   sexualityChoices: profile.sexuality,
   romanticChoices: profile.romantic,
   genderChoices: profile.gender,

@@ -30,7 +30,7 @@ const Profile = require("../../../DB/models/profileSchema");
 const IDLists = require("../../../DB/models/idSchema");
 const UserCommandUsage = require("../../../DB/models/userCommandUsageSchema");
 
-const { badgeMap } = require("./profilehelper");
+const { badgeMap, combineIdentity } = require("./profilehelper");
 const { checkAndShowProfileFeedbackSurvey } = require("./profileSurveyHandler");
 const { checkProfileText } = require("../../utils/detection/profileModeration");
 const { CHANNELS } = require("../../../Shared/constants/brand");
@@ -154,7 +154,7 @@ async function handleView(interaction, client) {
   fields.push(
     {
       name: "Sexual Orientation",
-      value: profile.sexuality || "Not set",
+      value: combineIdentity(profile.sexuality, profile.otherSexuality),
       inline: true,
     },
     {
@@ -162,8 +162,16 @@ async function handleView(interaction, client) {
       value: profile.romanticOrientation || "Not set",
       inline: true,
     },
-    { name: "Gender", value: profile.gender || "Not set", inline: true },
-    { name: "Pronouns", value: profile.pronouns || "Not set", inline: true }
+    {
+      name: "Gender",
+      value: combineIdentity(profile.gender, profile.otherGender),
+      inline: true,
+    },
+    {
+      name: "Pronouns",
+      value: combineIdentity(profile.pronouns, profile.otherPronouns),
+      inline: true,
+    }
   );
 
   const embed = new EmbedBuilder()
@@ -440,7 +448,7 @@ async function handleSetup(interaction, client) {
   fields.push(
     {
       name: "Sexual Orientation",
-      value: newProfile.sexuality || "Not set",
+      value: combineIdentity(newProfile.sexuality, newProfile.otherSexuality),
       inline: true,
     },
     {
@@ -448,8 +456,16 @@ async function handleSetup(interaction, client) {
       value: newProfile.romanticOrientation || "Not set",
       inline: true,
     },
-    { name: "Gender", value: newProfile.gender || "Not set", inline: true },
-    { name: "Pronouns", value: newProfile.pronouns || "Not set", inline: true }
+    {
+      name: "Gender",
+      value: combineIdentity(newProfile.gender, newProfile.otherGender),
+      inline: true,
+    },
+    {
+      name: "Pronouns",
+      value: combineIdentity(newProfile.pronouns, newProfile.otherPronouns),
+      inline: true,
+    }
   );
 
   const embed = new EmbedBuilder()
