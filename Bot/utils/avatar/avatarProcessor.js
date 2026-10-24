@@ -1,5 +1,6 @@
 const sharp = require("sharp");
 const fs = require("fs").promises;
+const { readdirSync } = require("fs");
 const path = require("path");
 const { FLAGS_DIR, PFPS_DIR } = require("../../../Shared/paths");
 const NodeCache = require("node-cache");
@@ -39,7 +40,7 @@ async function getQueue() {
   } catch (err) {
     console.warn(`[AVATAR QUEUE] ${err.message} — processing avatars directly`);
     queueUnavailable = true;
-    queue.close().catch(() => {});
+    queue.close().catch(() => { });
     return null;
   }
 
@@ -51,80 +52,19 @@ async function getQueue() {
   return avatarQueue;
 }
 
-// Valid flags list
-const validFlags = [
-  "abrosexual",
-  "aceflux",
-  "agender",
-  "agenderboy",
-  "agendergirl",
-  "ally",
-  "almondsexual",
-  "androgyne",
-  "aplatonic",
-  "aroace",
-  "aroace2",
-  "aroflux",
-  "aromantic",
-  "asexual",
-  "aurorian",
-  "bicurious",
-  "bigender",
-  "bisexual",
-  "boyflux",
-  "butch",
-  "butchlesbian",
-  "catgender",
-  "cupioromantic",
-  "cupiosexual",
-  "demiboy",
-  "demigender",
-  "demigirl",
-  "demiromantic",
-  "demisexual",
-  "femboy",
-  "gay",
-  "genderfae",
-  "genderfaun",
-  "genderfluid",
-  "genderflux",
-  "genderqueer",
-  "girlflux",
-  "graygender",
-  "grayromantic",
-  "graysexual",
-  "intersex",
-  "lesbian",
-  "lesboy",
-  "lgbt",
-  "litharoace",
-  "lithosexual",
-  "lithromantic",
-  "lunarian",
-  "neptunic",
-  "nonbinary",
-  "omnigender",
-  "omnisexual",
-  "pangender",
-  "pansexual",
-  "polyamorous",
-  "polysexual",
-  "queer",
-  "queerplatonic",
-  "sapphic",
-  "sapphillean",
-  "singularian",
-  "solarian",
-  "spacialian",
-  "stellarian",
-  "transfeminine",
-  "transgender",
-  "transmasculine",
-  "trigender",
-  "unlabeled",
-  "uranic",
-  "xenogender",
-];
+function loadFlagNames() {
+  try {
+    return readdirSync(FLAGS_DIR)
+      .filter((file) => file.endsWith(".png"))
+      .map((file) => file.slice(0, -".png".length))
+      .sort();
+  } catch (error) {
+    console.error(`Failed to read flags directory ${FLAGS_DIR}:`, error);
+    return [];
+  }
+}
+
+const validFlags = loadFlagNames();
 
 class AvatarProcessor {
   constructor() {
@@ -263,7 +203,7 @@ class AvatarProcessor {
 
         try {
           reader.cancel();
-        } catch {}
+        } catch { }
 
         throw new Error("Request timed out");
       }
