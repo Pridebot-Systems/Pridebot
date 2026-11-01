@@ -15,6 +15,14 @@ async function scanText(text) {
       body,
     });
     const json = await response.json();
+    if (!response.ok) {
+      const unsupported = json.error?.details?.some(
+        (detail) => detail.errorType === "LANGUAGE_NOT_SUPPORTED_BY_ATTRIBUTE"
+      );
+      if (unsupported) return { toxicity: 0, insult: 0 };
+      console.error(`Perspective API returned ${response.status}: ${json.error?.message}`);
+      return null;
+    }
     return {
       toxicity: json.attributeScores?.TOXICITY?.summaryScore?.value || 0,
       insult: json.attributeScores?.INSULT?.summaryScore?.value || 0,
