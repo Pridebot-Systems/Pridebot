@@ -3,7 +3,7 @@ const crypto = require("crypto");
 const express = require("express");
 const rateLimit = require("express-rate-limit");
 const config = require("../environment");
-const { DATA_DIR } = require("../Shared/paths");
+const { DATA_DIR, ROOT } = require("../Shared/paths");
 const { StatusMonitor } = require("./monitor");
 
 /**
@@ -156,6 +156,7 @@ function startStatusService(manager, { port, file = STATE_FILE }) {
   app.use("/api/admin", admin);
 
   app.use(express.static(PUBLIC_DIR, { maxAge: "5m" }));
+  app.use("/assets", express.static(path.join(ROOT, "Web", "assets"), { maxAge: "5m" }));
 
   app.use((_req, res) => res.status(404).json({ error: "Not Found" }));
   // Four parameters: Express recognises error handlers by arity.

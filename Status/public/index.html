@@ -22,6 +22,7 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Inter:wght@400;500;600;700;800&display=swap"
     />
+    <link rel="stylesheet" href="/assets/css/site-footer.css" />
     <style>
       /* Palette and card language from pridebot.xyz (assets/css/styles.css). */
       :root {
@@ -665,59 +666,15 @@
         padding: 20px 22px;
       }
 
-      /* Footer — matches the main site's */
-      footer {
-        background: var(--secondary);
-        border-top: 1px solid var(--border);
-        padding: 40px 16px 28px;
-        text-align: center;
-      }
-      .footer-brand {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-family: "Alfa Slab One", cursive;
-        font-size: 1.2rem;
-        color: var(--main-color);
-      }
-      .footer-brand img {
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
-      }
-      footer .tagline {
-        color: var(--secondary-text-color);
-        margin: 8px 0 24px;
-      }
-      .footer-links {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 20px;
-        max-width: 720px;
-        margin: 0 auto 24px;
-      }
-      .footer-links h6 {
-        margin: 0 0 8px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        color: var(--text-color);
-      }
-      .footer-links a {
-        display: block;
-        padding: 4px 0;
-        color: var(--secondary-text-color);
-        font-size: 0.95rem;
-        transition: all 0.3s ease;
-      }
-      .footer-links a:hover {
-        color: var(--main-color);
-        transform: translateX(4px);
-      }
-      footer .fine {
+      .status-meta {
+        margin-top: 40px;
+        padding: 0 16px;
         color: var(--muted);
         font-size: 13px;
+        text-align: center;
+      }
+      .status-meta p {
+        margin: 0 0 6px;
       }
     </style>
   </head>
@@ -778,36 +735,82 @@
       <div id="events" class="card"><div class="skeleton">Loading…</div></div>
     </div>
 
-    <footer>
-      <a class="footer-brand" href="https://pridebot.xyz"
-        ><img src="/logo.png" alt="" />Pridebot</a
-      >
-      <p class="tagline">
-        Making Discord communities more inclusive, one server at a time.
+    <div class="status-meta">
+      <p>
+        <a href="/api/status">Status JSON</a> ·
+        <a href="/health/shards">Shard health check</a> ·
+        <a href="/api/incidents">Incident history JSON</a>
       </p>
-      <div class="footer-links">
-        <div>
-          <h6>Community</h6>
-          <a href="https://github.com/Pridebot-Systems/Pridebot">GitHub</a>
-          <a href="https://pridebot.xyz/support">Support Server</a>
-        </div>
-        <div>
-          <h6>Pridebot</h6>
-          <a href="https://pridebot.xyz">Website</a>
-          <a href="https://pfp.pridebot.xyz">PFPs</a>
-          <a href="https://profile.pridebot.xyz">Profiles</a>
-        </div>
-        <div>
-          <h6>Status data</h6>
-          <a href="/api/status">Status JSON</a>
-          <a href="/health/shards">Shard health check</a>
-          <a href="/api/incidents">Incident history JSON</a>
-        </div>
-      </div>
-      <p class="fine">
+      <p>
         Checked every <span id="interval">15</span> seconds from inside Pridebot. This
         page refreshes on its own.
       </p>
+    </div>
+
+    <!-- Same footer as pridebot.xyz. Keep in sync: Web/pfp/index.html, Web/pfp/webavatar.html, Web/profile/index.html, Web/profile/profile.html, Status/public/index.html -->
+    <footer class="footer-section">
+      <a href="https://pridebot.xyz" class="footer-logo">
+        <img src="/assets/img/footer/logo.png" alt="" width="32" height="32" />
+        Pridebot
+      </a>
+      <p class="footer-tagline">Making Discord communities more inclusive, one server at a time.</p>
+
+      <div class="footer-links-grid">
+        <div class="footer-links-section">
+          <h6>Community</h6>
+          <div class="footer-links-list">
+            <a href="https://github.com/Pridebot-Systems/Pridebot" class="footer-link">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+              GitHub
+            </a>
+            <a href="https://pridebot.xyz/support" class="footer-link">
+              <img src="/assets/img/footer/support.png" alt="" width="16" height="16" />
+              Support Server
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-links-section">
+          <h6>Vote for Us</h6>
+          <div class="footer-links-list">
+            <a href="https://discordlist.gg/bot/1101256478632972369/vote" class="footer-link">
+              <img src="/assets/img/footer/discordlist.svg" alt="" width="16" height="16" />
+              DiscordList
+            </a>
+            <a href="https://top.gg/bot/1101256478632972369/vote" class="footer-link">
+              <img src="/assets/img/footer/topgg.png" alt="" width="16" height="16" />
+              Top.gg
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-links-section">
+          <h6>Follow Us</h6>
+          <div class="footer-links-list">
+            <a href="https://x.com/pridebotdiscord?s=21&t=vvy-KvCpsjPgQFNN8_DkAQ" class="footer-link">
+              <img src="/assets/img/footer/x.svg" alt="" width="16" height="16" />
+              𝕏/Twitter
+            </a>
+            <a href="https://www.tiktok.com/@pridebotdiscord?_t=8kSLVmDoEcp&_r=1" class="footer-link">
+              <img src="/assets/img/footer/tiktok.png" alt="" width="16" height="16" />
+              TikTok
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-links-section">
+          <h6>Legal</h6>
+          <div class="footer-links-list">
+            <a href="https://pridebot.xyz/tos" class="footer-link">Terms of Service</a>
+            <a href="https://pridebot.xyz/privacy" class="footer-link">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+
+      <hr class="footer-divider" />
+
+      <p class="footer-fine">© 2023-2026 Pridebot. All rights reserved.</p>
+      <p class="footer-fine">Developed with ❤️ by <a href="https://sdriver1.dev">Sdriver1</a></p>
     </footer>
 
     <script>
