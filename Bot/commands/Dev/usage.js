@@ -2,7 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const CommandUsage = require("../../../DB/models/usageSchema");
 const IDLists = require("../../../DB/models/idSchema");
 
-const categories = {
+const CATEGORIES = {
   Avatar: ["avatar-list", "avatar-view", "prideavatar", "useravatar-view"],
   Fun: [
     "gaydar",
@@ -66,7 +66,7 @@ module.exports = {
     ),
 
   categorizeCommand(commandName) {
-    return Object.entries(categories).find(([, commands]) => commands.includes(commandName.toLowerCase()))?.[0] ?? "Other";
+    return Object.entries(CATEGORIES).find(([, commands]) => commands.includes(commandName.toLowerCase()))?.[0] ?? "Other";
   },
 
   async execute(interaction) {
@@ -86,7 +86,7 @@ module.exports = {
 
     const categorizedUsages = {};
 
-    for (const category of Object.keys(categories)) {
+    for (const category of Object.keys(CATEGORIES)) {
       categorizedUsages[category] = [];
     }
 
@@ -103,7 +103,7 @@ module.exports = {
       )
       .setTimestamp();
 
-    for (const category of Object.keys(categories)) {
+    for (const category of Object.keys(CATEGORIES)) {
       const categoryCommands = categorizedUsages[category];
       if (categoryCommands.length === 0) return;
 

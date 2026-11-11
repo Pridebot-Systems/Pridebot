@@ -5,7 +5,7 @@ const Profile = require("../../../DB/models/profileSchema");
 
 const IDLists = require("../../../DB/models/idSchema.js");
 
-const validCats = [
+const VALID_CATS = [
   "vips",
   "devs",
   "bot",
@@ -50,9 +50,9 @@ async function executeIDCommand(message, args) {
   const category = args[1];
   const id = args[2];
 
-  if (!validCats.includes(category)) {
+  if (!VALID_CATS.includes(category)) {
     const botMessage = await message.channel.send(
-      `Invalid category. Choose: ${validCats.join(", ")}`
+      `Invalid category. Choose: ${VALID_CATS.join(", ")}`
     );
     await addTrashCanReaction(botMessage);
     return;

@@ -1,7 +1,8 @@
+const IDLists = require("../../../DB/models/idSchema.js");
+
 async function react(reaction, user, client) {
   if (reaction.emoji.id === "1248480641301872650") {
     try {
-      const IDLists = require("../../../DB/models/idSchema.js");
       const idLists = await IDLists.findOne();
 
       if (idLists.devs.includes(user.id)) {

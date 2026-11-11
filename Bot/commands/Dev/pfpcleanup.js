@@ -81,7 +81,7 @@ async function pfpCleanupCommand(message, client) {
 
     try {
       const results = await scanEmptyFolders(daysOld);
-      
+
       if (action === "scan" || action === "preview") {
         const embed = new EmbedBuilder()
           .setColor(action === "scan" ? "#3498DB" : "#F39C12")
@@ -104,7 +104,7 @@ async function pfpCleanupCommand(message, client) {
           const sampleFolders = results.emptyFolders.slice(0, 10).map(f => 
             `\`${f.name}\` (${f.ageInDays} days old)`
           ).join('\n');
-          
+
           embed.addFields({
             name: "📁 Sample Folders (First 10)",
             value: sampleFolders + (results.emptyFolders.length > 10 ? `\n... and ${results.emptyFolders.length - 10} more` : ''),
@@ -147,9 +147,9 @@ async function pfpCleanupCommand(message, client) {
 
           if (reaction.emoji.name === '✅') {
             const deletingMessage = await message.channel.send("🧹 Deleting empty folders... Please wait.");
-            
+
             const deleteResults = await deleteEmptyFolders(results.emptyFolders);
-            
+
             await deletingMessage.delete().catch(() => {});
             await confirmMessage.delete().catch(() => {});
 

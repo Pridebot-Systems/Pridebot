@@ -1,4 +1,5 @@
 const ProfileFeedback = require("../../../DB/models/profileFeedbackSchema.js");
+const { sendLog } = require("../../utils/logging/sendlogs.js");
 const {
   EmbedBuilder,
   ActionRowBuilder,
@@ -267,8 +268,6 @@ async function handleQuestion3Submission(interaction) {
 
 async function sendSurveyNotification(client, feedback, user) {
   try {
-    const { sendLog } = require("../../utils/logging/sendlogs.js");
-
     const notificationEmbed = new EmbedBuilder()
       .setTitle("📋 Profile Survey Completed")
       .setDescription(

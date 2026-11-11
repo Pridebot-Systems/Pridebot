@@ -5,7 +5,7 @@ const { invalidateDarPins } = require("../../utils/premium.js");
 const IDLists = require("../../../DB/models/idSchema.js");
 const DarList = require("../../../DB/models/idDarSchema.js");
 
-const allowedCategories = ["gaydar", "transdar", "queerdar", "rizzdar", "lesdar", "bidar"];
+const ALLOWED_CATEGORIES = ["gaydar", "transdar", "queerdar", "rizzdar", "lesdar", "bidar"];
 
 // Numeric pins are stored as numbers; anything else (the joke pins) stays a
 // string. Historically every pin was stored as a raw string from the message.
@@ -54,9 +54,9 @@ async function executeDarCommand(message, args) {
   const userId = args[2];
   const meterValue = args[3];
 
-  if (!allowedCategories.includes(category)) {
+  if (!ALLOWED_CATEGORIES.includes(category)) {
     const botMessage = await message.channel.send(
-      `Invalid category. Please choose from ${allowedCategories.join(
+      `Invalid category. Please choose from ${ALLOWED_CATEGORIES.join(
         ", "
       )}.`
     );

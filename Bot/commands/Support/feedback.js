@@ -8,8 +8,10 @@ const {
   TextInputStyle,
 } = require("discord.js");
 const commandLogging = require("../../utils/logging/commandlog");
+const UserCommandUsage = require("../../../DB/models/userCommandUsageSchema");
 const Feedback = require("../../../DB/models/feedbackSchema");
 const safeCollect = require("../../utils/safeCollect");
+const { sendLog } = require("../../utils/logging/sendlogs");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -267,6 +269,13 @@ module.exports = {
   },
 };
 
+const TYPE_MAP = {
+  profile: "Profile Data",
+  avatars: "Avatar Data",
+  command_logs: "Command Logs",
+  all_data: "All Data",
+};
+
 const handleFeedbackModal = async (interaction) => {
   const customIdParts = interaction.customId.split("_");
   const category = customIdParts[2];
@@ -319,13 +328,7 @@ const handleFeedbackModal = async (interaction) => {
 
       // Format data types for display
       const dataTypeNames = dataTypes.map((type) => {
-        const typeMap = {
-          profile: "Profile Data",
-          avatars: "Avatar Data",
-          command_logs: "Command Logs",
-          all_data: "All Data",
-        };
-        return typeMap[type] || type;
+        return TYPE_MAP[type] || type;
       });
 
       const confirmEmbed = new EmbedBuilder()
@@ -403,7 +406,6 @@ const handleFeedbackModal = async (interaction) => {
 
     await feedback.save();
 
-    const UserCommandUsage = require("../../../DB/models/userCommandUsageSchema");
     await UserCommandUsage.updateOne(
       { userId: interaction.user.id },
       {
@@ -466,34 +468,34 @@ const handleFeedbackModal = async (interaction) => {
   }
 };
 
+const EMOJIS = {
+  general: "💬",
+  data_delete: "🗑️",
+  bug: "🐛",
+  feature: "✨",
+  improvement: "🔧",
+  other: "📝",
+};
+
 function getCategoryEmoji(category) {
-  const emojis = {
-    general: "💬",
-    data_delete: "🗑️",
-    bug: "🐛",
-    feature: "✨",
-    improvement: "🔧",
-    other: "📝",
-  };
-  return emojis[category] || "📝";
+  return EMOJIS[category] || "📝";
 }
 
+const NAMES = {
+  general: "General Feedback",
+  data_delete: "Data Delete Request",
+  bug: "Bug Report",
+  feature: "Feature Request",
+  improvement: "Improvement Suggestion",
+  other: "Other",
+};
+
 function getCategoryName(category) {
-  const names = {
-    general: "General Feedback",
-    data_delete: "Data Delete Request",
-    bug: "Bug Report",
-    feature: "Feature Request",
-    improvement: "Improvement Suggestion",
-    other: "Other",
-  };
-  return names[category] || "Other";
+  return NAMES[category] || "Other";
 }
 
 async function sendFeedbackNotification(client, feedback, user) {
   try {
-    const { sendLog } = require("../../utils/logging/sendlogs");
-
     const notificationEmbed = new EmbedBuilder()
       .setTitle("📝 New Feedback Received")
       .setDescription(
@@ -533,16 +535,8 @@ async function sendFeedbackNotification(client, feedback, user) {
 
 async function sendDataDeletionNotification(client, feedback, user, dataTypes) {
   try {
-    const { sendLog } = require("../../utils/logging/sendlogs");
-
     const dataTypeNames = dataTypes.map((type) => {
-      const typeMap = {
-        profile: "Profile Data",
-        avatars: "Avatar Data",
-        command_logs: "Command Logs",
-        all_data: "All Data",
-      };
-      return typeMap[type] || type;
+      return TYPE_MAP[type] || type;
     });
 
     const notificationEmbed = new EmbedBuilder()

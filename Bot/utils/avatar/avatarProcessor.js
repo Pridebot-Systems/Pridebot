@@ -56,7 +56,7 @@ function loadFlagNames() {
   try {
     return readdirSync(FLAGS_DIR)
       .filter((file) => file.endsWith(".png"))
-      .map((file) => file.slice(0, -".png".length))
+      .map((file) => file.slice(0, -4))
       .sort();
   } catch (error) {
     console.error(`Failed to read flags directory ${FLAGS_DIR}:`, error);

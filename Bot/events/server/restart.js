@@ -7,6 +7,19 @@ const { sendLog } = require("../../utils/logging/sendlogs");
 const RETRY_DELAY_MS = 15_000;
 const RETRY_ATTEMPTS = 60;
 
+function formatDuration(ms) {
+  const seconds = (ms / 1000) % 60;
+  const minutes = Math.floor((ms / (1000 * 60)) % 60);
+  const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+
+  let formatted = `${seconds.toFixed(1)}s`;
+  if (minutes > 0) formatted = `${minutes}m ${formatted}`;
+  if (hours > 0) formatted = `${hours}h ${formatted}`;
+  if (days > 0) formatted = `${days}d ${formatted}`;
+  return formatted;
+}
+
 module.exports = async (client) => {
   const channelId = CHANNELS.CLEANUP;
   let shutdownTime;
@@ -26,19 +39,6 @@ module.exports = async (client) => {
   }
 
   const downtimeMs = Date.now() - shutdownTime;
-
-  const formatDuration = (ms) => {
-    const seconds = (ms / 1000) % 60;
-    const minutes = Math.floor((ms / (1000 * 60)) % 60);
-    const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
-    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
-
-    let formatted = `${seconds.toFixed(1)}s`;
-    if (minutes > 0) formatted = `${minutes}m ${formatted}`;
-    if (hours > 0) formatted = `${hours}h ${formatted}`;
-    if (days > 0) formatted = `${days}d ${formatted}`;
-    return formatted;
-  };
 
   const downtimeString = formatDuration(downtimeMs);
   const timestamp = `<t:${Math.floor(Date.now() / 1000)}:F>`;

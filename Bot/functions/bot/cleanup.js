@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { PFPS_DIR } = require("../../../Shared/paths");
+const { getInfo } = require("discord-hybrid-sharding");
 
 const avatarsDir = PFPS_DIR;
 
@@ -9,8 +10,6 @@ const PROTECTED_FILES = new Set([
 ]);
 
 async function deleteOldFiles(client, channelId) {
-  const { getInfo } = require("discord-hybrid-sharding");
-
   if (getInfo().CLUSTER !== 0) {
     console.log(
       `⏭️ Skipping cleanup on cluster ${
