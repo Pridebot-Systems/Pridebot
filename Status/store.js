@@ -12,20 +12,18 @@ const path = require("path");
 
 const VERSION = 1;
 
-function emptyState() {
-  return {
-    version: VERSION,
-    /** Last time a check completed. A gap since then on boot is downtime. */
-    lastSeen: null,
-    /** True only when the manager stopped through its signal handler. */
-    cleanShutdown: true,
-    nextIncidentId: 1,
-    incidents: [],
-    events: [],
-    /** { [component]: { "YYYY-MM-DD": { up, total } } }, seconds. */
-    uptime: {},
-  };
-}
+const EMPTY_STATE = {
+  version: VERSION,
+  /** Last time a check completed. A gap since then on boot is downtime. */
+  lastSeen: null,
+  /** True only when the manager stopped through its signal handler. */
+  cleanShutdown: true,
+  nextIncidentId: 1,
+  incidents: [],
+  events: [],
+  /** { [component]: { "YYYY-MM-DD": { up, total } } }, seconds. */
+  uptime: {}
+};
 
 function load(file) {
   let raw;
@@ -34,12 +32,12 @@ function load(file) {
   } catch (err) {
     if (err.code !== "ENOENT")
       console.error(`[STATUS] Cannot read ${file}:`, err.message);
-    return emptyState();
+    return { ...EMPTY_STATE };
   }
 
   try {
     const data = JSON.parse(raw);
-    if (data.version === VERSION) return { ...emptyState(), ...data };
+    if (data.version === VERSION) return { ...EMPTY_STATE, ...data };
     console.warn(`[STATUS] ${file} has version ${data.version}, expected ${VERSION}`);
   } catch (err) {
     console.error(`[STATUS] ${file} is not valid JSON:`, err.message);
@@ -53,7 +51,7 @@ function load(file) {
   } catch (err) {
     console.error(`[STATUS] Could not move ${file} aside:`, err.message);
   }
-  return emptyState();
+  return { ...EMPTY_STATE };
 }
 
 function save(file, state) {
@@ -63,4 +61,4 @@ function save(file, state) {
   fs.renameSync(tmp, file);
 }
 
-module.exports = { load, save, emptyState };
+module.exports = { load, save };

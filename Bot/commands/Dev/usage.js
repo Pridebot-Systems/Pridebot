@@ -2,6 +2,58 @@ const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const CommandUsage = require("../../../DB/models/usageSchema");
 const IDLists = require("../../../DB/models/idSchema");
 
+const CATEGORIES = {
+  Avatar: ["avatar-list", "avatar-view", "prideavatar", "useravatar-view"],
+  Fun: [
+    "gaydar",
+    "lgbtq",
+    "match",
+    "rizzdar",
+    "bidar",
+    "queerdar",
+    "transdar",
+    "usergaydar",
+    "userqueerdar",
+    "usertransdar",
+  ],
+  Pride: [
+    "pridemonth",
+    "genderfluid",
+    "nonbinary",
+    "transgender",
+    "asexual",
+    "bisexual",
+    "gay",
+    "lesbian",
+    "pansexual",
+    "queer",
+  ],
+  Profile: ["profile", "userprofile"],
+  Support: ["comingout", "mentalhealth", "transresources", "feedback"],
+  Terms: ["gender", "other", "pronouns", "sexuality"],
+  Tools: [
+    "help",
+    "nametester",
+    "partner",
+    "premium",
+    "pronountester",
+    "stats",
+    "vote",
+  ],
+  Dev: [
+    "blacklist",
+    "darid",
+    "datarequest",
+    "errormode",
+    "id",
+    "pfpcleanup",
+    "pfpstats",
+    "termlist",
+    "topserver",
+    "usage",
+  ],
+};
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("usage")
@@ -14,64 +66,7 @@ module.exports = {
     ),
 
   categorizeCommand(commandName) {
-    const categories = {
-      Avatar: ["avatar-list", "avatar-view", "prideavatar", "useravatar-view"],
-      Fun: [
-        "gaydar",
-        "lgbtq",
-        "match",
-        "rizzdar",
-        "bidar",
-        "queerdar",
-        "transdar",
-        "usergaydar",
-        "userqueerdar",
-        "usertransdar",
-      ],
-      Pride: [
-        "pridemonth",
-        "genderfluid",
-        "nonbinary",
-        "transgender",
-        "asexual",
-        "bisexual",
-        "gay",
-        "lesbian",
-        "pansexual",
-        "queer",
-      ],
-      Profile: ["profile", "userprofile"],
-      Support: ["comingout", "mentalhealth", "transresources", "feedback"],
-      Terms: ["gender", "other", "pronouns", "sexuality"],
-      Tools: [
-        "help",
-        "nametester",
-        "partner",
-        "premium",
-        "pronountester",
-        "stats",
-        "vote",
-      ],
-      Dev: [
-        "blacklist",
-        "darid",
-        "datarequest",
-        "errormode",
-        "id",
-        "pfpcleanup",
-        "pfpstats",
-        "termlist",
-        "topserver",
-        "usage",
-      ],
-    };
-
-    for (const [category, commands] of Object.entries(categories)) {
-      if (commands.includes(commandName.toLowerCase())) {
-        return category;
-      }
-    }
-    return "Other";
+    return Object.entries(CATEGORIES).find(([, commands]) => commands.includes(commandName.toLowerCase()))?.[0] ?? "Other";
   },
 
   async execute(interaction) {
@@ -90,26 +85,15 @@ module.exports = {
     const totalUsage = allUsages.reduce((acc, cmd) => acc + cmd.count, 0);
 
     const categorizedUsages = {};
-    const categories = [
-      "Avatar",
-      "Fun",
-      "Pride",
-      "Profile",
-      "Support",
-      "Terms",
-      "Tools",
-      "Dev",
-      "Other",
-    ];
 
-    categories.forEach((category) => {
+    for (const category of Object.keys(CATEGORIES)) {
       categorizedUsages[category] = [];
-    });
+    }
 
-    allUsages.forEach((cmd) => {
+    for (const cmd of allUsages) {
       const category = this.categorizeCommand(cmd.commandName);
       categorizedUsages[category].push(cmd);
-    });
+    }
 
     const usageEmbed = new EmbedBuilder()
       .setColor("#FF00EA")
@@ -119,7 +103,7 @@ module.exports = {
       )
       .setTimestamp();
 
-    categories.forEach((category) => {
+    for (const category of Object.keys(CATEGORIES)) {
       const categoryCommands = categorizedUsages[category];
       if (categoryCommands.length === 0) return;
 
@@ -143,7 +127,7 @@ module.exports = {
         value: commandList || "No commands found",
         inline: true,
       });
-    });
+    }
 
     const isPublic = interaction.options.getBoolean("public") || false;
     await interaction.reply({ embeds: [usageEmbed], ephemeral: !isPublic });

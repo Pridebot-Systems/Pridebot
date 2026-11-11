@@ -509,7 +509,7 @@ function getProfileThumbnail(profile, targetUser) {
 }
 
 function isValidPronounPageLink(link) {
-  return /^https:\/\/(en\.)?pronouns\.page\/@[\w-]+$/.test(link);
+  return /^https:\/\/(?:en\.)?pronouns\.page\/@[\w-]+$/.test(link);
 }
 
 async function ageCheck(interaction, age, cmd) {

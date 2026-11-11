@@ -11,12 +11,10 @@ module.exports = {
     const serverID = guild.id || "undefined";
     const memberCount = guild.memberCount || "undefined";
     const ownerID = guild.ownerId || "undefined";
-    const results = await client.cluster.broadcastEval((c) => {
-      return {
-        guildCount: c.guilds.cache.size,
-        userCount: c.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0),
-      };
-    });
+    const results = await client.cluster.broadcastEval((c) => ({
+      guildCount: c.guilds.cache.size,
+      userCount: c.guilds.cache.reduce((acc, g) => acc + g.memberCount, 0),
+    }));
 
     const currentGuildCount = results.reduce((acc, r) => acc + r.guildCount, 0);
     const totalUserCount = results.reduce((acc, r) => acc + r.userCount, 0);

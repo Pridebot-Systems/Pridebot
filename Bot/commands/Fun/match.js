@@ -1,14 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const commandLogging = require("../../utils/logging/commandlog");
 const { loadTranslations } = require("../../../Shared/locales");
-const utility_functions = {
-  chance: function (probability) {
-    return Math.random() < probability;
-  },
-  number_format_commas: function (number) {
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  },
-};
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -42,11 +34,11 @@ module.exports = {
     const user2name = user2.username;
 
     let description;
-    if (utility_functions.chance(0.01)) {
+    if (Math.random() <= 0.01) {
       description = t.description_perfect
         .replace("{{mention1}}", `<@${user1.id}>`)
         .replace("{{mention2}}", `<@${user2.id}>`);
-    } else if (utility_functions.chance(0.01)) {
+    } else if (Math.random() <= 0.01) {
       description = t.description_none
         .replace("{{mention1}}", `<@${user1.id}>`)
         .replace("{{mention2}}", `<@${user2.id}>`);

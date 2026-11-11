@@ -510,19 +510,12 @@ class StatusMonitor {
     }
 
     // A component that no longer exists (cluster layout changed) can't recover.
-    for (const incident of this.state.incidents) {
-      if (
-        incident.kind === "auto" &&
-        !incident.resolvedAt &&
-        incident.component &&
-        !present.has(incident.component)
-      ) {
-        this._resolve(
-          incident,
-          now,
-          "Component no longer exists after a restart with a new shard layout."
-        );
-      }
+    for (const incident of this.state.incidents.filter(incident => incident.kind === "auto" && !incident.resolvedAt && incident.component && !present.has(incident.component))) {
+      this._resolve(
+        incident,
+        now,
+        "Component no longer exists after a restart with a new shard layout."
+      );
     }
   }
 

@@ -125,7 +125,7 @@ const CATEGORIES = [
     },
     async remove({ userId }, data) {
       const { deletedCount } = await Profile.deleteOne({ userId });
-      for (const file of data.files) await fs.rm(file, { force: true });
+      await Promise.all(data.files.map(file => fs.rm(file, { force: true })));
       return `profile doc ${deletedCount ? "deleted" : "not found"}, ${data.files.length} pfp file(s) removed`;
     },
   },
@@ -150,7 +150,7 @@ const CATEGORIES = [
       return { summary: lines.join("\n"), dirs: dirs.map((d) => d.dir) };
     },
     async remove({ userId }, data) {
-      for (const dir of data.dirs) await fs.rm(dir, { recursive: true, force: true });
+      await Promise.all(data.dirs.map(dir => fs.rm(dir, { recursive: true, force: true })));
       const { deletedCount } = await AvatarGeneration.deleteMany({ userID: userId });
       return `${data.dirs.length} folder(s) removed, ${deletedCount} generation log(s) deleted`;
     },

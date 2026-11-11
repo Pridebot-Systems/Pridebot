@@ -14,12 +14,7 @@ const commandLogging = async (client, interaction) => {
   const allUsages = await CommandUsage.find({});
   const totalUsage = allUsages.reduce((acc, cmd) => acc + cmd.count, 0);
 
-  let location;
-  if (interaction.guild) {
-    location = `${interaction.guild.name} (${interaction.guild.id})`;
-  } else {
-    location = "User Install Context (External Server)";
-  }
+  let location = interaction.guild ? `${interaction.guild.name} (${interaction.guild.id})` : "User Install Context (External Server)";
 
   const logEmbed = new EmbedBuilder()
     .setTitle("Command Used")

@@ -11,7 +11,7 @@ function pick(betaVar, prodVar) {
   return value;
 }
 
-const config = {
+const CONFIG = {
   isBeta,
   isProduction: !isBeta,
   environment: isBeta ? "beta" : "production",
@@ -90,19 +90,19 @@ const config = {
 };
 
 for (const [name, value] of Object.entries({
-  databaseToken: config.databaseToken,
-  JWT_SECRET: config.secrets.jwt,
-  SESSION_SECRET: config.secrets.session,
+  databaseToken: CONFIG.databaseToken,
+  JWT_SECRET: CONFIG.secrets.jwt,
+  SESSION_SECRET: CONFIG.secrets.session,
 })) {
   if (!value) missing.push(name);
 }
 
 if (missing.length) {
   console.error(
-    `[ENV] Missing required variables for ${config.environment}: ${missing.join(", ")}`
+    `[ENV] Missing required variables for ${CONFIG.environment}: ${missing.join(", ")}`
   );
   console.error("[ENV] Every variable this reads is listed in environment.js.");
   process.exit(1);
 }
 
-module.exports = config;
+module.exports = CONFIG;

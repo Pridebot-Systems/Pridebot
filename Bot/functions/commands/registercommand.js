@@ -1,6 +1,5 @@
 async function getRegisteredCommandsCount(client) {
-  if (!client) return 0;
-  if (!client.application) return 0;
+  if (!client?.application) return 0;
 
   try {
     await client.application.fetch();

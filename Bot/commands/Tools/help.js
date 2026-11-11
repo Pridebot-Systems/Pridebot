@@ -214,9 +214,10 @@ function categorySelect(current, disabled) {
   );
 }
 
+const link = (label, url, emoji) =>
+  new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel(label).setURL(url).setEmoji(emoji);
+
 function linkButtons() {
-  const link = (label, url, emoji) =>
-    new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel(label).setURL(url).setEmoji(emoji);
   return new ActionRowBuilder().addComponents(
     link("Website", LINKS.site, "1108228682184654908"),
     link("Support", LINKS.support, "1108417509624926228"),

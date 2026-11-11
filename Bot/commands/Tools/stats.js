@@ -3,6 +3,42 @@ const { getInfo } = require("discord-hybrid-sharding");
 const commandLogging = require("../../utils/logging/commandlog");
 const { getStats } = require("../../functions/bot/stats");
 
+const TIME_UNITS = {
+  day: 3600 * 24,
+  hour: 3600,
+  minute: 60,
+  second: 1,
+};
+
+function formatUptime(seconds) {
+  let result = [];
+  for (const [unit, amountInSeconds] of Object.entries(TIME_UNITS)) {
+    const quantity = Math.floor(seconds / amountInSeconds);
+    seconds %= amountInSeconds;
+    if (quantity > 0) {
+      result.push(`${quantity} ${unit}${quantity > 1 ? "s" : ""}`);
+    }
+  }
+  return result.join(", ");
+}
+
+async function getProcessStats(client) {
+  const perCluster = await client.cluster.broadcastEval(async () => {
+    const sampleMs = 200;
+    const before = process.cpuUsage();
+    await new Promise((r) => setTimeout(r, sampleMs));
+    const { user, system } = process.cpuUsage(before);
+    return {
+      rss: process.memoryUsage().rss,
+      cpu: ((user + system) / 1000 / sampleMs) * 100,
+    };
+  });
+  return {
+    memory: (perCluster.reduce((a, c) => a + c.rss, 0) / 1024 / 1024).toFixed(2),
+    cpu: perCluster.reduce((a, c) => a + c.cpu, 0).toFixed(2),
+  };
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("stats")
@@ -14,41 +50,6 @@ module.exports = {
 
     const botLatency = Date.now() - startTimestamp;
     const botping = Math.round(client.ws.ping);
-
-    function formatUptime(seconds) {
-      const timeUnits = {
-        day: 3600 * 24,
-        hour: 3600,
-        minute: 60,
-        second: 1,
-      };
-      let result = [];
-      for (const [unit, amountInSeconds] of Object.entries(timeUnits)) {
-        const quantity = Math.floor(seconds / amountInSeconds);
-        seconds %= amountInSeconds;
-        if (quantity > 0) {
-          result.push(`${quantity} ${unit}${quantity > 1 ? "s" : ""}`);
-        }
-      }
-      return result.join(", ");
-    }
-
-    async function getProcessStats() {
-      const perCluster = await client.cluster.broadcastEval(async () => {
-        const sampleMs = 200;
-        const before = process.cpuUsage();
-        await new Promise((r) => setTimeout(r, sampleMs));
-        const { user, system } = process.cpuUsage(before);
-        return {
-          rss: process.memoryUsage().rss,
-          cpu: ((user + system) / 1000 / sampleMs) * 100,
-        };
-      });
-      return {
-        memory: (perCluster.reduce((a, c) => a + c.rss, 0) / 1024 / 1024).toFixed(2),
-        cpu: perCluster.reduce((a, c) => a + c.cpu, 0).toFixed(2),
-      };
-    }
 
     try {
       const stats = await getStats(client);
@@ -62,7 +63,7 @@ module.exports = {
 
       const startTimeTimestamp = `<t:${client.botStartTime}:f>`;
 
-      const processStats = await getProcessStats();
+      const processStats = await getProcessStats(client);
       const memoryUsage = `${processStats.memory} MB`;
       const cpuUsage = `${processStats.cpu}%`;
 

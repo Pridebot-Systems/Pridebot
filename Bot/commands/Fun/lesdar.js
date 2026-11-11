@@ -10,12 +10,6 @@ const {
   formatDarMeter,
 } = require("../../utils/premium");
 
-const utility_functions = {
-  chance: function (probability) {
-    return Math.random() <= probability;
-  },
-};
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("lesdar")
@@ -43,9 +37,9 @@ module.exports = {
       meter = pin;
     } else {
       meter = applyDarRange(min, max);
-      if (!fixed && utility_functions.chance(0.0001)) {
+      if (!fixed && Math.random() <= 0.0001) {
         meter = Math.floor(Math.random() * 2354082) + 500;
-        if (utility_functions.chance(0.5)) meter *= -1;
+        if (Math.random() <= 0.5) meter *= -1;
       }
     }
 

@@ -1,4 +1,6 @@
 const { addTrashCanReaction } = require("../../functions/commands/trashreact.js");
+const IDLists = require("../../../DB/models/idSchema.js");
+const ProfileData = require("../../../DB/models/profileSchema.js");
 
 const VALID_TIERS = ["free", "supporter", "lgbtqpp"];
 
@@ -18,9 +20,6 @@ async function setPremiumCommand(message, client) {
   const commandName = args.shift().toLowerCase();
 
   if (commandName !== "setpremium") return;
-
-  const IDLists = require("../../../DB/models/idSchema.js");
-  const ProfileData = require("../../../DB/models/profileSchema.js");
 
   const idLists = await IDLists.findOne();
   if (!idLists || !idLists.devs.includes(message.author.id)) {
