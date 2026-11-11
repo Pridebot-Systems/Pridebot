@@ -309,8 +309,8 @@ const handleFeedbackModal = async (interaction) => {
         )}\n\nReason: ${deletionReason}`,
         category: "data_delete",
         metadata: {
-          dataTypes: dataTypes,
-          deletionReason: deletionReason,
+          dataTypes,
+          deletionReason,
           confirmed: true,
         },
       });
@@ -398,7 +398,7 @@ const handleFeedbackModal = async (interaction) => {
       guildId: interaction.guild?.id || null,
       guildName: interaction.guild?.name || null,
       feedback: feedbackText,
-      category: category,
+      category,
     });
 
     await feedback.save();

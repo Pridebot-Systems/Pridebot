@@ -253,7 +253,7 @@ async function scanEmptyFolders(daysOld = 30) {
         name: folder.name,
         path: folderPath,
         createdDate: folderStat.birthtime,
-        ageInDays: ageInDays,
+        ageInDays,
       });
     }
   }

@@ -150,9 +150,9 @@ module.exports = {
 
       logAvatarGeneration({
         userID: pfpuser.id,
-        username: username,
-        flagName: flagName,
-        flagName2: flagName2,
+        username,
+        flagName,
+        flagName2,
         processingTime: avatarData.processingTime,
         fileSize: avatarData.fileSize,
         cacheHit: false,
